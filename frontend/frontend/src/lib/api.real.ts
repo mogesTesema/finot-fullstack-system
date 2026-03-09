@@ -1,0 +1,309 @@
+// src/services/api.real.js
+import axiosInstance from './axios';
+import { AuthUser, Donation, ServiceSelection } from '../types';
+
+// Helper to combine user and profile
+const combineUserWithProfile = (userData: any, profileData: any): AuthUser => {
+  const full_name = `${userData.first_name || ''} ${userData.middle_name || ''} ${userData.last_name || ''}`.trim();
+  
+  const status: 'graduated' | 'active' = profileData?.status === 'GRADUATED' ? 'graduated' : 'active';
+
+  return {
+    id: userData.id,
+    full_name,
+    email: userData.email,
+    gender: userData.gender === 'M' ? 'Male' : (userData.gender === 'F' ? 'Female' : ''),
+    role: 'student', // TODO: add roles from backend if available
+    profile: {
+      baptismal_name: profileData?.baptismal_name || '',
+      profile_image: profileData?.profile_image || null,
+      batch: profileData?.batch_year ? `${profileData.batch_year} Year` : '',
+      department: profileData?.department || '',
+      telegram: profileData?.telegram_username || '',
+      personal_phone: profileData?.personal_phone || '',
+      emergency_name: profileData?.emergency_name || '',
+      emergency_phone: profileData?.emergency_phone || '',
+      emergency_relation: profileData?.emergency_relation || '',
+      home_address: profileData?.home_address || '',
+      previous_church: profileData?.previous_church || '',
+      activity_serving: profileData?.activity_serving || '',
+      dorm_block_room: profileData?.dorm_block && profileData?.dorm_room ? `Block ${profileData.dorm_block} - Room ${profileData.dorm_room}` : '',
+      confession_father: profileData?.confession_father || '',
+      status: status,
+      assignedGroup: null, // not in current schema
+    },
+  };
+};
+
+export const api = {
+  getUser: async (): Promise<AuthUser> => {
+    try {
+      // Standard simplified call - rely entirely on the Axios Interceptor
+      const userResponse = await axiosInstance.get('/auth/users/me/');
+      const userData = userResponse.data;
+
+      // Fetch student profile
+      let profileData = {};
+      try {
+        const profileResponse = await axiosInstance.get('/api/student/profiles/me/');
+        profileData = profileResponse.data;
+      } catch (error) {
+        console.warn('Student profile not found. User may need onboarding.');
+      }
+
+      return combineUserWithProfile(userData, profileData);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  login: async (email: string, password: string): Promise<{ success: boolean; user: AuthUser }> => {
+    // 1. Clear old state to ensure the interceptor doesn't send a stale token
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+
+    // 2. Authenticate
+    let response;
+    try {
+      response = await axiosInstance.post('/auth/jwt/create/', { username: email, password });
+    } catch (error: any) {
+      if (error.response && error.response.status === 401) {
+        throw new Error("Incorrect Email or Password. If you don't have an account, please register.");
+      }
+      throw error;
+    }
+
+    const { access, refresh } = response.data;
+    
+    // 3. Persist tokens
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+
+    // 4. Fetch the full user object
+    // Because getUser() uses axiosInstance, it will trigger the interceptor, 
+    // which will find the NEW token in localStorage.
+    try {
+      const combinedUser = await api.getUser();
+      return { success: true, user: combinedUser };
+    } catch (error) {
+       console.error("Critical: Auth succeeded but profile fetch failed.", error);
+       throw new Error("Login successful, but failed to load user profile. Please try refreshing.");
+    }
+  },
+
+  register: async (userData: any): Promise<{ success: boolean; user: AuthUser }> => {
+    const payload = {
+      username: userData.email,
+      first_name: userData.first_name,
+      middle_name: userData.middle_name,
+      last_name: userData.last_name,
+      email: userData.email,
+      gender: userData.gender, // M or F
+      password: userData.password,
+    };
+
+    console.log('🚀 Sending registration payload:', payload);
+
+    try {
+      const response = await axiosInstance.post('/auth/users/', payload);
+      console.log('✅ Registration response:', response.data);
+      return await api.login(userData.email, userData.password);
+    } catch (error: any) {
+      console.error(' Registration error response:', error.response?.data);
+      throw error;
+    }
+  },
+  requestPasswordReset: async (email: string) => {
+    await axiosInstance.post('/auth/users/reset_password/', { email });
+    return { success: true };
+  },
+
+  requestPasswordResetConfirm: async (
+    uid: string,
+    token: string,
+    new_password: string,
+    re_new_password: string
+  ) => {
+    await axiosInstance.post('/auth/users/reset_password_confirm/', {
+      uid,
+      token,
+      new_password,
+      re_new_password,
+    });
+    return { success: true };
+  },
+
+  // ========== USERS ==========
+  getAllUsers: async () => {
+    const response = await axiosInstance.get('/auth/users/');
+    return response.data;
+  },
+
+  // ========== SERVICE GROUPS ==========
+  getServiceGroups: async () => {
+    const response = await axiosInstance.get('/api/service/groups/');
+    return response.data;
+  },
+
+  getServiceGroupById: async (groupId: string | number) => {
+    const response = await axiosInstance.get(`/api/service/groups/${groupId}/`);
+    return response.data;
+  },
+
+  // ========== SELECTIONS ==========
+  getSelectionWindow: async (): Promise<{ selection_open: boolean }> => {
+    try {
+      const response = await axiosInstance.get('/api/service/configuration/');
+      return { selection_open: response.data?.selection_open !== false };
+    } catch (error: any) {
+      // If endpoint not yet available, allow selection by default
+      if (error?.response?.status === 404) {
+        return { selection_open: true };
+      }
+      console.warn('Selection window check failed; defaulting to open.', error);
+      return { selection_open: true };
+    }
+  },
+
+  getUserSelection: async () => {
+    // Backend returns current user's selections when called without params
+    const response = await axiosInstance.get('/api/service/selections/');
+    return response.data;
+  },
+
+  updateProfile: async (profileData: any) => {
+    // Sending PATCH to /me/ endpoint since that's what we mapped in the backend
+    const response = await axiosInstance.patch('/api/student/profiles/me/', profileData);
+    return response.data;
+  },
+
+  getUserNotifications: async (userId?: string | number) => {
+    // The backend does not currently have a dedicated notifications endpoint.
+    // Returning an empty array to prevent TypeError on the frontend.
+    return [];
+  },
+
+  submitSelection: async (selections: ServiceSelection[]) => {
+    const payload = { selections };
+    const response = await axiosInstance.post('/api/service/selections/', payload);
+    return response.data;
+  },
+
+  deleteSelection: async (selectionId: string | number) => {
+    await axiosInstance.delete(`/api/service/selections/${selectionId}/`);
+    return { success: true };
+  },
+
+  // ========== FAMILIES ==========
+  getFamilies: async () => {
+    const response = await axiosInstance.get('/api/service/families/');
+    return response.data;
+  },
+
+  getMyFamily: async () => {
+    const response = await axiosInstance.get('/api/service/families/my-family/');
+    return response.data;
+  },
+
+  getFamilyMembers: async (familyId: string | number) => {
+    const response = await axiosInstance.get(`/api/service/families/${familyId}/members/`);
+    return response.data;
+  },
+
+  // ========== EVENTS ==========
+  getEvents: async () => {
+    const response = await axiosInstance.get('/api/service/events/');
+    return response.data;
+  },
+
+  // ========== ATTENDANCE ==========
+  getAttendance: async () => {
+    const response = await axiosInstance.get('/api/service/attendance/');
+    return response.data;
+  },
+
+  // ========== DONATIONS ==========
+  getDonations: async (userId: string | number | null = null): Promise<Donation[]> => {
+    // If we wanted to filter by user on admin, we'd do it.
+    // However the MyDonationHistoryViewSet handles its own filtering via the logged in token.
+    const response = await axiosInstance.get<Donation[]>('/api/donations/my-history/');
+    return response.data;
+  },
+
+  createDonation: async (donationData: any) => {
+    const response = await axiosInstance.post('/api/donations/initiate/', donationData);
+    return response.data;
+  },
+
+  verifyDonation: async (txRef: string) => {
+    const response = await axiosInstance.get(`/api/donations/verify/${txRef}/`);
+    return response.data;
+  },
+
+  // ========== QUESTIONS & ANSWERS ==========
+  getQuestions: async () => {
+    const response = await axiosInstance.get('/api/qa/questions/');
+    return response.data;
+  },
+
+  getQuestionById: async (questionId: string | number) => {
+    const response = await axiosInstance.get(`/api/qa/questions/${questionId}/`);
+    return response.data;
+  },
+
+  postQuestion: async (question: any) => {
+    const response = await axiosInstance.post('/api/qa/questions/', question);
+    return response.data;
+  },
+
+  postAnswer: async (answer: any) => {
+    const response = await axiosInstance.post('/api/qa/answers/', answer);
+    return response.data;
+  },
+
+  updateQuestion: async (questionId: string | number, updatedData: any) => {
+    const response = await axiosInstance.patch(`/api/qa/questions/${questionId}/`, updatedData);
+    return response.data;
+  },
+
+  deleteQuestion: async (questionId: string | number) => {
+    await axiosInstance.delete(`/api/qa/questions/${questionId}/`);
+    return { success: true };
+  },
+
+  updateAnswer: async (answerId: string | number, updatedData: any) => {
+    const response = await axiosInstance.patch(`/api/qa/answers/${answerId}/`, updatedData);
+    return response.data;
+  },
+
+  deleteAnswer: async (answerId: string | number) => {
+    await axiosInstance.delete(`/api/qa/answers/${answerId}/`);
+    return { success: true };
+  },
+
+  // ========== ADMIN SPECIFIC ==========
+  getGroupByAdminId: async (adminId: string | number) => {
+    const response = await axiosInstance.get(`/api/service/groups/?admin=${adminId}`);
+    return response.data[0] || null;
+  },
+
+  getAllSelections: async () => {
+    const response = await axiosInstance.get('/api/service/selections/');
+    return response.data;
+  },
+
+  getUsersByGroup: async (groupId: string | number) => {
+    const response = await axiosInstance.get(`/api/service/groups/${groupId}/members/`);
+    return response.data;
+  },
+
+  assignGroupAdmin: async (groupId: string | number, adminId: string | number) => {
+    const response = await axiosInstance.post(`/api/service/groups/${groupId}/assign-admin/`, { admin_id: adminId });
+    return response.data;
+  },
+
+  deleteUser: async (userId: string | number) => {
+    await axiosInstance.delete(`/auth/users/${userId}/`);
+    return { success: true };
+  },
+};

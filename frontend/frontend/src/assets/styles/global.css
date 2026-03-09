@@ -1,0 +1,30 @@
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.input {
+  @apply w-full border border-gray-300 rounded-lg px-4 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-yellow-400;
+  
+}
+
+.input {
+  @apply bg-blue-950 border border-yellow-400 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400;
+} */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .input {
+    @apply w-full bg-blue-950 border border-yellow-400 
+           rounded-lg px-4 py-2 text-white 
+           focus:outline-none focus:ring-2 focus:ring-yellow-400;
+  }
+  .card {
+  @apply bg-blue-900/80 p-6 rounded-2xl shadow-2xl border border-yellow-400/20;
+}
+
+.section-title {
+  @apply text-xl font-semibold text-yellow-400 mb-6;
+}
+}

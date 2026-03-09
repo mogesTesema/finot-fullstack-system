@@ -1,0 +1,25 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "django==5.1",
+    "django-restframework>=0.0.1",
+    "drf-nested-routers>=0.95.0",
+    "python-dotenv>=1.0.0",
+    "psycopg2-binary>=2.9.0",
+    "dj-database-url>=2.0.0",
+    "pillow>=12.1.1",
+    "djoser>=2.3.3",
+    "django-cloudinary-storage>=0.3.0",
+    "cloudinary>=1.44.1",
+    "python-decouple>=3.8",
+    "django-cors-headers>=4.9.0",
+]
+
+[dependency-groups]
+dev = [
+    "drf-spectacular>=0.29.0",
+]
