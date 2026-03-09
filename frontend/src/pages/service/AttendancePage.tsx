@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import { AttendanceRecord } from "../../types";
-import Swal from "sweetalert2";
+import EmptyState from "../../components/ui/EmptyState";
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-const statusColors: Record<string, string> = {
-  PRESENT: "text-green-400",
-  ABSENT: "text-red-400",
-  LATE: "text-yellow-400",
-  EXCUSED: "text-blue-400",
+const statusStyles: Record<string, string> = {
+  PRESENT: "bg-success/10 text-success",
+  ABSENT: "bg-destructive/10 text-destructive",
+  LATE: "bg-warning/10 text-warning",
+  EXCUSED: "bg-blue-100 text-blue-600",
 };
 
 const AttendancePage = () => {
@@ -30,68 +30,51 @@ const AttendancePage = () => {
         setAttendance(data);
       } catch (error) {
         console.error("Failed to fetch attendance", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Failed to load attendance history.",
-          confirmButtonColor: "#fbbf24",
-          background: "#142850",
-          color: "#fff",
-        });
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     };
     if (user) fetchAttendance();
   }, [user]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-yellow-400">Loading...</div>
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => <div key={i} className="skeleton h-16 rounded-xl" />)}
       </div>
     );
   }
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={fadeInUp}
-      className="bg-[#142850] rounded-2xl shadow-xl p-6"
-    >
-      <h2 className="text-2xl font-bold text-yellow-400 mb-4 flex items-center">
-        <CalendarIcon className="h-6 w-6 mr-2" />
-        My Attendance
-      </h2>
-      {attendance.length === 0 ? (
-        <p className="text-gray-400">No attendance records found.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="text-yellow-400 border-b border-gray-700">
-              <tr>
-                <th className="py-2">Event</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Remark</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendance.map((a) => (
-                <tr key={a.id} className="border-b border-gray-700">
-                  <td className="py-2 text-white">{a.event_title}</td>
-                  <td className="text-gray-300">
+    <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+      <div className="card">
+        <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+          <CalendarIcon className="h-5 w-5 text-accent-foreground" />
+          My Attendance
+        </h2>
+        {attendance.length === 0 ? (
+          <EmptyState
+            icon={<CalendarIcon className="h-8 w-8" />}
+            title="No attendance records"
+            description="Your attendance history will appear here."
+          />
+        ) : (
+          <div className="space-y-2">
+            {attendance.map((a) => (
+              <div key={a.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-foreground text-sm truncate">{a.event_title}</p>
+                  <p className="text-xs text-muted-foreground">
                     {a.event_date ? new Date(a.event_date).toLocaleDateString() : "—"}
-                  </td>
-                  <td className={statusColors[a.status] || "text-gray-300"}>{a.status}</td>
-                  <td className="text-gray-300">{a.remark || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                    {a.remark && ` • ${a.remark}`}
+                  </p>
+                </div>
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-lg ${statusStyles[a.status] || "bg-muted text-muted-foreground"}`}>
+                  {a.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 };
