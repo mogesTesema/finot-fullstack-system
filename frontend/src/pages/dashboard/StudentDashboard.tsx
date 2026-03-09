@@ -2,8 +2,18 @@ import { useState, useEffect, type SyntheticEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Sidebar from "../../components/navigation/Sidebar";
-import { ArrowLeftIcon, CalendarIcon, UsersIcon, CheckBadgeIcon } from "@heroicons/react/24/outline";
+import { SkeletonCard } from "../../components/ui/SkeletonLoader";
+import EmptyState from "../../components/ui/EmptyState";
+import {
+  CalendarIcon,
+  UsersIcon,
+  CheckBadgeIcon,
+  HeartIcon,
+  ArrowRightIcon,
+  SparklesIcon,
+} from "@heroicons/react/24/outline";
 import { api } from "../../lib/api";
+import { motion } from "framer-motion";
 
 type DashboardEvent = {
   event_id?: string | number;
@@ -14,8 +24,13 @@ type DashboardEvent = {
   location?: string;
 };
 
-type NotificationItem = {
-  is_read?: boolean;
+const fadeIn = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+};
+
+const stagger = {
+  visible: { transition: { staggerChildren: 0.1 } },
 };
 
 const StudentDashboard = () => {
@@ -36,29 +51,23 @@ const StudentDashboard = () => {
         const upcomingEvents = await api.getEvents();
         setEvents((upcomingEvents || []) as DashboardEvent[]);
         const notifs = await api.getUserNotifications(user?.id);
-        const notificationItems = (notifs || []) as NotificationItem[];
-        setNotifCount(notificationItems.filter((notification) => !notification.is_read).length);
+        setNotifCount((notifs || []).filter((n: any) => !n.is_read).length);
 
         try {
           const fam = await api.getMyFamily();
           setFamily(fam);
         } catch (err: any) {
           setFamily(null);
-          if (err?.response?.status === 404) {
-            setFamilyError("You have not been assigned a family yet.");
-          } else {
-            setFamilyError("Could not load family information.");
-          }
+          setFamilyError(err?.response?.status === 404
+            ? "You have not been assigned a family yet."
+            : "Could not load family information.");
         }
 
         try {
           const attendanceHistory = await api.getAttendance();
           setAttendance(attendanceHistory || []);
-        } catch (err) {
-          setAttendance([]);
-        } finally {
-          setLoadingAttendance(false);
-        }
+        } catch { setAttendance([]); }
+        finally { setLoadingAttendance(false); }
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
       } finally {
@@ -66,227 +75,281 @@ const StudentDashboard = () => {
       }
     };
     if (user) fetchDashboardData();
-
-    // Mock donation reminder on Thursday
-    const today = new Date().getDay();
-    setDonationReminder(today === 4);
+    setDonationReminder(new Date().getDay() === 4);
   }, [user]);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  const handleLogout = () => { logout(); navigate("/"); };
 
-  if (!user) return <div className="p-8 text-white">Loading...</div>;
+  if (!user) return (
+    <div className="flex min-h-screen bg-background">
+      <Sidebar notifCount={0} onLogout={() => {}} />
+      <main className="flex-1 p-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+      </main>
+    </div>
+  );
 
   const fullName = user.full_name || "";
-  const userId = user.id || "";
-  const profile = user.profile || {};
+  const profile = user.profile || {} as any;
   const department = profile.department || "";
   const batch = profile.batch || "";
   const assignedGroup = profile.assignedGroup || "Not assigned";
   const profileImage = profile.profile_image || "/images/default-avatar.jpg";
 
   return (
-    <div className="flex min-h-screen bg-[#1B3067]">
+    <div className="flex min-h-screen bg-background">
       <Sidebar notifCount={notifCount} onLogout={handleLogout} />
 
-      <main className="flex-1 p-6 overflow-auto pt-20">
-        <div className="max-w-5xl mx-auto">
-          {/* Back to Home button */}
-          <div className="mb-4">
-            <Link
-              to="/"
-              className="inline-flex items-center text-yellow-400 hover:text-yellow-300 transition"
-            >
-              <ArrowLeftIcon className="h-5 w-5 mr-2" />
-              Back to Home
-            </Link>
-          </div>
+      <main className="flex-1 p-4 md:p-8 overflow-auto">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={stagger}
+          className="max-w-6xl mx-auto"
+        >
+          {/* Greeting */}
+          <motion.div variants={fadeIn} className="mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              Welcome back, <span className="text-primary">{fullName.split(" ")[0]}</span> 👋
+            </h1>
+            <p className="text-muted-foreground mt-1">Here's your community overview</p>
+          </motion.div>
 
-          {/* Donation reminder notification */}
+          {/* Donation Reminder */}
           {donationReminder && (
-            <div className="bg-[#142850] rounded-2xl shadow-xl p-6 mb-6 border-l-4 border-yellow-400">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-yellow-400">💛 Weekly Donation Reminder</h3>
-                  <p className="text-gray-300 mt-1">
-                    It's Thursday! Consider your weekly 1 Birr donation to support our community.
-                  </p>
+            <motion.div
+              variants={fadeIn}
+              className="card mb-6 border-l-4 border-l-accent bg-accent/5"
+            >
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-accent/10 rounded-xl">
+                    <HeartIcon className="h-5 w-5 text-accent-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">Weekly Donation Reminder</h3>
+                    <p className="text-sm text-muted-foreground">
+                      It's Thursday! Consider your weekly 1 Birr donation.
+                    </p>
+                  </div>
                 </div>
-                <Link
-                  to="/donate/inside"
-                  className="bg-yellow-400 text-[#1B3067] px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition"
-                >
+                <Link to="/donate/inside" className="btn-primary text-sm px-4 py-2">
                   Donate Now
                 </Link>
               </div>
-            </div>
+            </motion.div>
           )}
 
-          {/* Profile Summary Card */}
-          <div className="bg-[#142850] rounded-2xl shadow-xl p-6 mb-8">
-            <div className="flex items-center space-x-6">
-              <img
-                src={profileImage}
-                alt={fullName}
-                className="w-24 h-24 rounded-full object-cover border-4 border-yellow-400"
-                onError={(event: SyntheticEvent<HTMLImageElement>) => {
-                  event.currentTarget.src = "/images/default-avatar.jpg";
-                }}
-              />
-              <div>
-                <h1 className="text-3xl font-bold text-yellow-400">{fullName}</h1>
-                <p className="text-gray-300 text-lg">{department} • {batch}</p>
-                <p className="text-gray-400 text-sm mt-1">ID: {userId}</p>
-                <p className="text-green-400 font-semibold mt-2">
-                  Service Group: {assignedGroup}
-                </p>
+          {/* Bento Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Profile Card - spans 2 cols on lg */}
+            <motion.div variants={fadeIn} className="card lg:col-span-2">
+              <div className="flex items-center gap-5">
+                <img
+                  src={profileImage}
+                  alt={fullName}
+                  className="w-16 h-16 md:w-20 md:h-20 rounded-2xl object-cover border-2 border-accent/30"
+                  onError={(event: SyntheticEvent<HTMLImageElement>) => {
+                    event.currentTarget.src = "/images/default-avatar.jpg";
+                  }}
+                />
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl font-bold text-foreground truncate">{fullName}</h2>
+                  <p className="text-muted-foreground text-sm">{department} • {batch}</p>
+                  <div className="flex items-center mt-2 gap-2 flex-wrap">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-primary/10 text-primary text-xs font-medium">
+                      {assignedGroup}
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-success/10 text-success text-xs font-medium">
+                      Active
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
+              <div className="mt-5 pt-4 border-t border-border flex flex-wrap gap-3">
+                <Link to="/profile" className="btn-outline text-sm px-4 py-2">View Profile</Link>
+                <Link to="/services" className="btn-secondary text-sm px-4 py-2">Open Services</Link>
+                <Link to="/service-groups/select" className="btn-primary text-sm px-4 py-2">
+                  <SparklesIcon className="h-4 w-4 mr-1.5 inline" />
+                  Service Selection
+                </Link>
+              </div>
+            </motion.div>
 
-            <div className="mt-6 pt-4 border-t border-gray-700 flex flex-col sm:flex-row gap-3">
-              <Link
-                to="/services"
-                className="inline-flex items-center justify-center bg-[#1B3067] text-yellow-400 px-4 py-2 rounded-lg font-semibold hover:bg-[#1f3a78] transition"
-              >
-                Open Services
-              </Link>
-              <Link
-                to="/service-groups/select"
-                className="inline-flex items-center justify-center bg-yellow-400 text-[#1B3067] px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300 transition"
-              >
-                Service Selection
-              </Link>
-            </div>
-          </div>
-
-          {/* Upcoming Events */}
-          <div className="bg-[#142850] rounded-2xl shadow-xl p-6 mb-8">
-            <h2 className="text-2xl font-bold text-yellow-400 mb-4 flex items-center">
-              <CalendarIcon className="h-6 w-6 mr-2" />
-              Upcoming Events
-            </h2>
-
-            {loadingEvents ? (
-              <p className="text-gray-400">Loading events...</p>
-            ) : events.length === 0 ? (
-              <p className="text-gray-400">No upcoming events.</p>
-            ) : (
-              <div className="space-y-4">
-                {events.map((event) => (
-                  <div
-                    key={event.event_id}
-                    className="bg-[#1B3067] rounded-lg p-4 border border-gray-700 hover:border-yellow-400 transition"
+            {/* Quick Actions */}
+            <motion.div variants={fadeIn} className="card">
+              <h3 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wide">Quick Actions</h3>
+              <div className="space-y-2">
+                {[
+                  { to: "/donate/inside", label: "Make a Donation", icon: HeartIcon, color: "text-green-600 bg-green-50" },
+                  { to: "/dashboard/qa", label: "Q&A Forum", icon: SparklesIcon, color: "text-purple-600 bg-purple-50" },
+                  { to: "/service/attendance", label: "My Attendance", icon: CheckBadgeIcon, color: "text-blue-600 bg-blue-50" },
+                ].map((action) => (
+                  <Link
+                    key={action.to}
+                    to={action.to}
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted transition group"
                   >
-                    <h3 className="text-lg font-semibold text-yellow-400">{event.title}</h3>
-                    <p className="text-gray-300 text-sm mt-1">{event.quote}</p>
-                    <p className="text-gray-300 text-sm mt-1">
-                      📅 {event.event_date} at {event.event_time} • 📍 {event.location}
-                    </p>
-                  </div>
+                    <div className={`p-2 rounded-xl ${action.color}`}>
+                      <action.icon className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm font-medium text-foreground flex-1">{action.label}</span>
+                    <ArrowRightIcon className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition" />
+                  </Link>
                 ))}
               </div>
-            )}
-          </div>
+            </motion.div>
 
-          {/* My Family */}
-          <div className="bg-[#142850] rounded-2xl shadow-xl p-6 mb-8">
-            <h2 className="text-2xl font-bold text-yellow-400 mb-4 flex items-center">
-              <UsersIcon className="h-6 w-6 mr-2" />
-              My Family
-            </h2>
-
-            {familyError && <p className="text-gray-300">{familyError}</p>}
-
-            {!familyError && !family && (
-              <p className="text-gray-400">Loading family info...</p>
-            )}
-
-            {family && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-[#1B3067] rounded-lg p-4 border border-gray-700">
-                    <p className="text-sm text-gray-400">Father</p>
-                    <p className="text-lg font-semibold text-yellow-300">{family.father?.name || "-"}</p>
-                    {family.father?.phone && (
-                      <p className="text-gray-300 text-sm">{family.father.phone}</p>
-                    )}
-                  </div>
-                  <div className="bg-[#1B3067] rounded-lg p-4 border border-gray-700">
-                    <p className="text-sm text-gray-400">Mother</p>
-                    <p className="text-lg font-semibold text-yellow-300">{family.mother?.name || "-"}</p>
-                    {family.mother?.phone && (
-                      <p className="text-gray-300 text-sm">{family.mother.phone}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-[#1B3067] rounded-lg p-4 border border-gray-700">
-                    <p className="text-sm text-gray-400">Religious Father</p>
-                    <p className="text-lg font-semibold text-yellow-300">{family.religious_father || "-"}</p>
-                  </div>
-                  <div className="bg-[#1B3067] rounded-lg p-4 border border-gray-700">
-                    <p className="text-sm text-gray-400">Family Name</p>
-                    <p className="text-lg font-semibold text-yellow-300">{family.name}</p>
-                  </div>
-                  <div className="bg-[#1B3067] rounded-lg p-4 border border-gray-700">
-                    <p className="text-sm text-gray-400">Members</p>
-                    <p className="text-lg font-semibold text-yellow-300">{family.member_count || family.siblings?.length || 0}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-400 mb-2">Siblings</p>
-                  {family.siblings && family.siblings.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {family.siblings.slice(0, 9).map((sib: any) => (
-                        <div key={sib.id || sib.email || sib.name} className="bg-[#1B3067] rounded-lg p-3 border border-gray-700">
-                          <p className="text-yellow-300 font-semibold text-sm">{sib.name}</p>
-                          {sib.email && <p className="text-gray-300 text-xs">{sib.email}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-300">No siblings listed yet.</p>
-                  )}
-                </div>
+            {/* Events */}
+            <motion.div variants={fadeIn} className="card lg:col-span-2">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <CalendarIcon className="h-5 w-5 text-accent-foreground" />
+                  Upcoming Events
+                </h3>
               </div>
-            )}
-          </div>
-
-          {/* Attendance History */}
-          <div className="bg-[#142850] rounded-2xl shadow-xl p-6">
-            <h2 className="text-2xl font-bold text-yellow-400 mb-4 flex items-center">
-              <CheckBadgeIcon className="h-6 w-6 mr-2" />
-              Attendance History
-            </h2>
-
-            {loadingAttendance ? (
-              <p className="text-gray-400">Loading attendance...</p>
-            ) : attendance.length === 0 ? (
-              <p className="text-gray-400">No attendance records.</p>
-            ) : (
-              <div className="space-y-3">
-                {attendance.slice(0, 8).map((row: any) => (
-                  <div key={row.id} className="bg-[#1B3067] rounded-lg p-4 border border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-yellow-300 font-semibold">{row.event_title || row.event || "Event"}</p>
-                        <p className="text-gray-300 text-sm">{row.event_date || row.date}</p>
-                        {row.remark && <p className="text-gray-400 text-sm mt-1">{row.remark}</p>}
+              {loadingEvents ? (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => <div key={i} className="skeleton h-20 rounded-xl" />)}
+                </div>
+              ) : events.length === 0 ? (
+                <EmptyState
+                  icon={<CalendarIcon className="h-8 w-8" />}
+                  title="No upcoming events"
+                  description="Check back soon for fellowship gatherings and activities."
+                />
+              ) : (
+                <div className="space-y-3">
+                  {events.slice(0, 3).map((event) => (
+                    <div key={event.event_id} className="flex gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition">
+                      <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-xl flex flex-col items-center justify-center">
+                        <span className="text-xs font-bold text-primary">
+                          {event.event_date ? new Date(event.event_date).toLocaleDateString("en", { month: "short" }) : ""}
+                        </span>
+                        <span className="text-sm font-bold text-primary">
+                          {event.event_date ? new Date(event.event_date).getDate() : ""}
+                        </span>
                       </div>
-                      <span className="rounded-full bg-green-500/20 px-3 py-1 text-xs font-semibold text-green-200">
-                        {row.status}
-                      </span>
+                      <div className="min-w-0">
+                        <h4 className="font-semibold text-foreground text-sm truncate">{event.title}</h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">{event.quote}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          🕐 {event.event_time} • 📍 {event.location}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Family */}
+            <motion.div variants={fadeIn} className="card">
+              <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                <UsersIcon className="h-5 w-5 text-accent-foreground" />
+                My Family
+              </h3>
+              {familyError ? (
+                <EmptyState
+                  icon={<UsersIcon className="h-8 w-8" />}
+                  title="No family yet"
+                  description={familyError}
+                />
+              ) : !family ? (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => <div key={i} className="skeleton h-14 rounded-xl" />)}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {[
+                    { label: "Father", name: family.father?.name },
+                    { label: "Mother", name: family.mother?.name },
+                  ].map((parent) => (
+                    <div key={parent.label} className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
+                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                        {parent.name?.[0] || "?"}
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">{parent.label}</p>
+                        <p className="text-sm font-medium text-foreground">{parent.name || "—"}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {/* Avatar cluster for siblings */}
+                  {family.siblings && family.siblings.length > 0 && (
+                    <div className="pt-2">
+                      <p className="text-xs text-muted-foreground mb-2">Siblings ({family.siblings.length})</p>
+                      <div className="flex -space-x-2">
+                        {family.siblings.slice(0, 6).map((sib: any, i: number) => (
+                          <div
+                            key={sib.id || i}
+                            className="w-8 h-8 rounded-full bg-accent/20 border-2 border-card flex items-center justify-center text-xs font-bold text-accent-foreground"
+                            title={sib.name}
+                          >
+                            {sib.name?.[0] || "?"}
+                          </div>
+                        ))}
+                        {family.siblings.length > 6 && (
+                          <div className="w-8 h-8 rounded-full bg-muted border-2 border-card flex items-center justify-center text-xs font-medium text-muted-foreground">
+                            +{family.siblings.length - 6}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <Link to="/service/family" className="text-sm text-primary font-medium hover:text-primary-light flex items-center gap-1 mt-2">
+                    View full family
+                    <ArrowRightIcon className="h-3 w-3" />
+                  </Link>
+                </div>
+              )}
+            </motion.div>
+
+            {/* Attendance */}
+            <motion.div variants={fadeIn} className="card lg:col-span-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <CheckBadgeIcon className="h-5 w-5 text-accent-foreground" />
+                  Recent Attendance
+                </h3>
+                <Link to="/service/attendance" className="text-sm text-primary font-medium hover:text-primary-light">
+                  View all →
+                </Link>
               </div>
-            )}
+              {loadingAttendance ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-16 rounded-xl" />)}
+                </div>
+              ) : attendance.length === 0 ? (
+                <EmptyState
+                  icon={<CheckBadgeIcon className="h-8 w-8" />}
+                  title="No attendance records"
+                  description="Your attendance history will appear here."
+                />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {attendance.slice(0, 4).map((row: any) => (
+                    <div key={row.id} className="p-3 rounded-xl bg-muted/50">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium text-foreground truncate">{row.event_title || "Event"}</p>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          row.status === "PRESENT" ? "bg-success/10 text-success" :
+                          row.status === "ABSENT" ? "bg-destructive/10 text-destructive" :
+                          "bg-warning/10 text-warning"
+                        }`}>
+                          {row.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{row.event_date || row.date}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </main>
     </div>
   );
