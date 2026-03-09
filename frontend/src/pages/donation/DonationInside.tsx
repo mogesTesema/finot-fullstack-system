@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeftIcon, HeartIcon } from "@heroicons/react/24/outline";
@@ -7,221 +7,89 @@ import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import type { Donation } from "../../types";
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-};
-
-const purposes = [
-  "Weekly Donation",
-  "Building Fund",
-  "Charity (Poor)",
-  "Special Events",
-  "Other",
-];
+const fadeIn = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+const purposes = ["Weekly Donation", "Building Fund", "Charity (Poor)", "Special Events", "Other"];
 
 const DonationInside = () => {
   const { user } = useAuth();
-  const [formData, setFormData] = useState({
-    purpose: "",
-    amount: "",
-  });
+  const [formData, setFormData] = useState({ purpose: "", amount: "" });
   const [donationHistory, setDonationHistory] = useState<Donation[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      setLoading(true);
-      try {
-        const donations = await api.getDonations();
-        setDonationHistory(donations);
-      } catch (error) {
-        console.error("Failed to fetch donation history", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     if (user) {
-      fetchHistory();
+      api.getDonations().then(setDonationHistory).catch(console.error).finally(() => setLoading(false));
     }
   }, [user]);
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!formData.purpose || !formData.amount) {
-      Swal.fire({
-        icon: "warning",
-        title: "Missing Fields",
-        text: "Please select a purpose and enter an amount.",
-        confirmButtonColor: "#fbbf24",
-        background: "#142850",
-        color: "#fff",
-      });
+      Swal.fire({ icon: "warning", title: "Missing Fields", text: "Please select a purpose and amount.", confirmButtonColor: "hsl(52,94%,54%)" });
       return;
     }
-
-    const parsedAmount = Number(formData.amount);
-    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Invalid Amount",
-        text: "Enter a donation amount greater than zero.",
-        confirmButtonColor: "#fbbf24",
-        background: "#142850",
-        color: "#fff",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      const donationPayload = {
-        fund_category: formData.purpose,
-        amount: formData.amount.trim(),
-      };
-      const { checkout_url } = await api.createDonation(donationPayload);
+      const { checkout_url } = await api.createDonation({ fund_category: formData.purpose, amount: formData.amount.trim() });
       window.location.href = checkout_url;
     } catch (error: any) {
-      Swal.fire({
-        icon: "error",
-        title: "Unable to start payment",
-        text:
-          error?.response?.data?.detail ||
-          error?.message ||
-          "Something went wrong. Please try again later.",
-        confirmButtonColor: "#fbbf24",
-        background: "#142850",
-        color: "#fff",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+      Swal.fire({ icon: "error", title: "Payment Error", text: error?.response?.data?.detail || "Something went wrong.", confirmButtonColor: "hsl(52,94%,54%)" });
+    } finally { setIsSubmitting(false); }
   };
 
-  const totalDonations = donationHistory.reduce(
-    (sum, donation) => sum + Number(donation.payment?.amount ?? 0),
-    0,
-  );
-  const donationCount = donationHistory.length;
+  const totalDonations = donationHistory.reduce((sum, d) => sum + Number(d.payment?.amount ?? 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#1B3067] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center text-yellow-400 hover:text-yellow-300 transition"
-          >
-            <ArrowLeftIcon className="h-5 w-5 mr-2" />
-            Back to Dashboard
+    <div className="min-h-screen bg-background py-8 px-4">
+      <div className="max-w-lg mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <Link to="/dashboard" className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
+            <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> Dashboard
           </Link>
-          <img src="/images/logo.png" alt="finot" className="h-12 w-12" />
-        </div>
-
-        <div className="flex justify-end mb-4">
-          <Link
-            to="/donate/profile"
-            className="inline-flex items-center bg-[#1B3067] text-yellow-400 px-4 py-2 rounded-lg border border-yellow-400/30 hover:bg-[#142850] transition"
-          >
-            <HeartIcon className="h-5 w-5 mr-2" />
-            View Donation Profile
+          <Link to="/donate/profile" className="inline-flex items-center text-sm text-primary font-medium hover:text-primary-light">
+            <HeartIcon className="h-4 w-4 mr-1" /> Donation Profile
           </Link>
         </div>
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          className="bg-[#142850] rounded-2xl shadow-xl p-6 sm:p-8"
-        >
-          <h1 className="text-3xl font-bold text-center text-yellow-400 mb-2">
-            Give a Donation
-          </h1>
-          <p className="text-center text-gray-300 mb-6">
-            Once you submit we will send you to Chapa to finish the payment.
-          </p>
+        <motion.div initial="hidden" animate="visible" variants={fadeIn} className="card">
+          <h1 className="text-xl font-bold text-foreground text-center mb-1">Give a Donation</h1>
+          <p className="text-sm text-muted-foreground text-center mb-6">Complete and we'll redirect to Chapa.</p>
 
-          <div className="bg-[#1B3067] rounded-lg p-4 mb-6">
-            <h2 className="text-xl font-semibold text-yellow-400 mb-2">
-              Your Giving Snapshot
-            </h2>
+          {/* Stats */}
+          <div className="bg-muted/50 rounded-xl p-4 mb-6">
+            <h2 className="font-semibold text-foreground text-sm mb-2">Your Giving Snapshot</h2>
             {loading ? (
-              <p className="text-gray-400">Loading...</p>
-            ) : donationCount === 0 ? (
-              <p className="text-gray-400">No donations yet. Be the first!</p>
+              <div className="skeleton h-8 w-1/2 rounded-lg" />
+            ) : donationHistory.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No donations yet. Be the first!</p>
             ) : (
-              <>
-                <p className="text-gray-300">
-                  Total: <span className="text-yellow-400 font-semibold">{totalDonations} ETB</span>
-                </p>
-                <p className="text-gray-300">
-                  Gifts: <span className="text-yellow-400 font-semibold">{donationCount}</span>
-                </p>
-                <p className="text-green-400 text-sm mt-2">
-                  Thanks for consistently supporting our mission.
-                </p>
-              </>
+              <div className="flex gap-6">
+                <div>
+                  <p className="text-2xl font-bold text-primary">{totalDonations.toFixed(0)} <span className="text-sm font-normal text-muted-foreground">ETB</span></p>
+                  <p className="text-xs text-muted-foreground">Total given</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-primary">{donationHistory.length}</p>
+                  <p className="text-xs text-muted-foreground">Gifts</p>
+                </div>
+              </div>
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label
-                htmlFor="purpose"
-                className="block text-sm font-medium text-gray-300 mb-1"
-              >
-                Purpose *
-              </label>
-              <select
-                id="purpose"
-                name="purpose"
-                value={formData.purpose}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-[#1B3067] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              >
+              <label className="block text-sm font-medium text-foreground mb-1.5">Purpose *</label>
+              <select name="purpose" value={formData.purpose} onChange={(e) => setFormData({ ...formData, purpose: e.target.value })} className="input">
                 <option value="">Select a purpose</option>
-                {purposes.map((purpose) => (
-                  <option key={purpose} value={purpose}>
-                    {purpose}
-                  </option>
-                ))}
+                {purposes.map((p) => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
-
             <div>
-              <label
-                htmlFor="amount"
-                className="block text-sm font-medium text-gray-300 mb-1"
-              >
-                Amount (ETB) *
-              </label>
-              <input
-                id="amount"
-                name="amount"
-                type="number"
-                min="1"
-                step="0.01"
-                value={formData.amount}
-                onChange={handleChange}
-                placeholder="100"
-                className="w-full px-4 py-2 bg-[#1B3067] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+              <label className="block text-sm font-medium text-foreground mb-1.5">Amount (ETB) *</label>
+              <input name="amount" type="number" min="1" step="0.01" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="100" className="input" />
             </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-yellow-400 text-[#1B3067] py-3 px-6 rounded-lg font-semibold hover:bg-yellow-300 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
               {isSubmitting ? "Redirecting to Chapa..." : "Donate with Chapa"}
             </button>
           </form>
