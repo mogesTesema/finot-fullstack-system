@@ -22,10 +22,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const accessToken = localStorage.getItem('access_token');
       const refreshToken = localStorage.getItem('refresh_token');
 
-      // Only attempt to restore session if tokens exist
       if (accessToken || refreshToken) {
         try {
-          // api.getUser() returns Promise<AuthUser>
           const userData = await api.getUser();
           setUser(userData);
         } catch (error) {
@@ -63,8 +61,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthContext.Provider value={{ user, setUser, loading, login, register, logout }}>
       {!loading ? children : (
-        <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-primary"></div>
+        <div className="flex h-screen w-full items-center justify-center bg-background">
+          <div className="text-center">
+            <div className="h-12 w-12 mx-auto mb-4 animate-spin rounded-full border-[3px] border-muted border-t-primary" />
+            <p className="text-muted-foreground text-sm">Loading...</p>
+          </div>
         </div>
       )}
     </AuthContext.Provider>

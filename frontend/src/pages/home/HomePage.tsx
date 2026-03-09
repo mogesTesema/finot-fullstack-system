@@ -5,83 +5,107 @@ import { motion } from "framer-motion";
 import {
   HeartIcon,
   ChatBubbleLeftRightIcon,
+  UserGroupIcon,
+  SparklesIcon,
+  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import BackToTop from "../../components/ui/BackToTop";
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
-const slideFromRight = {
-  hidden: { opacity: 0, x: 120 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" } },
+const stagger = {
+  visible: { transition: { staggerChildren: 0.15 } },
 };
 
 const HomePage = () => {
   return (
-    <div className="bg-[#1B3067] text-white overflow-hidden">
-      {/* Hero Section */}
+    <div className="overflow-hidden">
+      {/* Hero Section - keeps deep blue for dramatic effect */}
       <section
         id="join"
-        className="relative bg-gradient-to-br from-[#1B3067] to-[#142850] pt-24 pb-16 md:pt-32 md:pb-32"
+        className="relative bg-gradient-to-br from-primary to-primary-light min-h-[90vh] flex items-center"
       >
-        <div className="container mx-auto px-4 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4"
-          >
-            Welcome to <span className="text-yellow-400">finot</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-base sm:text-lg md:text-2xl max-w-3xl mx-auto text-gray-200 mb-8 px-4"
-          >
-            Gibigubae is a fellowship of believers dedicated to spiritual
-            growth, community service, and mutual support.
-          </motion.p>
-
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(247,223,30,0.08),transparent_60%)]" />
+        
+        <div className="container mx-auto px-4 text-center relative z-10 py-20">
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            initial="hidden"
+            animate="visible"
+            variants={stagger}
           >
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6">
-              Do you want to join us?
-            </h3>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <motion.div variants={fadeInUp} className="mb-6">
+              <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 text-white/90 text-sm font-medium backdrop-blur-sm border border-white/10">
+                <SparklesIcon className="h-4 w-4 mr-2 text-accent" />
+                Gibi Gubae Community Platform
+              </span>
+            </motion.div>
+
+            <motion.h1
+              variants={fadeInUp}
+              className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
+            >
+              Welcome to{" "}
+              <span className="text-accent relative">
+                finot
+                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
+                  <path d="M2 8C50 2 150 2 198 8" stroke="hsl(52, 94%, 54%)" strokeWidth="3" strokeLinecap="round"/>
+                </svg>
+              </span>
+            </motion.h1>
+
+            <motion.p
+              variants={fadeInUp}
+              className="text-lg sm:text-xl md:text-2xl max-w-2xl mx-auto text-white/80 mb-10 leading-relaxed"
+            >
+              A fellowship of believers dedicated to spiritual growth, community service, and mutual support.
+            </motion.p>
+
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
               <Link
                 to="/register"
-                className="bg-yellow-400 text-[#1B3067] px-6 sm:px-8 py-3 rounded-full font-semibold hover:bg-yellow-300 transition hover:scale-105"
+                className="btn-primary text-lg px-8 py-4 inline-flex items-center justify-center group"
               >
-                Register
+                Get Started
+                <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/login"
-                className="border-2 border-yellow-400 text-yellow-400 px-6 sm:px-8 py-3 rounded-full font-semibold hover:bg-yellow-400 hover:text-[#1B3067] transition hover:scale-105"
+                className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition-all text-lg inline-flex items-center justify-center"
               >
-                Login
+                Sign In
               </Link>
-            </div>
-            
-            <div className="mt-8">
-               <p className="text-gray-300 mb-2 font-medium">Have spiritual questions?</p>
-               <Link to="/anonymous" className="inline-flex items-center text-yellow-400 hover:text-yellow-300 text-lg font-semibold transition hover:underline">
-                  <ChatBubbleLeftRightIcon className="h-6 w-6 mr-2" />
-                  Visit Anonymous Q&A Forum
-               </Link>
-            </div>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Link
+                to="/anonymous"
+                className="inline-flex items-center text-white/70 hover:text-accent text-base font-medium transition group"
+              >
+                <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2" />
+                Visit Anonymous Q&A Forum
+                <ArrowRightIcon className="h-4 w-4 ml-1 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              </Link>
+            </motion.div>
           </motion.div>
+        </div>
+
+        {/* Bottom wave */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg viewBox="0 0 1440 120" fill="none" className="w-full">
+            <path
+              d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H0Z"
+              fill="hsl(210, 33%, 98%)"
+            />
+          </svg>
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-16 sm:py-24 bg-[#142850]">
+      <section id="about" className="py-20 sm:py-28 bg-background">
         <div className="container mx-auto px-4">
           <motion.div
             variants={fadeInUp}
@@ -90,153 +114,152 @@ const HomePage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-              About <span className="text-yellow-400">Us</span>
+            <span className="text-accent font-semibold text-sm uppercase tracking-wider">Our Story</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mt-2 mb-4">
+              About <span className="text-primary">ASTU Gibi Gubae</span>
             </h2>
-            <div className="w-24 h-1 bg-yellow-400 mx-auto rounded-full" />
+            <div className="w-16 h-1 bg-accent mx-auto rounded-full" />
           </motion.div>
 
-          {/* ASTU Gibi Gubae Details */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="mb-24"
+            className="mb-20"
           >
             <div className="grid lg:grid-cols-2 gap-12 items-start">
               {/* Images Grid */}
-              <div className="grid grid-cols-2 gap-4 h-full">
-                <motion.img
-                  whileHover={{ scale: 1.05 }}
-                  src="/images/gibi1.jpg"
-                  alt="Gibigubae 1"
-                  className="rounded-xl object-cover w-full h-48 sm:h-64 shadow-lg border border-yellow-400/20"
-                />
-                <motion.img
-                  whileHover={{ scale: 1.05 }}
-                  src="/images/gibi2.jpg"
-                  alt="Gibigubae 2"
-                  className="rounded-xl object-cover w-full h-48 sm:h-64 shadow-lg border border-yellow-400/20 mt-8"
-                />
-                <motion.img
-                  whileHover={{ scale: 1.05 }}
-                  src="/images/gibi3.jpg"
-                  alt="Gibigubae 3"
-                  className="rounded-xl object-cover w-full h-48 sm:h-64 shadow-lg border border-yellow-400/20 -mt-8"
-                />
-                <motion.img
-                  whileHover={{ scale: 1.05 }}
-                  src="/images/gibi4.jpg"
-                  alt="Gibigubae 4"
-                  className="rounded-xl object-cover w-full h-48 sm:h-64 shadow-lg border border-yellow-400/20"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { src: "/images/gibi1.jpg", alt: "Gibigubae 1", mt: "" },
+                  { src: "/images/gibi2.jpg", alt: "Gibigubae 2", mt: "mt-8" },
+                  { src: "/images/gibi3.jpg", alt: "Gibigubae 3", mt: "-mt-4" },
+                  { src: "/images/gibi4.jpg", alt: "Gibigubae 4", mt: "" },
+                ].map((img) => (
+                  <motion.img
+                    key={img.src}
+                    whileHover={{ scale: 1.03 }}
+                    src={img.src}
+                    alt={img.alt}
+                    className={`rounded-2xl object-cover w-full h-48 sm:h-64 shadow-card ${img.mt}`}
+                  />
+                ))}
               </div>
 
-              {/* Text Description */}
-              <div className="space-y-6 text-gray-200 text-sm md:text-base leading-relaxed text-justify">
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-yellow-400 mb-6 border-b border-gray-600 pb-4">
-                  ASTU Gibi Gubae
+              {/* Text */}
+              <div className="space-y-5 text-muted-foreground text-sm md:text-base leading-relaxed">
+                <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+                  30 Years of <span className="text-accent">Fellowship</span>
                 </h3>
                 <p>
-                  The ASTU Gibi Gubae is a spiritual and academic fellowship established at Adama Science and Technology University during the time when the institution was still known as Nazareth Technical College. It was founded in 1995 (1988 Ethiopian Calendar) by committed Orthodox Christian students and teachers who desired to create a spiritual environment within the university community.
+                  The ASTU Gibi Gubae is a spiritual and academic fellowship established at Adama Science and Technology University during the time when the institution was still known as Nazareth Technical College. It was founded in 1995 (1988 EC) by committed Orthodox Christian students and teachers.
                 </p>
                 <p>
-                  The founders recognized that university life can present many intellectual, moral, and spiritual challenges for young Orthodox students. As a result, they established Gibi Gubae to serve as a center for spiritual growth, fellowship, and guidance. Their vision was to ensure that students would not only excel in their academic studies but also remain strong in the faith and teachings of the Holy Orthodox Church.
-                </p>
-                <p>
-                  For the past thirty (30) years, Gibi Gubae has played a significant role in nurturing thousands of students. Many of its members have graduated and gone on to serve the Holy Church and the nation in various professional and spiritual capacities. The fellowship has become a pillar of spiritual life on campus.
+                  For the past thirty years, Gibi Gubae has played a significant role in nurturing thousands of students. Many of its members have graduated and gone on to serve the Holy Church and the nation in various professional and spiritual capacities.
                 </p>
 
-                <h4 className="text-xl font-semibold text-yellow-300 mt-6 mb-3">Currently, ASTU Gibi Gubae provides:</h4>
-                <ul className="list-disc pl-5 space-y-2 marker:text-yellow-400">
-                  <li>Regular spiritual teachings and Bible study programs</li>
-                  <li>Liturgical services and prayer gatherings</li>
-                  <li>Spiritual counseling and mentorship</li>
-                  <li>Training programs rooted in Orthodox doctrine</li>
-                  <li>Moral and character development support</li>
-                  <li>A strong fellowship network that promotes unity and love</li>
+                <h4 className="text-lg font-semibold text-foreground mt-6 mb-3">Currently providing:</h4>
+                <ul className="space-y-2">
+                  {[
+                    "Regular spiritual teachings and Bible study",
+                    "Liturgical services and prayer gatherings",
+                    "Spiritual counseling and mentorship",
+                    "Training programs rooted in Orthodox doctrine",
+                    "A strong fellowship network promoting unity",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start">
+                      <span className="h-2 w-2 rounded-full bg-accent mt-2 mr-3 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
                 </ul>
-
-                <p className="mt-4">
-                  Through these activities, the fellowship ensures that Orthodox youth are sharpened spiritually while pursuing excellence in science, technology, and other academic disciplines. It creates a balanced environment where faith and education grow together.
-                </p>
-                <p className="italic border-l-4 border-yellow-400 pl-4 mt-6 text-gray-300">
-                  ASTU Gibi Gubae continues to stand as a testimony to dedication, faith, and service—strengthening students to become responsible citizens, devoted Orthodox Christians, and future leaders who contribute positively to both the Church and the country.
-                </p>
               </div>
             </div>
           </motion.div>
 
-          {/* About Finot */}
+          {/* About Finot Card */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="bg-[#1B3067] rounded-3xl p-8 md:p-12 shadow-2xl border border-gray-700 max-w-4xl mx-auto text-center"
+            className="card max-w-3xl mx-auto text-center border-accent/20"
           >
-            <h3 className="text-2xl sm:text-3xl font-bold text-yellow-400 mb-6 drop-shadow-md">
-              About finot
-            </h3>
-            <div className="space-y-4 text-gray-200 text-sm sm:text-base leading-relaxed md:px-8">
-              <p>
-                Finot is a digital platform created specifically for the Gibi Gubae community at Adama Science and Technology University. It is designed to support and organize the fellowship through simple and modern technology.
-              </p>
-              <p>
-                The platform helps streamline membership management, making it easier to register and coordinate members. It also provides an anonymous support system, allowing individuals to seek help safely and privately. In addition, Finot enables easy and transparent donations and helps members find and join service groups that match their talents and interests.
-              </p>
-              <p className="font-semibold text-yellow-300 mt-6 pt-4 border-t border-gray-600/50 inline-block">
-                Built with love by and for the community, Finot strengthens unity, service, and spiritual growth within Gibi Gubae.
-              </p>
+            <div className="inline-flex items-center px-3 py-1 bg-accent/10 text-accent-foreground rounded-full text-sm font-medium mb-4">
+              <SparklesIcon className="h-4 w-4 mr-1.5 text-accent" />
+              The Platform
             </div>
+            <h3 className="text-2xl font-bold text-foreground mb-4">About finot</h3>
+            <p className="text-muted-foreground leading-relaxed mb-4">
+              Finot is a digital platform created specifically for the Gibi Gubae community. It streamlines membership management, enables anonymous support, facilitates transparent donations, and helps members find service groups.
+            </p>
+            <p className="font-semibold text-primary">
+              Built with love by and for the community. ✨
+            </p>
           </motion.div>
         </div>
       </section>
 
-      <motion.section
-        variants={fadeInUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        className="py-14 sm:py-20 bg-[#142850]"
-      >
+      {/* CTA Section */}
+      <section className="py-20 bg-muted">
         <div className="container mx-auto px-4">
-          <motion.div variants={fadeInUp} className="text-center mb-10">
-            <h3 className="text-2xl sm:text-3xl font-bold text-yellow-400 mb-2">
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
               Get Involved
             </h3>
-            <p className="text-gray-300 text-sm sm:text-base">
-              Support our mission or ask anonymously.
+            <p className="text-muted-foreground">
+              Support our mission or ask questions anonymously.
             </p>
           </motion.div>
 
           <motion.div
-            variants={slideFromRight}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="flex flex-col sm:flex-row justify-center items-center gap-6 sm:gap-8"
+            variants={stagger}
+            className="flex flex-col sm:flex-row justify-center items-center gap-6"
           >
-            <Link
-              to="/donate"
-              className="group relative flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110"
-            >
-              <span className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-10 transition"></span>
-              <HeartIcon className="h-6 w-6 text-yellow-300 group-hover:rotate-12 transition-transform" />
-              <span className="font-semibold text-lg">Donate</span>
-            </Link>
-            <Link
-              to="/anonymous"
-              className="group relative flex items-center gap-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-8 py-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110"
-            >
-              <span className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-10 transition"></span>
-              <ChatBubbleLeftRightIcon className="h-6 w-6 text-yellow-300 group-hover:-rotate-12 transition-transform" />
-              <span className="font-semibold text-lg">Anonymous Q&A</span>
-            </Link>
+            <motion.div variants={fadeInUp}>
+              <Link
+                to="/donate"
+                className="group flex items-center gap-3 card hover:shadow-elevated transition-all hover:-translate-y-1 px-8 py-5 border-success/20"
+              >
+                <div className="p-2.5 bg-green-50 rounded-xl">
+                  <HeartIcon className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="text-left">
+                  <span className="font-semibold text-foreground block">Donate</span>
+                  <span className="text-sm text-muted-foreground">Support the fellowship</span>
+                </div>
+                <ArrowRightIcon className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform ml-4" />
+              </Link>
+            </motion.div>
+
+            <motion.div variants={fadeInUp}>
+              <Link
+                to="/anonymous"
+                className="group flex items-center gap-3 card hover:shadow-elevated transition-all hover:-translate-y-1 px-8 py-5 border-purple-200"
+              >
+                <div className="p-2.5 bg-purple-50 rounded-xl">
+                  <ChatBubbleLeftRightIcon className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="text-left">
+                  <span className="font-semibold text-foreground block">Anonymous Q&A</span>
+                  <span className="text-sm text-muted-foreground">Ask safely & privately</span>
+                </div>
+                <ArrowRightIcon className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform ml-4" />
+              </Link>
+            </motion.div>
           </motion.div>
         </div>
-      </motion.section>
+      </section>
 
       <BackToTop />
     </div>

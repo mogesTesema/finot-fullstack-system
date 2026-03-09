@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-
 import {
   ArrowLeftIcon,
   PlusCircleIcon,
   PencilIcon,
   TrashIcon,
-  XMarkIcon,
-  CheckIcon,
   ArrowsPointingOutIcon,
 } from "@heroicons/react/24/outline";
 
@@ -24,166 +21,60 @@ import { Question, Answer } from "../../types";
 const LONG_ANSWER_LIMIT = 230;
 const QUESTIONS_PER_PAGE = 5;
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+const fadeIn = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 };
 
 const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const { user } = useAuth();
-
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-
   const [currentPage, setCurrentPage] = useState(1);
-
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [editedQuestionBody, setEditedQuestionBody] = useState("");
-
-  const [editingAnswer, setEditingAnswer] = useState<{
-    answerId: number;
-    questionId: string;
-  } | null>(null);
-
+  const [editingAnswer, setEditingAnswer] = useState<{ answerId: number; questionId: string } | null>(null);
   const [editedAnswerBody, setEditedAnswerBody] = useState("");
-
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
-
-  const [selectedAnswer, setSelectedAnswer] = useState<{
-    question: Question;
-    answer: Answer;
-  } | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<{ question: Question; answer: Answer } | null>(null);
 
   const isAdmin = user?.role === "super_admin";
   const isLoggedIn = !!user;
 
-  useEffect(() => {
-    fetchQuestions();
-  }, []);
+  useEffect(() => { fetchQuestions(); }, []);
 
   const fetchQuestions = async () => {
-    try {
-      const data = await api.getQuestions();
-      setQuestions(data);
-    } catch (error) {
-      console.error("Failed to fetch questions", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAnswerChange = (questionId: string, value: string) => {
-    setAnswerText((prev) => ({ ...prev, [questionId]: value }));
+    try { const data = await api.getQuestions(); setQuestions(data); }
+    catch (error) { console.error("Failed to fetch questions", error); }
+    finally { setLoading(false); }
   };
 
   const submitAnswer = async (questionId: string) => {
     const answer = answerText[questionId];
     if (!answer?.trim()) return;
-
     try {
-      await api.postAnswer({
-        question: questionId,
-        display_name: user?.full_name || "Anonymous",
-        answer_body: answer,
-      });
-
+      await api.postAnswer({ question: questionId, display_name: user?.full_name || "Anonymous", answer_body: answer });
       await fetchQuestions();
-
-      setAnswerText((prev) => ({
-        ...prev,
-        [questionId]: "",
-      }));
-    } catch (error) {
-      console.error("Failed to post answer", error);
-    }
-  };
-
-  const startEditQuestion = (question: Question) => {
-    setEditingQuestion(question.id);
-    setEditedQuestionBody(question.question_body);
-  };
-
-  const cancelEditQuestion = () => {
-    setEditingQuestion(null);
-    setEditedQuestionBody("");
-  };
-
-  const saveEditQuestion = async (questionId: string) => {
-    if (!editedQuestionBody.trim()) return;
-
-    try {
-      await api.updateQuestion(questionId, {
-        question_body: editedQuestionBody,
-      });
-
-      await fetchQuestions();
-      cancelEditQuestion();
-    } catch (error) {
-      console.error("Failed to update question", error);
-    }
+      setAnswerText((prev) => ({ ...prev, [questionId]: "" }));
+    } catch (error) { console.error("Failed to post answer", error); }
   };
 
   const deleteQuestion = async (questionId: string) => {
     if (!window.confirm("Delete this question?")) return;
-
-    try {
-      await api.deleteQuestion(questionId);
-      await fetchQuestions();
-    } catch (error) {
-      console.error("Failed to delete question", error);
-    }
-  };
-
-  const startEditAnswer = (answer: Answer, questionId: string) => {
-    setEditingAnswer({
-      answerId: answer.id,
-      questionId,
-    });
-
-    setEditedAnswerBody(answer.answer_body);
-  };
-
-  const cancelEditAnswer = () => {
-    setEditingAnswer(null);
-    setEditedAnswerBody("");
-  };
-
-  const saveEditAnswer = async () => {
-    if (!editingAnswer || !editedAnswerBody.trim()) return;
-
-    try {
-      await api.updateAnswer(editingAnswer.answerId, {
-        answer_body: editedAnswerBody,
-      });
-
-      await fetchQuestions();
-      cancelEditAnswer();
-    } catch (error) {
-      console.error("Failed to update answer", error);
-    }
+    try { await api.deleteQuestion(questionId); await fetchQuestions(); }
+    catch (error) { console.error("Failed to delete question", error); }
   };
 
   const deleteAnswer = async (answerId: number) => {
     if (!window.confirm("Delete this answer?")) return;
-
-    try {
-      await api.deleteAnswer(answerId);
-      await fetchQuestions();
-    } catch (error) {
-      console.error("Failed to delete answer", error);
-    }
+    try { await api.deleteAnswer(answerId); await fetchQuestions(); }
+    catch (error) { console.error("Failed to delete answer", error); }
   };
 
   const canModify = (itemUserId?: number | null) => {
@@ -192,187 +83,100 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   };
 
   const visibleQuestions = questions.filter((q) => q.is_approved ?? true);
-
-  const categories = [
-    ...new Set(visibleQuestions.map((q) => q.category).filter(Boolean)),
-  ];
+  const categories = [...new Set(visibleQuestions.map((q) => q.category).filter(Boolean))];
 
   const filteredQuestions = visibleQuestions.filter((q) => {
-    const matchesSearch =
-      q.question_body.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      q.display_name.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesCategory =
-      categoryFilter === "all" || q.category === categoryFilter;
-
+    const matchesSearch = q.question_body.toLowerCase().includes(searchTerm.toLowerCase()) || q.display_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || q.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
   const totalPages = Math.ceil(filteredQuestions.length / QUESTIONS_PER_PAGE);
+  const paginatedQuestions = filteredQuestions.slice((currentPage - 1) * QUESTIONS_PER_PAGE, currentPage * QUESTIONS_PER_PAGE);
 
-  const paginatedQuestions = filteredQuestions.slice(
-    (currentPage - 1) * QUESTIONS_PER_PAGE,
-    currentPage * QUESTIONS_PER_PAGE
-  );
-
-  const getApprovedAnswers = (question: Question) =>
-    (question.answers || []).filter((a) => a.is_approved ?? true);
-
-  const previewAnswer = (text: string) =>
-    text.length > LONG_ANSWER_LIMIT
-      ? `${text.slice(0, LONG_ANSWER_LIMIT)}...`
-      : text;
+  const getApprovedAnswers = (q: Question) => (q.answers || []).filter((a) => a.is_approved ?? true);
+  const previewAnswer = (text: string) => text.length > LONG_ANSWER_LIMIT ? `${text.slice(0, LONG_ANSWER_LIMIT)}...` : text;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1B3067]">
+      <div className={`${isDashboard ? "" : "min-h-screen bg-background"} flex items-center justify-center py-20`}>
         <Spinner size="h-8 w-8" />
       </div>
     );
   }
 
   return (
-    <div
-      className={`${
-        isDashboard
-          ? ""
-          : "min-h-screen bg-[#1B3067] py-12 px-4 sm:px-6 lg:px-8"
-      }`}
-    >
-      <div className="max-w-4xl mx-auto">
-
-        {/* HEADER */}
-
+    <div className={isDashboard ? "" : "min-h-screen bg-background py-8 px-4"}>
+      <div className="max-w-3xl mx-auto">
         {!isDashboard && (
-          <div className="flex justify-between mb-8">
-            <Link
-              to="/anonymous"
-              className="text-yellow-400 hover:text-yellow-300 flex items-center"
-            >
-              <ArrowLeftIcon className="h-5 w-5 mr-2" />
-              Back
+          <div className="flex justify-between items-center mb-6">
+            <Link to="/anonymous" className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
+              <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> Back
             </Link>
-
-            <Link
-              to="/anonymous/ask"
-              className="bg-yellow-400 text-[#1B3067] px-4 py-2 rounded-lg flex items-center"
-            >
-              <PlusCircleIcon className="h-5 w-5 mr-2" />
-              Ask Question
+            <Link to="/anonymous/ask" className="btn-primary text-sm inline-flex items-center gap-1.5">
+              <PlusCircleIcon className="h-4 w-4" /> Ask Question
             </Link>
           </div>
         )}
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          className="space-y-6"
-        >
-          <h1 className="text-3xl font-bold text-yellow-400">
-            Community Questions
-          </h1>
+        <motion.div initial="hidden" animate="visible" variants={fadeIn} className="space-y-5">
+          <h1 className="text-2xl font-bold text-foreground">Community Questions</h1>
 
-          {/* SEARCH */}
-
-          <SearchBar
-            value={searchTerm}
-            onChange={(value) => {
-              setSearchTerm(value);
-              setCurrentPage(1);
-            }}
-          />
-
-          {/* FILTER */}
-
-          <FilterBar
-            categories={categories}
-            selected={categoryFilter}
-            onChange={(value) => {
-              setCategoryFilter(value);
-              setCurrentPage(1);
-            }}
-          />
+          <SearchBar value={searchTerm} onChange={(v) => { setSearchTerm(v); setCurrentPage(1); }} />
+          <FilterBar categories={categories} selected={categoryFilter} onChange={(v) => { setCategoryFilter(v); setCurrentPage(1); }} />
 
           {paginatedQuestions.map((q) => {
             const answers = getApprovedAnswers(q);
-
             return (
-              <div
-                key={q.id}
-                className="bg-[#142850] p-6 rounded-2xl border border-gray-700"
-              >
-                <div className="flex justify-between">
-
-                  <div>
-                    <span className="bg-yellow-400 text-[#1B3067] text-xs px-2 py-1 rounded">
-                      {q.category}
-                    </span>
-
-                    <span className="ml-2 text-gray-400 text-sm">
-                      {q.display_name} • {formatDate(q.created_at)}
-                    </span>
+              <div key={q.id} className="card">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-accent/10 text-accent-foreground">{q.category}</span>
+                    <span className="text-xs text-muted-foreground">{q.display_name} • {formatDate(q.created_at)}</span>
                   </div>
-
-                  <div className="flex gap-2">
-
-                    <span className="text-xs text-gray-300 px-2 py-1 bg-[#1B3067] rounded">
-                      {answers.length} answers
-                    </span>
-
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-lg">{answers.length} answers</span>
                     {canModify(q.user) && (
                       <>
-                        <button
-                          onClick={() => startEditQuestion(q)}
-                          className="text-yellow-400"
-                        >
-                          <PencilIcon className="h-5 w-5" />
+                        <button onClick={() => { setEditingQuestion(q.id); setEditedQuestionBody(q.question_body); }} className="text-muted-foreground hover:text-foreground">
+                          <PencilIcon className="h-4 w-4" />
                         </button>
-
-                        <button
-                          onClick={() => deleteQuestion(q.id)}
-                          className="text-red-400"
-                        >
-                          <TrashIcon className="h-5 w-5" />
+                        <button onClick={() => deleteQuestion(q.id)} className="text-muted-foreground hover:text-destructive">
+                          <TrashIcon className="h-4 w-4" />
                         </button>
                       </>
                     )}
                   </div>
                 </div>
 
-                <p className="text-white text-lg mt-3">
-                  {q.question_body}
-                </p>
-
-                {/* ANSWERS */}
+                {editingQuestion === q.id ? (
+                  <div className="mt-3 space-y-2">
+                    <textarea value={editedQuestionBody} onChange={(e) => setEditedQuestionBody(e.target.value)} className="input" rows={3} />
+                    <div className="flex gap-2">
+                      <button onClick={async () => { await api.updateQuestion(q.id, { question_body: editedQuestionBody }); await fetchQuestions(); setEditingQuestion(null); }} className="btn-primary text-sm px-3 py-1.5">Save</button>
+                      <button onClick={() => setEditingQuestion(null)} className="btn-outline text-sm px-3 py-1.5">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-foreground mt-3">{q.question_body}</p>
+                )}
 
                 {answers.length > 0 && (
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-4 space-y-2">
                     {answers.map((a) => (
-                      <div
-                        key={a.id}
-                        className="bg-[#1B3067] p-4 rounded-lg"
-                      >
-                        <span className="text-gray-400 text-sm">
-                          {a.display_name}
-                        </span>
-
-                        <p className="text-gray-300 mt-2">
-                          {previewAnswer(a.answer_body)}
-                        </p>
-
+                      <div key={a.id} className="p-3 bg-muted/50 rounded-xl">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground font-medium">{a.display_name}</span>
+                          {canModify(a.responder) && (
+                            <button onClick={() => deleteAnswer(a.id)} className="text-muted-foreground hover:text-destructive">
+                              <TrashIcon className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-sm text-foreground/80 mt-1">{previewAnswer(a.answer_body)}</p>
                         {a.answer_body.length > LONG_ANSWER_LIMIT && (
-                          <button
-                            onClick={() =>
-                              setSelectedAnswer({
-                                question: q,
-                                answer: a,
-                              })
-                            }
-                            className="mt-2 text-yellow-400 text-sm flex items-center"
-                          >
-                            <ArrowsPointingOutIcon className="h-4 w-4 mr-1" />
-                            Read full answer
+                          <button onClick={() => setSelectedAnswer({ question: q, answer: a })} className="mt-1.5 text-primary text-xs flex items-center gap-1 font-medium">
+                            <ArrowsPointingOutIcon className="h-3.5 w-3.5" /> Read full answer
                           </button>
                         )}
                       </div>
@@ -380,23 +184,15 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                   </div>
                 )}
 
-                {/* ADD ANSWER */}
-
                 <div className="mt-4">
                   <textarea
                     value={answerText[q.id] || ""}
-                    onChange={(e) =>
-                      handleAnswerChange(q.id, e.target.value)
-                    }
+                    onChange={(e) => setAnswerText((prev) => ({ ...prev, [q.id]: e.target.value }))}
                     placeholder="Write your answer..."
                     rows={2}
-                    className="w-full bg-[#1B3067] border border-gray-600 rounded-lg px-3 py-2 text-white"
+                    className="input text-sm"
                   />
-
-                  <button
-                    onClick={() => submitAnswer(q.id)}
-                    className="mt-2 bg-yellow-400 text-[#1B3067] px-4 py-2 rounded-lg"
-                  >
+                  <button onClick={() => submitAnswer(q.id)} className="btn-primary text-sm mt-2 px-4 py-2">
                     Post Answer
                   </button>
                 </div>
@@ -404,15 +200,25 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
             );
           })}
 
-          {/* PAGINATION */}
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </motion.div>
       </div>
+
+      {/* Full answer modal */}
+      {selectedAnswer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 backdrop-blur-sm p-4" onClick={() => setSelectedAnswer(null)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="card max-w-lg w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-xs text-muted-foreground mb-2">{selectedAnswer.answer.display_name}'s answer</p>
+            <p className="text-foreground leading-relaxed">{selectedAnswer.answer.answer_body}</p>
+            <button onClick={() => setSelectedAnswer(null)} className="btn-outline mt-4 text-sm w-full">Close</button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

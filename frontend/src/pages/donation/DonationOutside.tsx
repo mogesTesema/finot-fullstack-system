@@ -1,261 +1,92 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import { api } from "../../lib/api";
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-};
+const fadeIn = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-const purposes = [
-  "Weekly Donation",
-  "Building Fund",
-  "Charity (Poor)",
-  "Special Events",
-  "Other",
-];
-
-type GuestDonationForm = {
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  purpose: string;
-  amount: string;
-};
+const purposes = ["Weekly Donation", "Building Fund", "Charity (Poor)", "Special Events", "Other"];
 
 const DonationOutside = () => {
-  const [formData, setFormData] = useState<GuestDonationForm>({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    email: "",
-    purpose: "",
-    amount: "",
-  });
+  const [formData, setFormData] = useState({ firstName: "", lastName: "", phone: "", email: "", purpose: "", amount: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     const { firstName, lastName, email, purpose, amount } = formData;
-    if (
-      !firstName.trim() ||
-      !lastName.trim() ||
-      !email.trim() ||
-      !purpose ||
-      !amount
-    ) {
-      Swal.fire({
-        icon: "warning",
-        title: "Missing Required Fields",
-        text: "Please complete all required fields before continuing.",
-        confirmButtonColor: "#fbbf24",
-        background: "#142850",
-        color: "#fff",
-      });
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !purpose || !amount) {
+      Swal.fire({ icon: "warning", title: "Missing Fields", text: "Please complete all required fields.", confirmButtonColor: "hsl(52,94%,54%)" });
       return;
     }
-
     const parsedAmount = Number(amount);
-    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Invalid Amount",
-        text: "Enter a donation amount greater than zero.",
-        confirmButtonColor: "#fbbf24",
-        background: "#142850",
-        color: "#fff",
-      });
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      Swal.fire({ icon: "warning", title: "Invalid Amount", text: "Enter a valid amount.", confirmButtonColor: "hsl(52,94%,54%)" });
       return;
     }
-
     setIsSubmitting(true);
-
     try {
-      const donationPayload = {
-        fund_category: purpose,
-        amount: amount.trim(),
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.trim(),
-      };
-      const { checkout_url } = await api.createDonation(donationPayload);
-
+      const { checkout_url } = await api.createDonation({ fund_category: purpose, amount: amount.trim(), first_name: firstName.trim(), last_name: lastName.trim(), email: email.trim() });
       window.location.href = checkout_url;
     } catch (error: any) {
-      Swal.fire({
-        icon: "error",
-        title: "Unable to start payment",
-        text: error?.response?.data?.detail ||
-          error?.message ||
-          "Something went wrong. Please try again later.",
-        confirmButtonColor: "#fbbf24",
-        background: "#142850",
-        color: "#fff",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+      Swal.fire({ icon: "error", title: "Payment Error", text: error?.response?.data?.detail || error?.message || "Something went wrong.", confirmButtonColor: "hsl(52,94%,54%)" });
+    } finally { setIsSubmitting(false); }
   };
 
   return (
-    <div className="min-h-screen bg-[#1B3067] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <Link
-            to="/"
-            className="inline-flex items-center text-yellow-400 hover:text-yellow-300 transition"
-          >
-            <ArrowLeftIcon className="h-5 w-5 mr-2" />
-            Back to Home
+    <div className="min-h-screen bg-background py-12 px-4">
+      <div className="max-w-lg mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <Link to="/" className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
+            <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> Back to Home
           </Link>
-          <img src="/images/logo.png" alt="finot" className="h-12 w-12" />
         </div>
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          className="bg-[#142850] rounded-2xl shadow-xl p-6 sm:p-8"
-        >
-          <h1 className="text-3xl font-bold text-center text-yellow-400 mb-2">
-            Support Our Mission
-          </h1>
-          <p className="text-center text-gray-300 mb-6">
-            Complete the form and we will send you to Chapa to finish the payment.
-          </p>
+        <motion.div initial="hidden" animate="visible" variants={fadeIn} className="card">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-50 rounded-2xl mb-3">
+              <span className="text-2xl">💚</span>
+            </div>
+            <h1 className="text-xl font-bold text-foreground">Support Our Mission</h1>
+            <p className="text-sm text-muted-foreground mt-1">We'll redirect you to Chapa to complete the payment.</p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label
-                  htmlFor="firstName"
-                  className="block text-sm font-medium text-gray-300 mb-1"
-                >
-                  First Name *
-                </label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  placeholder="Abebe"
-                  className="w-full px-4 py-2 bg-[#1B3067] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
+                <label className="block text-sm font-medium text-foreground mb-1.5">First Name *</label>
+                <input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Abebe" className="input" />
               </div>
               <div>
-                <label
-                  htmlFor="lastName"
-                  className="block text-sm font-medium text-gray-300 mb-1"
-                >
-                  Last Name *
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="Kebede"
-                  className="w-full px-4 py-2 bg-[#1B3067] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
+                <label className="block text-sm font-medium text-foreground mb-1.5">Last Name *</label>
+                <input name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Kebede" className="input" />
               </div>
             </div>
-
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-300 mb-1"
-              >
-                Email Address *
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                className="w-full px-4 py-2 bg-[#1B3067] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+              <label className="block text-sm font-medium text-foreground mb-1.5">Email *</label>
+              <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" className="input" />
             </div>
-
             <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-300 mb-1"
-              >
-                Phone Number (optional)
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="(+251) 912 345 678"
-                className="w-full px-4 py-2 bg-[#1B3067] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+              <label className="block text-sm font-medium text-foreground mb-1.5">Phone (optional)</label>
+              <input name="phone" type="tel" value={formData.phone} onChange={handleChange} placeholder="+251 912 345 678" className="input" />
             </div>
-
             <div>
-              <label
-                htmlFor="purpose"
-                className="block text-sm font-medium text-gray-300 mb-1"
-              >
-                Purpose *
-              </label>
-              <select
-                id="purpose"
-                name="purpose"
-                value={formData.purpose}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-[#1B3067] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              >
+              <label className="block text-sm font-medium text-foreground mb-1.5">Purpose *</label>
+              <select name="purpose" value={formData.purpose} onChange={handleChange} className="input">
                 <option value="">Select a purpose</option>
-                {purposes.map((purpose) => (
-                  <option key={purpose} value={purpose}>
-                    {purpose}
-                  </option>
-                ))}
+                {purposes.map((p) => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
-
             <div>
-              <label
-                htmlFor="amount"
-                className="block text-sm font-medium text-gray-300 mb-1"
-              >
-                Amount (ETB) *
-              </label>
-              <input
-                id="amount"
-                name="amount"
-                type="number"
-                min="1"
-                step="0.01"
-                value={formData.amount}
-                onChange={handleChange}
-                placeholder="100"
-                className="w-full px-4 py-2 bg-[#1B3067] border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+              <label className="block text-sm font-medium text-foreground mb-1.5">Amount (ETB) *</label>
+              <input name="amount" type="number" min="1" step="0.01" value={formData.amount} onChange={handleChange} placeholder="100" className="input" />
             </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-yellow-400 text-[#1B3067] py-3 px-6 rounded-lg font-semibold hover:bg-yellow-300 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
               {isSubmitting ? "Redirecting to Chapa..." : "Donate with Chapa"}
             </button>
           </form>

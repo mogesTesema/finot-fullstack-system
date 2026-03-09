@@ -5,8 +5,10 @@ import {
   UserIcon,
   ChatBubbleLeftRightIcon,
   HeartIcon,
-  ListBulletIcon,
+  Squares2X2Icon,
   ArrowLeftOnRectangleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 
 type SidebarProps = {
@@ -25,30 +27,20 @@ type NavItem = {
 const Sidebar = ({ notifCount = 0, onLogout }: SidebarProps) => {
   const { user } = useAuth();
   const role = user?.role;
+  const [collapsed, setCollapsed] = useState(false);
   const [donationReminder, setDonationReminder] = useState(false);
 
   useEffect(() => {
-    // Simulate donation reminder on Thursday (day 4)
     const today = new Date().getDay();
     setDonationReminder(today === 4);
   }, []);
 
   const navItems: NavItem[] = [
-    { to: "/dashboard", label: "Dashboard", icon: UserIcon, end: true },
-    { to: "/profile", label: "Student Profile", icon: UserIcon },
-    {
-      to: "/dashboard/qa",
-      label: "Q&A Forum",
-      icon: ChatBubbleLeftRightIcon,
-      badge: notifCount,
-    },
-    {
-      to: "/donate/inside",
-      label: "Donation",
-      icon: HeartIcon,
-      badge: donationReminder ? 1 : 0,
-    },
-    { to: "/services", label: "Services", icon: ListBulletIcon },
+    { to: "/dashboard", label: "Dashboard", icon: Squares2X2Icon, end: true },
+    { to: "/profile", label: "Profile", icon: UserIcon },
+    { to: "/dashboard/qa", label: "Q&A Forum", icon: ChatBubbleLeftRightIcon, badge: notifCount },
+    { to: "/donate/inside", label: "Donation", icon: HeartIcon, badge: donationReminder ? 1 : 0 },
+    { to: "/services", label: "Services", icon: Squares2X2Icon },
   ];
 
   if (role === "service_admin") {
@@ -59,41 +51,61 @@ const Sidebar = ({ notifCount = 0, onLogout }: SidebarProps) => {
   }
 
   return (
-    <aside className="w-64 bg-[#142850] text-white shadow-lg flex flex-col h-screen sticky top-0">
-      <div className="p-4 border-b border-gray-700">
-        <img src="/images/logo.png" alt="finot" className="h-10 mx-auto" />
+    <aside
+      className={`${
+        collapsed ? "w-16" : "w-64"
+      } bg-card border-r border-border flex flex-col h-screen sticky top-0 transition-all duration-300 shadow-soft`}
+    >
+      {/* Logo */}
+      <div className={`p-4 border-b border-border flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
+        {!collapsed && (
+          <div className="flex items-center space-x-2">
+            <img src="/images/logo.png" alt="finot" className="h-8 w-8" />
+            <span className="text-lg font-bold text-primary">finot</span>
+          </div>
+        )}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="p-1.5 rounded-lg hover:bg-muted transition text-muted-foreground"
+        >
+          {collapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
+        </button>
       </div>
-      <nav className="flex-1 p-4 space-y-2">
+
+      {/* Navigation */}
+      <nav className="flex-1 p-3 space-y-1">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.end}
             className={({ isActive }) =>
-              `flex items-center px-4 py-3 rounded-lg transition ${
+              `flex items-center ${collapsed ? "justify-center" : ""} px-3 py-2.5 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-yellow-400 text-[#1B3067]"
-                  : "hover:bg-[#1B3067] text-gray-300"
+                  ? "bg-accent text-accent-foreground font-semibold shadow-soft"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`
             }
           >
-            <item.icon className="h-5 w-5 mr-3" />
-            <span className="flex-1">{item.label}</span>
-            {(item.badge ?? 0) > 0 && (
-              <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">
+            <item.icon className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span className="ml-3 flex-1 text-sm">{item.label}</span>}
+            {!collapsed && (item.badge ?? 0) > 0 && (
+              <span className="bg-destructive text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center font-medium">
                 {item.badge}
               </span>
             )}
           </NavLink>
         ))}
       </nav>
-      <div className="p-4 border-t border-gray-700">
+
+      {/* Logout */}
+      <div className="p-3 border-t border-border">
         <button
           onClick={onLogout}
-          className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-[#1B3067] rounded-lg transition"
+          className={`flex items-center ${collapsed ? "justify-center" : ""} w-full px-3 py-2.5 text-muted-foreground hover:bg-muted hover:text-destructive rounded-xl transition`}
         >
-          <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-3" />
-          <span>Logout</span>
+          <ArrowLeftOnRectangleIcon className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="ml-3 text-sm">Logout</span>}
         </button>
       </div>
     </aside>

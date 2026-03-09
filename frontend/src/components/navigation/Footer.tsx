@@ -1,5 +1,3 @@
-// src/components/layout/Footer.jsx
-import React from "react";
 import {
   EnvelopeIcon,
   PhoneIcon,
@@ -11,14 +9,16 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer id="footer" className="bg-[#1B3067] text-white pt-12 pb-6">
+    <footer id="footer" className="bg-primary text-primary-foreground pt-16 pb-8">
       <div className="container mx-auto px-4">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {/* About Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+          {/* About */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-yellow-400">finot</h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
+            <div className="flex items-center space-x-2">
+              <img src="/images/logo.png" alt="finot" className="h-8 w-8" />
+              <h3 className="text-2xl font-bold text-accent">finot</h3>
+            </div>
+            <p className="text-white/70 text-sm leading-relaxed">
               Digitizing our Gibigubae community for better management and
               engagement. Join us in building a stronger fellowship.
             </p>
@@ -26,101 +26,65 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-yellow-400">
-              Quick Links
-            </h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a
-                  href="#about"
-                  className="text-gray-300 hover:text-yellow-400 transition-colors"
-                >
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#join"
-                  className="text-gray-300 hover:text-yellow-400 transition-colors"
-                >
-                  Join Gibigubae
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/donate"
-                  className="text-gray-300 hover:text-yellow-400 transition-colors"
-                >
-                  Donate
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/anonymous"
-                  className="text-gray-300 hover:text-yellow-400 transition-colors"
-                >
-                  Anonymous Q&A
-                </a>
-              </li>
+            <h3 className="text-lg font-semibold text-accent">Quick Links</h3>
+            <ul className="space-y-2.5 text-sm">
+              {[
+                { href: "#about", label: "About Us" },
+                { href: "#join", label: "Join Gibigubae" },
+                { href: "/donate", label: "Donate" },
+                { href: "/anonymous", label: "Anonymous Q&A" },
+              ].map((link) => (
+                <li key={link.href}>
+                  <a href={link.href} className="text-white/70 hover:text-accent transition-colors">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* Contact */}
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-yellow-400">Contact</h3>
+            <h3 className="text-lg font-semibold text-accent">Contact</h3>
             <div className="space-y-3 text-sm">
-              <p className="flex items-center space-x-3 text-gray-300">
-                <EnvelopeIcon className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                <span>info@finot.org</span>
-              </p>
-              <p className="flex items-center space-x-3 text-gray-300">
-                <PhoneIcon className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                <span>+251 911 223344</span>
-              </p>
-              <p className="flex items-center space-x-3 text-gray-300">
-                <MapPinIcon className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-                <span>Adama, Ethiopia</span>
-              </p>
+              {[
+                { icon: EnvelopeIcon, text: "info@finot.org" },
+                { icon: PhoneIcon, text: "+251 911 223344" },
+                { icon: MapPinIcon, text: "Adama, Ethiopia" },
+              ].map(({ icon: Icon, text }) => (
+                <p key={text} className="flex items-center space-x-3 text-white/70">
+                  <Icon className="h-4 w-4 text-accent flex-shrink-0" />
+                  <span>{text}</span>
+                </p>
+              ))}
             </div>
           </div>
 
-          {/* Social Media */}
+          {/* Social */}
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-yellow-400">Follow Us</h3>
-            <div className="flex space-x-4">
-              <a
-                href="https://t.me/Astugibigubae"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#142850] p-3 rounded-full text-gray-300 hover:text-yellow-400 hover:bg-[#1B3067] transition-all transform hover:scale-110"
-                aria-label="Telegram"
-              >
-                <FaTelegram className="h-5 w-5" />
-              </a>
-              <a
-                href="https://www.instagram.com/astu_gbigubae"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#142850] p-3 rounded-full text-gray-300 hover:text-yellow-400 hover:bg-[#1B3067] transition-all transform hover:scale-110"
-                aria-label="Instagram"
-              >
-                <FaInstagram className="h-5 w-5" />
-              </a>
-              <a
-                href="https://www.tiktok.com/@astu_gbigubae"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#142850] p-3 rounded-full text-gray-300 hover:text-yellow-400 hover:bg-[#1B3067] transition-all transform hover:scale-110"
-                aria-label="TikTok"
-              >
-                <FaTiktok className="h-5 w-5" />
-              </a>
+            <h3 className="text-lg font-semibold text-accent">Follow Us</h3>
+            <div className="flex space-x-3">
+              {[
+                { href: "https://t.me/Astugibigubae", icon: FaTelegram, label: "Telegram" },
+                { href: "https://www.instagram.com/astu_gbigubae", icon: FaInstagram, label: "Instagram" },
+                { href: "https://www.tiktok.com/@astu_gbigubae", icon: FaTiktok, label: "TikTok" },
+              ].map(({ href, icon: Icon, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white/10 p-2.5 rounded-xl text-white/70 hover:text-accent hover:bg-white/20 transition-all"
+                  aria-label={label}
+                >
+                  <Icon className="h-5 w-5" />
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-700 pt-6 text-center text-gray-400 text-sm">
+        <div className="border-t border-white/10 pt-6 text-center text-white/50 text-sm">
           <p>&copy; {currentYear} finot. All rights reserved.</p>
           <p className="mt-1">Built with ❤️ for the Gibigubae community.</p>
         </div>
