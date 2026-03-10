@@ -16,6 +16,7 @@
     a {
       text-decoration: none;
       color: inherit;
+      cursor: pointer;
     }
     .container {
       max-width: 1200px;
@@ -47,13 +48,11 @@
     h1 span, h2 span, h3 span { color: #FACC15; }
     section { padding: 80px 0; }
     .bg-dark { background-color: #142850; }
-    .rounded-xl { border-radius: 12px; }
     .rounded-3xl { border-radius: 24px; }
     .shadow-lg { box-shadow: 0 10px 15px rgba(0,0,0,0.2); }
     .border { border-width: 1px; border-style: solid; border-color: rgba(250,204,21,0.2); }
     .list-disc { list-style-type: disc; padding-left: 1.25rem; }
     ul { margin: 8px 0; }
-    img { max-width: 100%; display: block; }
     .flex { display: flex; }
     .flex-col { flex-direction: column; }
     .flex-row { flex-direction: row; }
@@ -78,6 +77,11 @@
     .text-4xl { font-size: 2.25rem; }
     .text-5xl { font-size: 3rem; }
   </style>
+  <script>
+    function frontendComingSoon() {
+      alert("🚀 Finot frontend app coming soon!");
+    }
+  </script>
 </head>
 <body>
   <!-- Hero Section -->
@@ -87,12 +91,12 @@
       <p class="text-gray-light">Gibigubae is a fellowship of believers dedicated to spiritual growth, community service, and mutual support.</p>
       <h3>Do you want to join us?</h3>
       <div>
-        <a href="/register" class="btn btn-yellow">Register</a>
-        <a href="/login" class="btn btn-outline-yellow">Login</a>
+        <a class="btn btn-yellow" onclick="frontendComingSoon()">Register</a>
+        <a class="btn btn-outline-yellow" onclick="frontendComingSoon()">Login</a>
       </div>
       <div class="mt-8">
         <p class="text-gray-light">Have spiritual questions?</p>
-        <a href="/anonymous" class="btn-outline-yellow">Visit Anonymous Q&A Forum</a>
+        <a class="btn-outline-yellow" onclick="frontendComingSoon()">Visit Anonymous Q&A Forum</a>
       </div>
     </div>
   </section>
@@ -101,24 +105,16 @@
   <section class="bg-dark">
     <div class="container">
       <h2 class="text-center mb-8">About <span>Us</span></h2>
-      <div class="flex flex-row gap-8 flex-wrap">
-        <div class="flex flex-col gap-4">
-          <img src="/images/gibi1.jpg" alt="Gibigubae 1" class="rounded-xl shadow-lg border">
-          <img src="/images/gibi2.jpg" alt="Gibigubae 2" class="rounded-xl shadow-lg border">
-          <img src="/images/gibi3.jpg" alt="Gibigubae 3" class="rounded-xl shadow-lg border">
-          <img src="/images/gibi4.jpg" alt="Gibigubae 4" class="rounded-xl shadow-lg border">
-        </div>
-        <div class="text-gray-light">
-          <h3 class="text-yellow mb-4">ASTU Gibi Gubae</h3>
-          <p>The ASTU Gibi Gubae is a spiritual and academic fellowship established at Adama Science and Technology University during the time when the institution was still known as Nazareth Technical College. Founded in 1995.</p>
-          <p>It provides spiritual growth, fellowship, and guidance for students, ensuring balance between faith and education.</p>
-          <ul class="list-disc">
-            <li>Regular spiritual teachings and Bible study programs</li>
-            <li>Liturgical services and prayer gatherings</li>
-            <li>Spiritual counseling and mentorship</li>
-            <li>Training programs rooted in Orthodox doctrine</li>
-          </ul>
-        </div>
+      <div class="text-gray-light">
+        <h3 class="text-yellow mb-4">ASTU Gibi Gubae</h3>
+        <p>The ASTU Gibi Gubae is a spiritual and academic fellowship established at Adama Science and Technology University during the time when the institution was still known as Nazareth Technical College. Founded in 1995.</p>
+        <p>It provides spiritual growth, fellowship, and guidance for students, ensuring balance between faith and education.</p>
+        <ul class="list-disc">
+          <li>Regular spiritual teachings and Bible study programs</li>
+          <li>Liturgical services and prayer gatherings</li>
+          <li>Spiritual counseling and mentorship</li>
+          <li>Training programs rooted in Orthodox doctrine</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -133,8 +129,8 @@
   <section class="text-center p-8">
     <h3 class="text-yellow mb-4">Get Involved</h3>
     <div class="flex justify-center gap-8 flex-wrap">
-      <a href="/donate" class="btn bg-gradient-green text-white">Donate</a>
-      <a href="/anonymous" class="btn bg-gradient-purple text-white">Anonymous Q&A</a>
+      <a class="btn bg-gradient-green text-white" onclick="frontendComingSoon()">Donate</a>
+      <a class="btn bg-gradient-purple text-white" onclick="frontendComingSoon()">Anonymous Q&A</a>
     </div>
   </section>
 </body>
