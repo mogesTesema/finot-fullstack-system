@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finot - Home</title>
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1B3067;
+      color: white;
+      line-height: 1.6;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    .text-center { text-align: center; }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      border-radius: 9999px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      margin: 4px;
+    }
+    .btn-yellow { background-color: #FACC15; color: #1B3067; }
+    .btn-yellow:hover { background-color: #FCD34D; transform: scale(1.05); }
+    .btn-outline-yellow {
+      border: 2px solid #FACC15;
+      color: #FACC15;
+      background-color: transparent;
+    }
+    .btn-outline-yellow:hover {
+      background-color: #FACC15;
+      color: #1B3067;
+      transform: scale(1.05);
+    }
+    h1, h2, h3, h4 { margin: 0 0 16px 0; }
+    h1 span, h2 span, h3 span { color: #FACC15; }
+    section { padding: 80px 0; }
+    .bg-dark { background-color: #142850; }
+    .rounded-xl { border-radius: 12px; }
+    .rounded-3xl { border-radius: 24px; }
+    .shadow-lg { box-shadow: 0 10px 15px rgba(0,0,0,0.2); }
+    .border { border-width: 1px; border-style: solid; border-color: rgba(250,204,21,0.2); }
+    .list-disc { list-style-type: disc; padding-left: 1.25rem; }
+    ul { margin: 8px 0; }
+    img { max-width: 100%; display: block; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .flex-row { flex-direction: row; }
+    .justify-center { justify-content: center; }
+    .gap-4 { gap: 16px; }
+    .gap-8 { gap: 32px; }
+    .text-gray { color: #d1d5db; }
+    .text-gray-light { color: #e5e7eb; }
+    .text-yellow { color: #FACC15; }
+    .bg-gradient-green { background: linear-gradient(to right, #22c55e, #16a34a); }
+    .bg-gradient-purple { background: linear-gradient(to right, #a855f7, #9333ea); }
+    .p-4 { padding: 16px; }
+    .p-8 { padding: 32px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mb-8 { margin-bottom: 32px; }
+    .mt-4 { margin-top: 16px; }
+    .mt-8 { margin-top: 32px; }
+    .text-lg { font-size: 1.125rem; }
+    .text-xl { font-size: 1.25rem; }
+    .text-2xl { font-size: 1.5rem; }
+    .text-3xl { font-size: 1.875rem; }
+    .text-4xl { font-size: 2.25rem; }
+    .text-5xl { font-size: 3rem; }
+  </style>
+</head>
+<body>
+  <!-- Hero Section -->
+  <section class="text-center">
+    <div class="container">
+      <h1>Welcome to <span>finot</span></h1>
+      <p class="text-gray-light">Gibigubae is a fellowship of believers dedicated to spiritual growth, community service, and mutual support.</p>
+      <h3>Do you want to join us?</h3>
+      <div>
+        <a href="/register" class="btn btn-yellow">Register</a>
+        <a href="/login" class="btn btn-outline-yellow">Login</a>
+      </div>
+      <div class="mt-8">
+        <p class="text-gray-light">Have spiritual questions?</p>
+        <a href="/anonymous" class="btn-outline-yellow">Visit Anonymous Q&A Forum</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section class="bg-dark">
+    <div class="container">
+      <h2 class="text-center mb-8">About <span>Us</span></h2>
+      <div class="flex flex-row gap-8 flex-wrap">
+        <div class="flex flex-col gap-4">
+          <img src="/images/gibi1.jpg" alt="Gibigubae 1" class="rounded-xl shadow-lg border">
+          <img src="/images/gibi2.jpg" alt="Gibigubae 2" class="rounded-xl shadow-lg border">
+          <img src="/images/gibi3.jpg" alt="Gibigubae 3" class="rounded-xl shadow-lg border">
+          <img src="/images/gibi4.jpg" alt="Gibigubae 4" class="rounded-xl shadow-lg border">
+        </div>
+        <div class="text-gray-light">
+          <h3 class="text-yellow mb-4">ASTU Gibi Gubae</h3>
+          <p>The ASTU Gibi Gubae is a spiritual and academic fellowship established at Adama Science and Technology University during the time when the institution was still known as Nazareth Technical College. Founded in 1995.</p>
+          <p>It provides spiritual growth, fellowship, and guidance for students, ensuring balance between faith and education.</p>
+          <ul class="list-disc">
+            <li>Regular spiritual teachings and Bible study programs</li>
+            <li>Liturgical services and prayer gatherings</li>
+            <li>Spiritual counseling and mentorship</li>
+            <li>Training programs rooted in Orthodox doctrine</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Finot Section -->
+  <section class="text-center p-8 bg-dark rounded-3xl m-4 shadow-lg border">
+    <h3 class="text-yellow mb-4">About finot</h3>
+    <p>Finot is a digital platform created for the Gibi Gubae community to manage membership, provide anonymous support, and organize services.</p>
+  </section>
+
+  <!-- Get Involved Section -->
+  <section class="text-center p-8">
+    <h3 class="text-yellow mb-4">Get Involved</h3>
+    <div class="flex justify-center gap-8 flex-wrap">
+      <a href="/donate" class="btn bg-gradient-green text-white">Donate</a>
+      <a href="/anonymous" class="btn bg-gradient-purple text-white">Anonymous Q&A</a>
+    </div>
+  </section>
+</body>
+</html>

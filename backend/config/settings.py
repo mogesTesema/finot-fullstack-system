@@ -250,5 +250,6 @@ if PUBLIC_DOMAIN:
 # include generic Render wildcard domain
 allowed_hosts.append(".onrender.com")
 allowed_hosts.append('0.0.0.0')
+allowed_hosts.append('127.0.0.1')
 ALLOWED_HOSTS = allowed_hosts
 
