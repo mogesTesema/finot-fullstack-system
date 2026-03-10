@@ -5,7 +5,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "noEmit": false
+    "noEmit": false,
+    "emitDeclarationOnly": true
   },
   "include": ["vite.config.ts", "tailwind.config.ts", "postcss.config.ts"]
 }

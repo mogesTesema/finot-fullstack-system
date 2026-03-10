@@ -1,42 +1,33 @@
-// src/pages/home/HomePage.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   HeartIcon,
   ChatBubbleLeftRightIcon,
-  UserGroupIcon,
   SparklesIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import BackToTop from "../../components/ui/BackToTop";
+import PhotoCarousel from "../../components/home/PhotoCarousel";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
 };
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.15 } },
-};
+const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
 
 const HomePage = () => {
   return (
     <div className="overflow-hidden">
-      {/* Hero Section - keeps deep blue for dramatic effect */}
+      {/* Hero Section */}
       <section
         id="join"
         className="relative bg-gradient-to-br from-primary to-primary-light min-h-[90vh] flex items-center"
       >
-        {/* Subtle pattern overlay */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(247,223,30,0.08),transparent_60%)]" />
-        
+
         <div className="container mx-auto px-4 text-center relative z-10 py-20">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={stagger}
-          >
+          <motion.div initial="hidden" animate="visible" variants={stagger}>
             <motion.div variants={fadeInUp} className="mb-6">
               <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 text-white/90 text-sm font-medium backdrop-blur-sm border border-white/10">
                 <SparklesIcon className="h-4 w-4 mr-2 text-accent" />
@@ -52,7 +43,7 @@ const HomePage = () => {
               <span className="text-accent relative">
                 finot
                 <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
-                  <path d="M2 8C50 2 150 2 198 8" stroke="hsl(52, 94%, 54%)" strokeWidth="3" strokeLinecap="round"/>
+                  <path d="M2 8C50 2 150 2 198 8" stroke="hsl(52, 94%, 54%)" strokeWidth="3" strokeLinecap="round" />
                 </svg>
               </span>
             </motion.h1>
@@ -93,7 +84,6 @@ const HomePage = () => {
           </motion.div>
         </div>
 
-        {/* Bottom wave */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 120" fill="none" className="w-full">
             <path
@@ -104,7 +94,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* About Section */}
+      {/* About Section - Card with Read More */}
       <section id="about" className="py-20 sm:py-28 bg-background">
         <div className="container mx-auto px-4">
           <motion.div
@@ -112,7 +102,7 @@ const HomePage = () => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
             <span className="text-accent font-semibold text-sm uppercase tracking-wider">Our Story</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mt-2 mb-4">
@@ -126,82 +116,43 @@ const HomePage = () => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="mb-20"
+            className="card max-w-4xl mx-auto"
           >
-            <div className="grid lg:grid-cols-2 gap-12 items-start">
-              {/* Images Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { src: "/images/gibi1.jpg", alt: "Gibigubae 1", mt: "" },
-                  { src: "/images/gibi2.jpg", alt: "Gibigubae 2", mt: "mt-8" },
-                  { src: "/images/gibi3.jpg", alt: "Gibigubae 3", mt: "-mt-4" },
-                  { src: "/images/gibi4.jpg", alt: "Gibigubae 4", mt: "" },
-                ].map((img) => (
-                  <motion.img
-                    key={img.src}
-                    whileHover={{ scale: 1.03 }}
-                    src={img.src}
-                    alt={img.alt}
-                    className={`rounded-2xl object-cover w-full h-48 sm:h-64 shadow-card ${img.mt}`}
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="grid grid-cols-2 gap-3">
+                {["/images/gibi1.jpg", "/images/gibi2.jpg", "/images/gibi3.jpg", "/images/gibi4.jpg"].map((src, i) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt={`Community ${i + 1}`}
+                    className="rounded-xl object-cover w-full h-32 sm:h-40"
                   />
                 ))}
               </div>
-
-              {/* Text */}
-              <div className="space-y-5 text-muted-foreground text-sm md:text-base leading-relaxed">
-                <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-foreground mb-3">
                   30 Years of <span className="text-accent">Fellowship</span>
                 </h3>
-                <p>
-                  The ASTU Gibi Gubae is a spiritual and academic fellowship established at Adama Science and Technology University during the time when the institution was still known as Nazareth Technical College. It was founded in 1995 (1988 EC) by committed Orthodox Christian students and teachers.
+                <p className="text-muted-foreground leading-relaxed mb-3 text-sm">
+                  The ASTU Gibi Gubae is a spiritual and academic fellowship established at Adama Science and Technology University. Founded in 1995 by committed Orthodox Christian students and teachers, it has nurtured thousands of students over three decades.
                 </p>
-                <p>
-                  For the past thirty years, Gibi Gubae has played a significant role in nurturing thousands of students. Many of its members have graduated and gone on to serve the Holy Church and the nation in various professional and spiritual capacities.
+                <p className="text-muted-foreground leading-relaxed mb-5 text-sm">
+                  Many members have graduated and gone on to serve the Holy Church and the nation in various professional and spiritual capacities.
                 </p>
-
-                <h4 className="text-lg font-semibold text-foreground mt-6 mb-3">Currently providing:</h4>
-                <ul className="space-y-2">
-                  {[
-                    "Regular spiritual teachings and Bible study",
-                    "Liturgical services and prayer gatherings",
-                    "Spiritual counseling and mentorship",
-                    "Training programs rooted in Orthodox doctrine",
-                    "A strong fellowship network promoting unity",
-                  ].map((item) => (
-                    <li key={item} className="flex items-start">
-                      <span className="h-2 w-2 rounded-full bg-accent mt-2 mr-3 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+                <Link
+                  to="/about"
+                  className="btn-primary text-sm inline-flex items-center gap-2 group"
+                >
+                  Read More
+                  <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </div>
             </div>
-          </motion.div>
-
-          {/* About Finot Card */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="card max-w-3xl mx-auto text-center border-accent/20"
-          >
-            <div className="inline-flex items-center px-3 py-1 bg-accent/10 text-accent-foreground rounded-full text-sm font-medium mb-4">
-              <SparklesIcon className="h-4 w-4 mr-1.5 text-accent" />
-              The Platform
-            </div>
-            <h3 className="text-2xl font-bold text-foreground mb-4">About finot</h3>
-            <p className="text-muted-foreground leading-relaxed mb-4">
-              Finot is a digital platform created specifically for the Gibi Gubae community. It streamlines membership management, enables anonymous support, facilitates transparent donations, and helps members find service groups.
-            </p>
-            <p className="font-semibold text-primary">
-              Built with love by and for the community. ✨
-            </p>
           </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA Section - Donate & Q&A */}
       <section className="py-20 bg-muted">
         <div className="container mx-auto px-4">
           <motion.div
@@ -211,12 +162,8 @@ const HomePage = () => {
             viewport={{ once: true }}
             className="text-center mb-10"
           >
-            <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
-              Get Involved
-            </h3>
-            <p className="text-muted-foreground">
-              Support our mission or ask questions anonymously.
-            </p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">Get Involved</h3>
+            <p className="text-muted-foreground">Support our mission or ask questions anonymously.</p>
           </motion.div>
 
           <motion.div
@@ -231,8 +178,8 @@ const HomePage = () => {
                 to="/donate"
                 className="group flex items-center gap-3 card hover:shadow-elevated transition-all hover:-translate-y-1 px-8 py-5 border-success/20"
               >
-                <div className="p-2.5 bg-green-50 rounded-xl">
-                  <HeartIcon className="h-6 w-6 text-green-600" />
+                <div className="p-2.5 bg-success/10 rounded-xl">
+                  <HeartIcon className="h-6 w-6 text-success" />
                 </div>
                 <div className="text-left">
                   <span className="font-semibold text-foreground block">Donate</span>
@@ -245,10 +192,10 @@ const HomePage = () => {
             <motion.div variants={fadeInUp}>
               <Link
                 to="/anonymous"
-                className="group flex items-center gap-3 card hover:shadow-elevated transition-all hover:-translate-y-1 px-8 py-5 border-purple-200"
+                className="group flex items-center gap-3 card hover:shadow-elevated transition-all hover:-translate-y-1 px-8 py-5 border-primary/20"
               >
-                <div className="p-2.5 bg-purple-50 rounded-xl">
-                  <ChatBubbleLeftRightIcon className="h-6 w-6 text-purple-600" />
+                <div className="p-2.5 bg-primary/10 rounded-xl">
+                  <ChatBubbleLeftRightIcon className="h-6 w-6 text-primary" />
                 </div>
                 <div className="text-left">
                   <span className="font-semibold text-foreground block">Anonymous Q&A</span>
@@ -260,6 +207,9 @@ const HomePage = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Photo Carousel */}
+      <PhotoCarousel />
 
       <BackToTop />
     </div>

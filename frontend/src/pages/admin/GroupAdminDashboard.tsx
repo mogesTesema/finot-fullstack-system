@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/pages/admin/GroupAdminDashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";

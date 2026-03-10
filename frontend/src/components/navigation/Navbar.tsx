@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon, XMarkIcon, HeartIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,12 +19,6 @@ const Navbar = () => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const navLinks = [
-    { href: "#about", label: "About" },
-    { href: "#join", label: "Join" },
-    { href: "#footer", label: "Contact" },
-  ];
-
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -33,43 +27,89 @@ const Navbar = () => {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
           ? "bg-card/90 backdrop-blur-lg shadow-card border-b border-border"
-          : "bg-transparent"
+          : "bg-transparent border-b border-white/10"
       }`}
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-3">
-          <Link to="/" className="flex items-center space-x-2 group">
-            <motion.img
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-              src="/images/logo.png"
-              alt="finot"
-              className="h-9 w-9"
-            />
-            <span className={`text-xl font-bold transition-colors ${
-              scrolled ? "text-primary" : "text-white"
-            } group-hover:text-accent`}>
-              finot
-            </span>
-          </Link>
+          {/* Left: Logo + primary nav links */}
+          <div className="flex items-center space-x-6">
+            <Link to="/" className="flex items-center space-x-2 group">
+              <motion.img
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.5 }}
+                src="/images/logo.png"
+                alt="finot"
+                className="h-9 w-9"
+              />
+              <span className={`text-xl font-bold transition-colors ${
+                scrolled ? "text-primary" : "text-white"
+              } group-hover:text-accent`}>
+                finot
+              </span>
+            </Link>
 
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <motion.a
-                key={link.href}
-                href={link.href}
-                onClick={(e) => scrollToSection(e, link.href.substring(1))}
-                className={`font-medium transition-colors ${
-                  scrolled ? "text-foreground hover:text-accent" : "text-white/90 hover:text-accent"
+            {/* Desktop nav links */}
+            <div className="hidden md:flex items-center space-x-1">
+              <Link
+                to="/about"
+                className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
                 }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
-                {link.label}
-              </motion.a>
-            ))}
+                About
+              </Link>
+              <Link
+                to="/donate"
+                className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
+                  scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
+                }`}
+              >
+                <HeartIcon className="h-4 w-4" />
+                Donate
+              </Link>
+              <Link
+                to="/anonymous"
+                className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
+                  scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
+                }`}
+              >
+                <ChatBubbleLeftRightIcon className="h-4 w-4" />
+                Anonymous Q&A
+              </Link>
+              <a
+                href="#footer"
+                onClick={(e) => scrollToSection(e, "footer")}
+                className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
+                }`}
+              >
+                Contact
+              </a>
+            </div>
           </div>
 
+          {/* Right: Auth buttons */}
+          <div className="hidden md:flex items-center space-x-3">
+            <Link
+              to="/login"
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                scrolled
+                  ? "text-primary hover:bg-primary/5"
+                  : "text-white hover:bg-white/10"
+              }`}
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              className="btn-primary text-sm px-5 py-2"
+            >
+              Sign Up
+            </Link>
+          </div>
+
+          {/* Mobile hamburger */}
           <motion.button
             onClick={() => setIsOpen(!isOpen)}
             className={`md:hidden focus:outline-none ${scrolled ? "text-foreground" : "text-white"}`}
@@ -80,6 +120,7 @@ const Navbar = () => {
           </motion.button>
         </div>
 
+        {/* Mobile menu */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -90,18 +131,52 @@ const Navbar = () => {
               className="md:hidden overflow-hidden"
             >
               <div className="pb-4 space-y-1">
-                {navLinks.map((link) => (
-                  <motion.a
-                    key={link.href}
-                    href={link.href}
-                    onClick={(e) => scrollToSection(e, link.href.substring(1))}
-                    className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
-                    whileHover={{ x: 8 }}
-                    whileTap={{ scale: 0.95 }}
+                <Link
+                  to="/about"
+                  onClick={() => setIsOpen(false)}
+                  className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
+                >
+                  About
+                </Link>
+                <Link
+                  to="/donate"
+                  onClick={() => setIsOpen(false)}
+                  className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
+                >
+                  <HeartIcon className="h-4 w-4 inline mr-2" />
+                  Donate
+                </Link>
+                <Link
+                  to="/anonymous"
+                  onClick={() => setIsOpen(false)}
+                  className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
+                >
+                  <ChatBubbleLeftRightIcon className="h-4 w-4 inline mr-2" />
+                  Anonymous Q&A
+                </Link>
+                <a
+                  href="#footer"
+                  onClick={(e) => scrollToSection(e, "footer")}
+                  className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
+                >
+                  Contact
+                </a>
+                <div className="pt-3 border-t border-border flex gap-3 px-4">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="btn-outline text-sm flex-1 text-center py-2.5"
                   >
-                    {link.label}
-                  </motion.a>
-                ))}
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setIsOpen(false)}
+                    className="btn-primary text-sm flex-1 text-center py-2.5"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
               </div>
             </motion.div>
           )}
