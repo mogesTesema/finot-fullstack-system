@@ -21,4 +21,4 @@ COPY . /app/
 
 EXPOSE 8000
 
-CMD ["bash", "-c", "gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --timeout 220"]
+CMD ["bash", "-c", "gunicorn config.wsgi:application --bind 0.0.0.0:${PORT}"]
