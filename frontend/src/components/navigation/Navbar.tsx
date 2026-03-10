@@ -52,14 +52,6 @@ const Navbar = () => {
             {/* Desktop nav links */}
             <div className="hidden md:flex items-center space-x-1">
               <Link
-                to="/about"
-                className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
-                }`}
-              >
-                About
-              </Link>
-              <Link
                 to="/donate"
                 className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
                   scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
@@ -77,20 +69,28 @@ const Navbar = () => {
                 <ChatBubbleLeftRightIcon className="h-4 w-4" />
                 Anonymous Q&A
               </Link>
-              <a
-                href="#footer"
-                onClick={(e) => scrollToSection(e, "footer")}
-                className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
-                }`}
-              >
-                Contact
-              </a>
             </div>
           </div>
 
-          {/* Right: Auth buttons */}
-          <div className="hidden md:flex items-center space-x-3">
+          {/* Right: About, Contact, Auth buttons */}
+          <div className="hidden md:flex items-center space-x-1">
+            <Link
+              to="/about"
+              className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
+              }`}
+            >
+              About
+            </Link>
+            <a
+              href="#footer"
+              onClick={(e) => scrollToSection(e, "footer")}
+              className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
+              }`}
+            >
+              Contact
+            </a>
             <Link
               to="/login"
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${

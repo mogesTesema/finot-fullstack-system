@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import BackToTop from "../../components/ui/BackToTop";
 import PhotoCarousel from "../../components/home/PhotoCarousel";
+import AboutImageCarousel from "./AboutImageCarousel";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -116,37 +117,39 @@ const HomePage = () => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="card max-w-4xl mx-auto"
+            className="flex flex-col md:flex-row gap-10 items-stretch max-w-6xl mx-auto"
           >
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="grid grid-cols-2 gap-3">
-                {["/images/gibi1.jpg", "/images/gibi2.jpg", "/images/gibi3.jpg", "/images/gibi4.jpg"].map((src, i) => (
-                  <img
-                    key={src}
-                    src={src}
-                    alt={`Community ${i + 1}`}
-                    className="rounded-xl object-cover w-full h-32 sm:h-40"
-                  />
-                ))}
+            {/* Animated Single Image - Large and Stretched */}
+            <div className="flex-1 flex items-stretch justify-center mb-8 md:mb-0">
+              <div className="w-full h-full flex items-stretch max-h-[520px] aspect-[4/3]">
+                <AboutImageCarousel />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-foreground mb-3">
-                  30 Years of <span className="text-accent">Fellowship</span>
-                </h3>
-                <p className="text-muted-foreground leading-relaxed mb-3 text-sm">
-                  The ASTU Gibi Gubae is a spiritual and academic fellowship established at Adama Science and Technology University. Founded in 1995 by committed Orthodox Christian students and teachers, it has nurtured thousands of students over three decades.
-                </p>
-                <p className="text-muted-foreground leading-relaxed mb-5 text-sm">
-                  Many members have graduated and gone on to serve the Holy Church and the nation in various professional and spiritual capacities.
-                </p>
-                <Link
-                  to="/about"
-                  className="btn-primary text-sm inline-flex items-center gap-2 group"
-                >
-                  Read More
-                  <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+            </div>
+            {/* Cards for About Info */}
+            <div className="flex-1 flex flex-col gap-5 justify-center">
+              <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-2">
+                <h3 className="text-lg font-bold text-foreground mb-1">30 Years of <span className="text-accent">Fellowship</span></h3>
+                <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
+                  <li>Founded in 1995 at Adama Science and Technology University</li>
+                  <li>Established by Orthodox Christian students and teachers</li>
+                  <li>Spiritual and academic fellowship for thousands of students</li>
+                </ul>
               </div>
+              <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-2">
+                <h4 className="font-semibold text-foreground mb-1">Our Impact</h4>
+                <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
+                  <li>Many graduates serve the Holy Church and the nation</li>
+                  <li>Members contribute in professional and spiritual capacities</li>
+                  <li>Decades of nurturing faith and leadership</li>
+                </ul>
+              </div>
+              <Link
+                to="/about"
+                className="btn-primary text-base px-7 py-3 mt-2 self-start inline-flex items-center gap-2 group"
+              >
+                Read More
+                <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
           </motion.div>
         </div>
