@@ -42,7 +42,7 @@ const PhotoCarousel = () => {
           {duplicated.map((photo, i) => (
             <div
               key={`row1-${i}`}
-              className="flex-shrink-0 w-56 h-40 md:w-72 md:h-48 rounded-2xl overflow-hidden shadow-card"
+              className="flex-shrink-0 w-72 h-52 md:w-96 md:h-64 rounded-2xl overflow-hidden shadow-card"
             >
               <img
                 src={photo.src}
