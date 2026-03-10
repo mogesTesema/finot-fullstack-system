@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "../layouts/MainLayout";
 import HomePage from "../pages/home/HomePage";
+import AboutPage from "../pages/about/AboutPage";
 import ContactPage from "../pages/contact/ContactPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 import LoginPage from "../pages/auth/LoginPage";
@@ -38,6 +39,7 @@ export default function AppRoutes() {
         <Route path="/" element={<Layout />}>
           {/* public */}
           <Route index element={<HomePage />} />
+          <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="login" element={<LoginPage />} />
