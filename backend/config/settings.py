@@ -16,8 +16,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-# allow localhosts domain for deve and frontend integration
-ALLOWED_HOSTS = []
+
 
 
 # Application definition
@@ -250,4 +249,6 @@ if PUBLIC_DOMAIN:
     allowed_hosts.append(PUBLIC_DOMAIN)
 # include generic Render wildcard domain
 allowed_hosts.append(".onrender.com")
+allowed_hosts.append('0.0.0.0')
 ALLOWED_HOSTS = allowed_hosts
+

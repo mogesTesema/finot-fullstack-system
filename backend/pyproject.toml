@@ -1,5 +1,5 @@
 [project]
-name = "backend"
+name = "finot-backend"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -19,9 +19,10 @@ dependencies = [
     "django-cors-headers>=4.9.0",
     "whitenoise>=6.0",
     "gunicorn>=20.1.0",
+    "drf-spectacular>=0.29.0",
 ]
 
 [dependency-groups]
 dev = [
-    "drf-spectacular>=0.29.0",
+
 ]
