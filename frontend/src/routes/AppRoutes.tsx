@@ -1,6 +1,7 @@
 // src/AppRoutes.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "../layouts/MainLayout";
+import DashboardLayout from "../layouts/DashboardLayout";
 import HomePage from "../pages/home/HomePage";
 import AboutPage from "../pages/about/AboutPage";
 import ContactPage from "../pages/contact/ContactPage";
@@ -8,9 +9,15 @@ import RegisterPage from "../pages/auth/RegisterPage";
 import LoginPage from "../pages/auth/LoginPage";
 import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 import ResetPasswordConfirmPage from "../pages/auth/ResetPasswordConfirmPage";
-import StudentDashboard from "../pages/dashboard/StudentDashboard";
-import DashboardQA from "../pages/dashboard/DashboardQA";
-import ProfileDetail from "../pages/profile/ProfileDetail";
+import DashboardOverview from "../pages/dashboard/DashboardOverview";
+import DashboardProfile from "../pages/dashboard/DashboardProfile";
+import DashboardEvents from "../pages/dashboard/DashboardEvents";
+import DashboardAttendance from "../pages/dashboard/DashboardAttendance";
+import DashboardFamily from "../pages/dashboard/DashboardFamily";
+import DashboardService from "../pages/dashboard/DashboardService";
+import DashboardDonations from "../pages/dashboard/DashboardDonations";
+import DashboardQuestions from "../pages/dashboard/DashboardQuestions";
+import DashboardNotifications from "../pages/dashboard/DashboardNotifications";
 import EditProfile from "../pages/profile/EditProfile";
 import AnonymousIntro from "../pages/qa/AnonymousIntro";
 import QuestionList from "../pages/qa/QuestionList";
@@ -22,12 +29,8 @@ import {
   DonationProfile,
   DonationSuccess,
 } from "../pages/donation";
-import ServiceGroupList from "../pages/service/ServiceGroupList";
 import ServiceGroupDetail from "../pages/service/ServiceGroupDetail";
 import PreferenceForm from "../pages/service/PreferenceForm";
-import FamilyPage from "../pages/service/FamilyPage";
-import AttendancePage from "../pages/service/AttendancePage";
-import ServicesPage from "../pages/service/ServicesPage";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import GroupAdminDashboard from "../pages/admin/GroupAdminDashboard";
 import ProtectedRoute from "../features/auth/components/ProtectedRoute";
@@ -55,7 +58,7 @@ export default function AppRoutes() {
           <Route path="donate/success" element={<DonationSuccess />} />
           <Route path="donation/success" element={<DonationSuccess />} />
 
-          {/* Protected routes – all logged‑in users */}
+          {/* Dashboard routes with persistent layout */}
           <Route
             element={
               <ProtectedRoute
@@ -63,19 +66,23 @@ export default function AppRoutes() {
               />
             }
           >
-            <Route path="dashboard" element={<StudentDashboard />} />
-            <Route path="dashboard/qa" element={<DashboardQA />} />
-            <Route path="profile" element={<ProfileDetail />} />
+            <Route path="dashboard" element={<DashboardLayout />}>
+              <Route index element={<DashboardOverview />} />
+              <Route path="profile" element={<DashboardProfile />} />
+              <Route path="events" element={<DashboardEvents />} />
+              <Route path="attendance" element={<DashboardAttendance />} />
+              <Route path="family" element={<DashboardFamily />} />
+              <Route path="service" element={<DashboardService />} />
+              <Route path="service/:id" element={<ServiceGroupDetail />} />
+              <Route path="service/select" element={<PreferenceForm />} />
+              <Route path="donations" element={<DashboardDonations />} />
+              <Route path="questions" element={<DashboardQuestions />} />
+              <Route path="notifications" element={<DashboardNotifications />} />
+            </Route>
             <Route path="profile/edit" element={<EditProfile />} />
             <Route path="donate/inside" element={<DonationInside />} />
             <Route path="donate/history" element={<DonationHistory />} />
             <Route path="donate/profile" element={<DonationProfile />} />
-            <Route path="services" element={<ServicesPage />} />
-            <Route path="service-groups" element={<ServiceGroupList />} />
-            <Route path="service-groups/:id" element={<ServiceGroupDetail />} />
-            <Route path="service-groups/select" element={<PreferenceForm />} />
-            <Route path="service/family" element={<FamilyPage />} />
-            <Route path="service/attendance" element={<AttendancePage />} />
           </Route>
 
           {/* Admin‑only routes */}
