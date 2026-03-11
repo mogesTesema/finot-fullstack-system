@@ -92,7 +92,7 @@ const DashboardDonations = () => {
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Link to="/donate/inside">
+        <Link to="/dashboard/donations/give">
           <Card hoverable className="group border-l-4 border-l-success">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -106,7 +106,7 @@ const DashboardDonations = () => {
             </div>
           </Card>
         </Link>
-        <Link to="/donate/history">
+        <Link to="/dashboard/donations/history">
           <Card hoverable className="group border-l-4 border-l-primary">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">

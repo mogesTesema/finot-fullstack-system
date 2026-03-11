@@ -73,7 +73,7 @@ const DashboardProfile = () => {
     <div className="space-y-6">
       <SectionHeader title="My Profile" description="View and manage your personal information"
         action={
-          <Link to="/profile/edit" className="btn-primary inline-flex items-center gap-2 text-sm">
+          <Link to="/dashboard/profile/edit" className="btn-primary inline-flex items-center gap-2 text-sm">
             <FiEdit className="h-4 w-4" /> Edit Profile
           </Link>
         }

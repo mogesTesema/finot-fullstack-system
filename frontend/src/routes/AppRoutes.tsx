@@ -1,4 +1,3 @@
-// src/AppRoutes.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "../layouts/MainLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -69,6 +68,7 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<DashboardLayout />}>
               <Route index element={<DashboardOverview />} />
               <Route path="profile" element={<DashboardProfile />} />
+              <Route path="profile/edit" element={<EditProfile />} />
               <Route path="events" element={<DashboardEvents />} />
               <Route path="attendance" element={<DashboardAttendance />} />
               <Route path="family" element={<DashboardFamily />} />
@@ -76,13 +76,12 @@ export default function AppRoutes() {
               <Route path="service/:id" element={<ServiceGroupDetail />} />
               <Route path="service/select" element={<PreferenceForm />} />
               <Route path="donations" element={<DashboardDonations />} />
+              <Route path="donations/give" element={<DonationInside />} />
+              <Route path="donations/history" element={<DonationHistory />} />
+              <Route path="donations/profile" element={<DonationProfile />} />
               <Route path="questions" element={<DashboardQuestions />} />
               <Route path="notifications" element={<DashboardNotifications />} />
             </Route>
-            <Route path="profile/edit" element={<EditProfile />} />
-            <Route path="donate/inside" element={<DonationInside />} />
-            <Route path="donate/history" element={<DonationHistory />} />
-            <Route path="donate/profile" element={<DonationProfile />} />
           </Route>
 
           {/* Admin‑only routes */}
