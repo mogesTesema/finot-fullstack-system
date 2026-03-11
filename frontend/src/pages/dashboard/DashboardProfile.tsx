@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { Card, SectionHeader } from "../../components/ui/Card";
 import { Avatar } from "../../components/ui/Avatar";
 import Badge from "../../components/ui/Badge";
-import { Edit, User, Mail, Phone, MapPin, Heart, Church } from "react-icons/fi";
+import { FiUser, FiMail, FiPhone, FiMapPin, FiHeart, FiEdit, FiMessageCircle } from "react-icons/fi";
 
 const DashboardProfile = () => {
   const { user } = useAuth();
@@ -21,22 +21,22 @@ const DashboardProfile = () => {
   const sections = [
     {
       title: "Personal Information",
-      icon: <User className="h-5 w-5" />,
+      icon: <FiUser className="h-5 w-5" />,
       items: [
-        { label: "Full Name", value: full_name, icon: <User className="h-4 w-4" /> },
-        { label: "Baptismal Name", value: profile.baptismal_name, icon: <Church className="h-4 w-4" /> },
-        { label: "Gender", value: gender, icon: <User className="h-4 w-4" /> },
-        { label: "Department", value: profile.department, icon: <User className="h-4 w-4" /> },
-        { label: "Batch Year", value: profile.batch, icon: <User className="h-4 w-4" /> },
-        { label: "Status", value: profile.status, icon: <User className="h-4 w-4" />, badge: true },
+        { label: "Full Name", value: full_name, icon: <FiUser className="h-4 w-4" /> },
+        { label: "Baptismal Name", value: profile.baptismal_name, icon: <FiUser className="h-4 w-4" /> },
+        { label: "Gender", value: gender, icon: <FiUser className="h-4 w-4" /> },
+        { label: "Department", value: profile.department, icon: <FiUser className="h-4 w-4" /> },
+        { label: "Batch Year", value: profile.batch, icon: <FiUser className="h-4 w-4" /> },
+        { label: "Status", value: profile.status, icon: <FiUser className="h-4 w-4" />, badge: true },
       ],
     },
     {
       title: "Contact Information",
-      icon: <Mail className="h-5 w-5" />,
+      icon: <FiMail className="h-5 w-5" />,
       items: [
-        { label: "Email", value: email, icon: <Mail className="h-4 w-4" /> },
-        { label: "Phone", value: profile.personal_phone, icon: <Phone className="h-4 w-4" /> },
+        { label: "Email", value: email, icon: <FiMail className="h-4 w-4" /> },
+        { label: "Phone", value: profile.personal_phone, icon: <FiPhone className="h-4 w-4" /> },
         { label: "Telegram", value: profile.telegram, icon: <MessageCircle className="h-4 w-4" /> },
         { label: "Home Address", value: profile.home_address, icon: <MapPin className="h-4 w-4" /> },
       ],
@@ -142,7 +142,5 @@ const DashboardProfile = () => {
   );
 };
 
-// Import missing icon
-import { MessageCircle } from "react-icons/fi";
 
 export default DashboardProfile;

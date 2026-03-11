@@ -6,7 +6,7 @@ import { Card, SectionHeader } from "../../components/ui/Card";
 import { Avatar, AvatarGroup } from "../../components/ui/Avatar";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
-import { Users, Phone, Mail, User } from "react-icons/fi";
+import { FiUsers, FiPhone, FiMail, FiUser } from "react-icons/fi";
 
 const DashboardFamily = () => {
   const { user } = useAuth();

@@ -1,7 +1,7 @@
 import { useState, type SyntheticEvent } from "react";
 import { Link } from "react-router-dom";
 import { AuthUser } from "../../types";
-import { Menu, Bell, Settings } from "react-icons/fi";
+import { FiMenu, FiBell, FiSettings } from "react-icons/fi";
 
 type DashboardTopNavProps = {
   user: AuthUser;
@@ -28,7 +28,7 @@ const DashboardTopNav = ({ user, onMenuClick, notifCount }: DashboardTopNavProps
             className="rounded-lg p-2 text-muted-foreground transition hover:bg-muted md:hidden"
             aria-label="Open menu"
           >
-            <Menu className="h-5 w-5" />
+            <FiMenu className="h-5 w-5" />
           </button>
           <div className="hidden md:block">
             <h1 className="text-lg font-semibold text-foreground">
@@ -48,7 +48,7 @@ const DashboardTopNav = ({ user, onMenuClick, notifCount }: DashboardTopNavProps
             className="relative rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
             aria-label="Notifications"
           >
-            <Bell className="h-5 w-5" />
+            <FiBell className="h-5 w-5" />
             {notifCount > 0 && (
               <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
                 {notifCount > 9 ? "9+" : notifCount}
@@ -62,7 +62,7 @@ const DashboardTopNav = ({ user, onMenuClick, notifCount }: DashboardTopNavProps
             className="hidden rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground sm:block"
             aria-label="Settings"
           >
-            <Settings className="h-5 w-5" />
+            <FiSettings className="h-5 w-5" />
           </Link>
 
           {/* User Avatar + Dropdown */}

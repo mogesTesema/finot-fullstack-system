@@ -8,14 +8,14 @@ import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
 import { SkeletonCard } from "../../components/ui/SkeletonLoader";
 import {
-  Calendar,
-  Users,
-  CheckCircle,
-  Heart,
-  MessageCircle,
-  Briefcase,
-  ArrowRight,
-  TrendingUp,
+  FiCalendar,
+  FiUsers,
+  FiCheckCircle,
+  FiHeart,
+  FiMessageCircle,
+  FiBriefcase,
+  FiArrowRight,
+  FiTrendingUp,
 } from "react-icons/fi";
 
 type DashboardEvent = {
@@ -84,10 +84,10 @@ const DashboardOverview = () => {
     : 0;
 
   const quickActions = [
-    { label: "Make Donation", icon: Heart, to: "/donate/inside", color: "bg-success/10 text-success" },
-    { label: "View Events", icon: Calendar, to: "/dashboard/events", color: "bg-primary/10 text-primary" },
-    { label: "Service Groups", icon: Briefcase, to: "/dashboard/service", color: "bg-accent/10 text-accent-foreground" },
-    { label: "Q&A Forum", icon: MessageCircle, to: "/dashboard/questions", color: "bg-warning/10 text-warning" },
+    { label: "Make Donation", icon: FiHeart, to: "/donate/inside", color: "bg-success/10 text-success" },
+    { label: "View Events", icon: FiCalendar, to: "/dashboard/events", color: "bg-primary/10 text-primary" },
+    { label: "Service Groups", icon: FiBriefcase, to: "/dashboard/service", color: "bg-accent/10 text-accent-foreground" },
+    { label: "Q&A Forum", icon: FiMessageCircle, to: "/dashboard/questions", color: "bg-warning/10 text-warning" },
   ];
 
   return (
@@ -116,7 +116,7 @@ const DashboardOverview = () => {
           <div className="mt-4 flex items-center justify-between rounded-xl bg-accent/20 p-4">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-accent/30 p-2">
-                <Heart className="h-5 w-5 text-accent-foreground" />
+                <FiHeart className="h-5 w-5 text-accent-foreground" />
               </div>
               <div>
                 <p className="font-semibold text-white">Weekly Donation Reminder</p>
@@ -137,29 +137,29 @@ const DashboardOverview = () => {
         <StatsCard
           title="Attendance Rate"
           value={`${attendanceRate}%`}
-          icon={<CheckCircle className="h-6 w-6" />}
+          icon={<FiCheckCircle className="h-6 w-6" />}
           trend={{ value: 5, positive: true }}
         />
         <StatsCard
           title="Upcoming Events"
           value={events.length}
-          icon={<Calendar className="h-6 w-6" />}
+          icon={<FiCalendar className="h-6 w-6" />}
         />
         <StatsCard
           title="Family Members"
           value={family?.siblings?.length || 0}
-          icon={<Users className="h-6 w-6" />}
+          icon={<FiUsers className="h-6 w-6" />}
         />
         <StatsCard
           title="Service Group"
           value={assignedGroup}
-          icon={<Briefcase className="h-6 w-6" />}
+          icon={<FiBriefcase className="h-6 w-6" />}
         />
       </div>
 
       {/* Quick Actions */}
       <div>
-        <SectionHeader title="Quick Actions" icon={<TrendingUp className="h-6 w-6" />} />
+        <SectionHeader title="Quick Actions" icon={<FiTrendingUp className="h-6 w-6" />} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {quickActions.map((action) => (
             <Link key={action.to} to={action.to}>
@@ -171,7 +171,7 @@ const DashboardOverview = () => {
                   <div className="flex-1">
                     <p className="font-semibold text-foreground">{action.label}</p>
                   </div>
-                  <ArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                  <FiArrowRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
               </Card>
             </Link>
@@ -184,7 +184,7 @@ const DashboardOverview = () => {
         <div>
           <SectionHeader
             title="Upcoming Events"
-            icon={<Calendar className="h-5 w-5" />}
+            icon={<FiCalendar className="h-5 w-5" />}
             action={
               <Link to="/dashboard/events" className="text-sm font-medium text-primary hover:text-primary-light">
                 View all →
@@ -200,7 +200,7 @@ const DashboardOverview = () => {
               </div>
             ) : events.length === 0 ? (
               <EmptyState
-                icon={<Calendar className="h-8 w-8" />}
+                icon={<FiCalendar className="h-8 w-8" />}
                 title="No upcoming events"
                 description="Check back soon for fellowship gatherings."
               />
@@ -238,7 +238,7 @@ const DashboardOverview = () => {
         <div>
           <SectionHeader
             title="My Family"
-            icon={<Users className="h-5 w-5" />}
+            icon={<FiUsers className="h-5 w-5" />}
             action={
               <Link to="/dashboard/family" className="text-sm font-medium text-primary hover:text-primary-light">
                 View all →
@@ -248,7 +248,7 @@ const DashboardOverview = () => {
           <Card>
             {familyError ? (
               <EmptyState
-                icon={<Users className="h-8 w-8" />}
+                icon={<FiUsers className="h-8 w-8" />}
                 title="No family yet"
                 description={familyError}
               />
@@ -297,7 +297,7 @@ const DashboardOverview = () => {
       <div>
         <SectionHeader
           title="Recent Attendance"
-          icon={<CheckCircle className="h-5 w-5" />}
+          icon={<FiCheckCircle className="h-5 w-5" />}
           action={
             <Link to="/dashboard/attendance" className="text-sm font-medium text-primary hover:text-primary-light">
               View all →
@@ -315,7 +315,7 @@ const DashboardOverview = () => {
             <div className="col-span-full">
               <Card>
                 <EmptyState
-                  icon={<CheckCircle className="h-8 w-8" />}
+                  icon={<FiCheckCircle className="h-8 w-8" />}
                   title="No attendance records"
                   description="Your attendance history will appear here."
                 />

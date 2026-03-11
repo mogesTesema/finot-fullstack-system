@@ -6,7 +6,7 @@ import { Card, SectionHeader } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
 import { ServiceGroup } from "../../types";
-import { Briefcase, Users, ArrowRight, Settings } from "react-icons/fi";
+import { FiBriefcase, FiUsers, FiArrowRight, FiSettings } from "react-icons/fi";
 
 const DashboardService = () => {
   const { user } = useAuth();
@@ -53,10 +53,10 @@ const DashboardService = () => {
       <SectionHeader
         title="Service Groups"
         description="Join a ministry and serve the fellowship"
-        icon={<Briefcase className="h-6 w-6" />}
+        icon={<FiBriefcase className="h-6 w-6" />}
         action={
           <Link to="/dashboard/service/select" className="btn-primary inline-flex items-center gap-2 text-sm">
-            <Settings className="h-4 w-4" />
+            <FiSettings className="h-4 w-4" />
             Manage Preferences
           </Link>
         }
@@ -80,7 +80,7 @@ const DashboardService = () => {
       {serviceGroups.length === 0 ? (
         <Card>
           <EmptyState
-            icon={<Briefcase className="h-10 w-10" />}
+            icon={<FiBriefcase className="h-10 w-10" />}
             title="No service groups available"
             description="Check back later for ministry opportunities."
           />
@@ -95,7 +95,7 @@ const DashboardService = () => {
                 <Card hoverable className="group h-full">
                   <div className="flex items-start justify-between">
                     <div className="rounded-xl bg-primary/10 p-3">
-                      <Briefcase className="h-6 w-6 text-primary" />
+                      <FiBriefcase className="h-6 w-6 text-primary" />
                     </div>
                     {isSelected && (
                       <Badge variant="success" size="sm">
@@ -109,13 +109,13 @@ const DashboardService = () => {
                   </p>
                   {group.admin_name && (
                     <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                      <Users className="h-4 w-4" />
+                      <FiUsers className="h-4 w-4" />
                       <span>Admin: {group.admin_name}</span>
                     </div>
                   )}
                   <div className="mt-4 flex items-center justify-end text-primary">
                     <span className="text-sm font-medium">View Details</span>
-                    <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    <FiArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </Card>
               </Link>

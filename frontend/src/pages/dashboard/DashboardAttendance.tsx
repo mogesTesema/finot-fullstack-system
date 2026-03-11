@@ -5,7 +5,7 @@ import { Card, SectionHeader, StatsCard } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
 import { AttendanceRecord } from "../../types";
-import { CheckCircle, Calendar, TrendingUp, Award } from "react-icons/fi";
+import { FiCheckCircle, FiCalendar, FiTrendingUp } from "react-icons/fi";
 
 const DashboardAttendance = () => {
   const { user } = useAuth();

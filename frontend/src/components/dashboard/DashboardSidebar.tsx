@@ -1,20 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { AuthUser } from "../../types";
-import {
-  LayoutDashboard,
-  User,
-  Calendar,
-  CheckCircle,
-  Users,
-  Briefcase,
-  Heart,
-  MessageCircle,
-  Bell,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Settings,
-} from "react-icons/fi";
+import { FiGrid, FiUser, FiCalendar, FiCheckCircle, FiUsers, FiBriefcase, FiHeart, FiMessageCircle, FiBell, FiLogOut, FiChevronLeft, FiChevronRight, FiSettings } from "react-icons/fi";
 
 type NavItem = {
   to: string;
@@ -44,23 +30,23 @@ const DashboardSidebar = ({
   const role = user?.role;
 
   const navItems: NavItem[] = [
-    { to: "/dashboard", label: "Overview", icon: LayoutDashboard, end: true },
-    { to: "/dashboard/profile", label: "Profile", icon: User },
-    { to: "/dashboard/events", label: "Events", icon: Calendar },
-    { to: "/dashboard/attendance", label: "Attendance", icon: CheckCircle },
-    { to: "/dashboard/family", label: "Family", icon: Users },
-    { to: "/dashboard/service", label: "Service Groups", icon: Briefcase },
-    { to: "/dashboard/donations", label: "Donations", icon: Heart },
-    { to: "/dashboard/questions", label: "Q&A", icon: MessageCircle },
-    { to: "/dashboard/notifications", label: "Notifications", icon: Bell, badge: notifCount },
+    { to: "/dashboard", label: "Overview", icon: FiGrid, end: true },
+    { to: "/dashboard/profile", label: "Profile", icon: FiUser },
+    { to: "/dashboard/events", label: "Events", icon: FiCalendar },
+    { to: "/dashboard/attendance", label: "Attendance", icon: FiCheckCircle },
+    { to: "/dashboard/family", label: "Family", icon: FiUsers },
+    { to: "/dashboard/service", label: "Service Groups", icon: FiBriefcase },
+    { to: "/dashboard/donations", label: "Donations", icon: FiHeart },
+    { to: "/dashboard/questions", label: "Q&A", icon: FiMessageCircle },
+    { to: "/dashboard/notifications", label: "Notifications", icon: FiBell, badge: notifCount },
   ];
 
   // Add admin routes
   if (role === "service_admin") {
-    navItems.push({ to: "/group-admin", label: "Group Admin", icon: Settings });
+    navItems.push({ to: "/group-admin", label: "Group Admin", icon: FiSettings });
   }
   if (role === "super_admin") {
-    navItems.push({ to: "/admin", label: "Admin Panel", icon: Settings });
+    navItems.push({ to: "/admin", label: "Admin Panel", icon: FiSettings });
   }
 
   return (
@@ -87,9 +73,9 @@ const DashboardSidebar = ({
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
-            <ChevronRight className="h-5 w-5" />
+            <FiChevronRight className="h-5 w-5" />
           ) : (
-            <ChevronLeft className="h-5 w-5" />
+            <FiChevronLeft className="h-5 w-5" />
           )}
         </button>
       </div>
@@ -139,7 +125,7 @@ const DashboardSidebar = ({
           }`}
           title={collapsed ? "Logout" : undefined}
         >
-          <LogOut className="h-5 w-5 flex-shrink-0" />
+           <FiLogOut className="h-5 w-5 flex-shrink-0" />
           {!collapsed && <span>Logout</span>}
         </button>
       </div>

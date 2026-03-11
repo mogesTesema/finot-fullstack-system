@@ -4,7 +4,7 @@ import { api } from "../../lib/api";
 import { Card, SectionHeader } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
-import { Calendar, MapPin, Clock, Quote } from "react-icons/fi";
+import { FiCalendar, FiMapPin } from "react-icons/fi";
 
 type DashboardEvent = {
   event_id?: string | number;
@@ -65,7 +65,7 @@ const DashboardEvents = () => {
       <SectionHeader
         title="Events"
         description="Fellowship gatherings and spiritual activities"
-        icon={<Calendar className="h-6 w-6" />}
+        icon={<FiCalendar className="h-6 w-6" />}
       />
 
       {/* Filter Tabs */}
@@ -96,7 +96,7 @@ const DashboardEvents = () => {
       {filteredEvents.length === 0 ? (
         <Card>
           <EmptyState
-            icon={<Calendar className="h-10 w-10" />}
+            icon={<FiCalendar className="h-10 w-10" />}
             title="No events found"
             description="Check back soon for fellowship gatherings and activities."
           />

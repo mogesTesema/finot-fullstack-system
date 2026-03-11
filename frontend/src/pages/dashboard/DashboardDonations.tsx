@@ -6,7 +6,7 @@ import { Card, SectionHeader, StatsCard } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
 import { Donation } from "../../types";
-import { Heart, DollarSign, Calendar, TrendingUp, Plus } from "react-icons/fi";
+import { FiHeart, FiCalendar, FiTrendingUp } from "react-icons/fi";
 
 const DashboardDonations = () => {
   const { user } = useAuth();
