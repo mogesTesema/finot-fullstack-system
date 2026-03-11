@@ -5,7 +5,7 @@ import { Card, SectionHeader, StatsCard } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
 import { AttendanceRecord } from "../../types";
-import { FiCheckCircle, FiCalendar, FiTrendingUp } from "react-icons/fi";
+import { FiCheckCircle, FiCalendar, FiTrendingUp, FiAward } from "react-icons/fi";
 
 const DashboardAttendance = () => {
   const { user } = useAuth();
@@ -27,7 +27,6 @@ const DashboardAttendance = () => {
     if (user) fetchAttendance();
   }, [user]);
 
-  // Calculate stats
   const presentCount = attendance.filter((a) => a.status === "PRESENT").length;
   const absentCount = attendance.filter((a) => a.status === "ABSENT").length;
   const lateCount = attendance.filter((a) => a.status === "LATE").length;
@@ -62,50 +61,24 @@ const DashboardAttendance = () => {
       <SectionHeader
         title="Attendance"
         description="Track your participation in fellowship activities"
-        icon={<CheckCircle className="h-6 w-6" />}
+        icon={<FiCheckCircle className="h-6 w-6" />}
       />
 
-      {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Attendance Rate"
-          value={`${attendanceRate}%`}
-          icon={<TrendingUp className="h-6 w-6" />}
-          trend={{ value: 5, positive: true }}
-        />
-        <StatsCard
-          title="Present"
-          value={presentCount}
-          icon={<CheckCircle className="h-6 w-6" />}
-        />
-        <StatsCard
-          title="Late"
-          value={lateCount}
-          icon={<Calendar className="h-6 w-6" />}
-        />
-        <StatsCard
-          title="Total Events"
-          value={attendance.length}
-          icon={<Award className="h-6 w-6" />}
-        />
+        <StatsCard title="Attendance Rate" value={`${attendanceRate}%`} icon={<FiTrendingUp className="h-6 w-6" />} trend={{ value: 5, positive: true }} />
+        <StatsCard title="Present" value={presentCount} icon={<FiCheckCircle className="h-6 w-6" />} />
+        <StatsCard title="Late" value={lateCount} icon={<FiCalendar className="h-6 w-6" />} />
+        <StatsCard title="Total Events" value={attendance.length} icon={<FiAward className="h-6 w-6" />} />
       </div>
 
-      {/* Attendance List */}
       <Card>
         <h3 className="mb-4 text-lg font-semibold text-foreground">Attendance History</h3>
         {attendance.length === 0 ? (
-          <EmptyState
-            icon={<CheckCircle className="h-8 w-8" />}
-            title="No attendance records"
-            description="Your attendance history will appear here."
-          />
+          <EmptyState icon={<FiCheckCircle className="h-8 w-8" />} title="No attendance records" description="Your attendance history will appear here." />
         ) : (
           <div className="space-y-2">
             {attendance.map((record) => (
-              <div
-                key={record.id}
-                className="flex items-center justify-between rounded-xl bg-muted/50 p-4 transition hover:bg-muted"
-              >
+              <div key={record.id} className="flex items-center justify-between rounded-xl bg-muted/50 p-4 transition hover:bg-muted">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-foreground">{record.event_title || "Event"}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
