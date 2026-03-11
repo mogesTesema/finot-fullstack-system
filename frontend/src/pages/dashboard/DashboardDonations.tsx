@@ -54,7 +54,7 @@ const DashboardDonations = () => {
     <div className="space-y-6">
       <SectionHeader title="Donations" description="Your contribution history and giving" icon={<FiHeart className="h-6 w-6" />}
         action={
-          <Link to="/donate/inside" className="btn-primary inline-flex items-center gap-2 text-sm">
+          <Link to="/dashboard/donations/give" className="btn-primary inline-flex items-center gap-2 text-sm">
             <FiPlus className="h-4 w-4" /> Make Donation
           </Link>
         }
