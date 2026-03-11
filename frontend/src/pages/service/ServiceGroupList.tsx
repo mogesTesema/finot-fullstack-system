@@ -6,15 +6,8 @@ import { useAuth } from "../../context/AuthContext";
 import { ServiceGroup } from "../../types";
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
-const fadeIn = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
-
-const stagger = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
+const fadeIn = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
+const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 
 const getGroupImage = (groupName: string) => {
   const images: Record<string, string> = {
@@ -73,10 +66,7 @@ const ServiceGroupList = () => {
           <p className="text-muted-foreground text-sm mt-1">Choose a service group to learn more</p>
         </div>
         {!hasSubmitted ? (
-          <button
-            onClick={() => navigate("/service-groups/select")}
-            className="btn-primary text-sm"
-          >
+          <button onClick={() => navigate("/dashboard/service/select")} className="btn-primary text-sm">
             Select Your Preferences
           </button>
         ) : (
@@ -90,19 +80,14 @@ const ServiceGroupList = () => {
       {groups.length === 0 ? (
         <p className="text-muted-foreground text-center py-12">No service groups available.</p>
       ) : (
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {groups.map((group) => (
             <motion.div
               key={group.id}
               variants={fadeIn}
               whileHover={{ y: -4 }}
               className="card cursor-pointer hover:shadow-elevated transition-all overflow-hidden p-0"
-              onClick={() => navigate(`/service-groups/${group.id}`)}
+              onClick={() => navigate(`/dashboard/service/${group.id}`)}
             >
               <div className="w-full h-48 bg-muted flex items-center justify-center overflow-hidden">
                 <img

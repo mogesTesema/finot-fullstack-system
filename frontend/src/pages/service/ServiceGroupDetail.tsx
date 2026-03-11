@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { FiArrowLeft } from "react-icons/fi";
 import { api } from "../../lib/api";
 import { ServiceGroup } from "../../types";
+import { Card } from "../../components/ui/Card";
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 60 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-};
+const fadeIn = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 const getGroupImage = (groupName: string) => {
   const images: Record<string, string> = {
@@ -34,125 +32,79 @@ const ServiceGroupDetail = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchGroup = async () => {
-      if (!id) return;
-      try {
-        const data = await api.getServiceGroupById(id);
-        setGroup(data);
-      } catch (err: any) {
-        setError(err?.message || "Group not found");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGroup();
+    if (!id) return;
+    api.getServiceGroupById(id).then(setGroup).catch((err: any) => setError(err?.message || "Group not found")).finally(() => setLoading(false));
   }, [id]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1B3067] flex items-center justify-center">
-        <div className="text-yellow-400">Loading...</div>
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-muted border-t-primary" />
       </div>
     );
   }
 
   if (error || !group) {
     return (
-      <div className="min-h-screen bg-[#1B3067] flex items-center justify-center">
-        <div className="text-red-400">{error || "Group not found"}</div>
+      <div className="text-center py-20">
+        <p className="text-destructive mb-4">{error || "Group not found"}</p>
+        <Link to="/dashboard/service" className="btn-primary text-sm">Back to Service Groups</Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1B3067] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Back button */}
-        <div className="mb-8">
-          <Link
-            to="/service-groups"
-            className="inline-flex items-center text-yellow-400 hover:text-yellow-300 transition"
-          >
-            <ArrowLeftIcon className="h-5 w-5 mr-2" />
-            Back to Service Groups
-          </Link>
-        </div>
+    <div className="space-y-6">
+      <Link to="/dashboard/service" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition">
+        <FiArrowLeft className="h-4 w-4" /> Back to Service Groups
+      </Link>
 
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeInUp}
-          className="bg-[#142850] rounded-2xl shadow-xl p-6 sm:p-8"
-        >
-          <div className="flex flex-col md:flex-row gap-8">
+      <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+        <Card className="overflow-hidden p-0">
+          <div className="flex flex-col md:flex-row">
             {/* Image */}
-            <div className="md:w-1/3">
-              <div className="bg-[#1B3067] rounded-xl h-64 flex items-center justify-center relative overflow-hidden">
+            <div className="md:w-1/3 relative">
+              <div className="h-64 md:h-full overflow-hidden">
                 <img
                   src={getGroupImage(group.name)}
                   alt={group.name}
-                  className="w-full h-full object-cover rounded-xl"
-                  onError={(e: any) => {
-                    e.target.src = "/images/service-groups/group1.jpg";
-                  }}
+                  className="w-full h-full object-cover"
+                  onError={(e: any) => { e.target.src = "/images/service-groups/group1.jpg"; }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#142850] to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
               </div>
             </div>
 
             {/* Details */}
-            <div className="md:w-2/3">
-              <h1 className="text-3xl font-bold text-yellow-400 mb-4 drop-shadow-md">
-                {group.name}
-              </h1>
-              <p className="text-gray-300 text-lg leading-relaxed">
-                {group.description || "Learn more about this service group"}
-              </p>
+            <div className="md:w-2/3 p-6 md:p-8">
+              <h1 className="text-2xl font-bold text-foreground mb-4">{group.name}</h1>
+              <p className="text-muted-foreground leading-relaxed">{group.description || "Learn more about this service group"}</p>
               {group.admin_name && (
-                <p className="text-gray-400 mt-2 text-sm italic">
-                  Admin: {group.admin_name}
-                </p>
+                <p className="text-sm text-muted-foreground mt-2 italic">Admin: {group.admin_name}</p>
               )}
 
-              {/* Additional mock content – videos, images, etc. */}
+              {/* Gallery placeholder */}
               <div className="mt-6">
-                <h2 className="text-xl font-semibold text-yellow-400 mb-2">
-                  Gallery
-                </h2>
+                <h2 className="text-lg font-semibold text-foreground mb-3">Gallery</h2>
                 <div className="grid grid-cols-3 gap-2">
                   {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="bg-[#1B3067] h-20 rounded flex items-center justify-center text-gray-400 text-sm"
-                    >
-                      🖼️ {i}
-                    </div>
+                    <div key={i} className="bg-muted h-20 rounded-xl flex items-center justify-center text-muted-foreground text-sm">🖼️ {i}</div>
                   ))}
                 </div>
               </div>
 
               <div className="mt-6">
-                <h2 className="text-xl font-semibold text-yellow-400 mb-2">
-                  Videos
-                </h2>
-                <div className="bg-[#1B3067] h-32 rounded flex items-center justify-center text-gray-400">
-                  📹 Video content coming soon
-                </div>
+                <h2 className="text-lg font-semibold text-foreground mb-3">Videos</h2>
+                <div className="bg-muted h-32 rounded-xl flex items-center justify-center text-muted-foreground">📹 Video content coming soon</div>
               </div>
 
               <div className="mt-8">
-                <button
-                  onClick={() => navigate("/service-groups/select")}
-                  className="bg-yellow-400 text-[#1B3067] px-6 py-3 rounded-lg font-semibold hover:bg-yellow-300 transition transform hover:scale-105"
-                >
-                  Select This Group
-                </button>
+                <button onClick={() => navigate("/dashboard/service/select")} className="btn-primary">Select This Group</button>
               </div>
             </div>
           </div>
-        </motion.div>
-      </div>
+        </Card>
+      </motion.div>
     </div>
   );
 };

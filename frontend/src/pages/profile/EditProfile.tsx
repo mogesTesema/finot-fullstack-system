@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { FiArrowLeft } from "react-icons/fi";
 import Swal from "sweetalert2";
 import { api } from "../../lib/api";
 
@@ -71,10 +71,10 @@ const EditProfile = () => {
       await api.updateProfile(fd);
       const refreshedUser = await api.getUser();
       setUser(refreshedUser);
-      Swal.fire({ icon: "success", title: "Profile Updated", text: "Your changes have been saved.", confirmButtonColor: "hsl(52,94%,54%)" });
-      navigate("/profile");
+      Swal.fire({ icon: "success", title: "Profile Updated", text: "Your changes have been saved.", confirmButtonColor: "hsl(var(--accent))" });
+      navigate("/dashboard/profile");
     } catch (error: any) {
-      Swal.fire({ icon: "error", title: "Update Failed", text: error?.message || "Something went wrong.", confirmButtonColor: "hsl(52,94%,54%)" });
+      Swal.fire({ icon: "error", title: "Update Failed", text: error?.message || "Something went wrong.", confirmButtonColor: "hsl(var(--accent))" });
     } finally { setIsSubmitting(false); }
   };
 
@@ -89,89 +89,89 @@ const EditProfile = () => {
   const inputClass = "input";
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-3xl mx-auto">
-        <Link to="/profile" className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition mb-6">
-          <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> Back to Profile
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Link to="/dashboard/profile" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition">
+          <FiArrowLeft className="h-4 w-4" /> Back to Profile
         </Link>
+      </div>
 
-        <div className="card">
-          <h1 className="text-xl font-bold text-foreground mb-6">Edit Profile</h1>
+      <div className="card">
+        <h1 className="text-xl font-bold text-foreground mb-6">Edit Profile</h1>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Photo */}
-            <div className="flex items-center gap-5">
-              <img src={imagePreview} alt="Profile" className="w-20 h-20 rounded-2xl object-cover border-2 border-accent/30" />
-              <div>
-                <label className={labelClass}>Change Photo</label>
-                <input type="file" accept="image/*" onChange={handleImageChange}
-                  className="text-sm text-muted-foreground file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-foreground hover:file:bg-accent-hover file:cursor-pointer" />
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Photo */}
+          <div className="flex items-center gap-5">
+            <img src={imagePreview} alt="Profile" className="w-20 h-20 rounded-2xl object-cover border-2 border-accent/30" />
+            <div>
+              <label className={labelClass}>Change Photo</label>
+              <input type="file" accept="image/*" onChange={handleImageChange}
+                className="text-sm text-muted-foreground file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-foreground hover:file:bg-accent-hover file:cursor-pointer" />
             </div>
+          </div>
 
-            {/* Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { name: "full_name", label: "Full Name", type: "text", required: true },
-                { name: "email", label: "Email", type: "email", required: true },
-              ].map((f) => (
-                <div key={f.name}>
-                  <label className={labelClass}>{f.label} {f.required && "*"}</label>
-                  <input type={f.type} name={f.name} value={(formData as any)[f.name]} onChange={handleChange} className={inputClass} />
-                </div>
-              ))}
-              <div>
-                <label className={labelClass}>Gender *</label>
-                <select name="gender" value={formData.gender} onChange={handleChange} className={inputClass}>
-                  <option value="">Select</option>
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
-                </select>
+          {/* Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { name: "full_name", label: "Full Name", type: "text", required: true },
+              { name: "email", label: "Email", type: "email", required: true },
+            ].map((f) => (
+              <div key={f.name}>
+                <label className={labelClass}>{f.label} {f.required && "*"}</label>
+                <input type={f.type} name={f.name} value={(formData as any)[f.name]} onChange={handleChange} className={inputClass} />
               </div>
-              <div>
-                <label className={labelClass}>Baptismal Name</label>
-                <input type="text" name="baptismal_name" value={formData.baptismal_name} onChange={handleChange} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>Batch</label>
-                <select name="batch" value={formData.batch} onChange={handleChange} className={inputClass}>
-                  <option value="">Select</option>
-                  {batches.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
-                </select>
-              </div>
-              {[
-                { name: "department", label: "Department" },
-                { name: "telegram", label: "Telegram", placeholder: "@username" },
-                { name: "personal_phone", label: "Phone" },
-                { name: "emergency_name", label: "Emergency Name" },
-                { name: "emergency_phone", label: "Emergency Phone" },
-                { name: "emergency_relation", label: "Emergency Relation" },
-                { name: "home_address", label: "Home Address" },
-                { name: "previous_church", label: "Previous Church" },
-                { name: "activity_serving", label: "Activity Serving" },
-                { name: "dorm_block", label: "Dorm Block" },
-                { name: "dorm_room", label: "Dorm Room" },
-                { name: "confession_father", label: "Confession Father" },
-              ].map((f) => (
-                <div key={f.name}>
-                  <label className={labelClass}>{f.label}</label>
-                  <input type="text" name={f.name} value={(formData as any)[f.name]} onChange={handleChange} placeholder={(f as any).placeholder || ""} className={inputClass} />
-                </div>
-              ))}
-              <div>
-                <label className={labelClass}>Status</label>
-                <select name="status" value={formData.status} onChange={handleChange} className={inputClass}>
-                  <option value="">Select</option>
-                  {statuses.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </select>
-              </div>
+            ))}
+            <div>
+              <label className={labelClass}>Gender *</label>
+              <select name="gender" value={formData.gender} onChange={handleChange} className={inputClass}>
+                <option value="">Select</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
             </div>
+            <div>
+              <label className={labelClass}>Baptismal Name</label>
+              <input type="text" name="baptismal_name" value={formData.baptismal_name} onChange={handleChange} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Batch</label>
+              <select name="batch" value={formData.batch} onChange={handleChange} className={inputClass}>
+                <option value="">Select</option>
+                {batches.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
+              </select>
+            </div>
+            {[
+              { name: "department", label: "Department" },
+              { name: "telegram", label: "Telegram", placeholder: "@username" },
+              { name: "personal_phone", label: "Phone" },
+              { name: "emergency_name", label: "Emergency Name" },
+              { name: "emergency_phone", label: "Emergency Phone" },
+              { name: "emergency_relation", label: "Emergency Relation" },
+              { name: "home_address", label: "Home Address" },
+              { name: "previous_church", label: "Previous Church" },
+              { name: "activity_serving", label: "Activity Serving" },
+              { name: "dorm_block", label: "Dorm Block" },
+              { name: "dorm_room", label: "Dorm Room" },
+              { name: "confession_father", label: "Confession Father" },
+            ].map((f) => (
+              <div key={f.name}>
+                <label className={labelClass}>{f.label}</label>
+                <input type="text" name={f.name} value={(formData as any)[f.name]} onChange={handleChange} placeholder={(f as any).placeholder || ""} className={inputClass} />
+              </div>
+            ))}
+            <div>
+              <label className={labelClass}>Status</label>
+              <select name="status" value={formData.status} onChange={handleChange} className={inputClass}>
+                <option value="">Select</option>
+                {statuses.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+          </div>
 
-            <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </button>
-          </form>
-        </div>
+          <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
+            {isSubmitting ? "Saving..." : "Save Changes"}
+          </button>
+        </form>
       </div>
     </div>
   );
