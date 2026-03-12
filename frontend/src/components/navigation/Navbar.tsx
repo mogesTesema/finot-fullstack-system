@@ -42,9 +42,11 @@ const Navbar = () => {
                 alt="finot"
                 className="h-9 w-9"
               />
-              <span className={`text-xl font-bold transition-colors ${
-                scrolled ? "text-primary" : "text-white"
-              } group-hover:text-accent`}>
+              <span
+                className={`text-xl font-bold transition-colors ${
+                  scrolled ? "text-primary" : "text-white"
+                } group-hover:text-accent`}
+              >
                 finot
               </span>
             </Link>
@@ -54,7 +56,9 @@ const Navbar = () => {
               <Link
                 to="/donate"
                 className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
-                  scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
+                  scrolled
+                    ? "text-foreground hover:text-accent hover:bg-muted"
+                    : "text-white/90 hover:text-accent hover:bg-white/10"
                 }`}
               >
                 <HeartIcon className="h-4 w-4" />
@@ -63,7 +67,9 @@ const Navbar = () => {
               <Link
                 to="/anonymous"
                 className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
-                  scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
+                  scrolled
+                    ? "text-foreground hover:text-accent hover:bg-muted"
+                    : "text-white/90 hover:text-accent hover:bg-white/10"
                 }`}
               >
                 <ChatBubbleLeftRightIcon className="h-4 w-4" />
@@ -77,12 +83,14 @@ const Navbar = () => {
             <Link
               to="/about"
               className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                scrolled ? "text-foreground hover:text-accent hover:bg-muted" : "text-white/90 hover:text-accent hover:bg-white/10"
+                scrolled
+                  ? "text-foreground hover:text-accent hover:bg-muted"
+                  : "text-white/90 hover:text-accent hover:bg-white/10"
               }`}
             >
               About
             </Link>
-            <a
+            {/* <a
               href="#footer"
               onClick={(e) => scrollToSection(e, "footer")}
               className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
@@ -90,7 +98,19 @@ const Navbar = () => {
               }`}
             >
               Contact
-            </a>
+            </a> */}
+            <Link
+              to="/contact"
+              onClick={() => setIsOpen(false)}
+              className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                scrolled
+                  ? "text-foreground hover:text-accent hover:bg-muted"
+                  : "text-white/90 hover:text-accent hover:bg-white/10"
+              }`}
+            >
+              Contact
+            </Link>
+
             <Link
               to="/login"
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
@@ -101,10 +121,7 @@ const Navbar = () => {
             >
               Sign In
             </Link>
-            <Link
-              to="/register"
-              className="btn-primary text-sm px-5 py-2"
-            >
+            <Link to="/register" className="btn-primary text-sm px-5 py-2">
               Sign Up
             </Link>
           </div>
@@ -116,7 +133,11 @@ const Navbar = () => {
             aria-label="Toggle menu"
             whileTap={{ scale: 0.9 }}
           >
-            {isOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+            {isOpen ? (
+              <XMarkIcon className="h-6 w-6" />
+            ) : (
+              <Bars3Icon className="h-6 w-6" />
+            )}
           </motion.button>
         </div>
 

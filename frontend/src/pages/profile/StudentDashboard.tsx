@@ -45,7 +45,7 @@ const StudentDashboard = () => {
   const profileImage = profile.profile_image || "/images/default-avatar.jpg";
 
   return (
-    <div className="flex min-h-screen bg-[#1B3067]">
+    <div className="flex min-h-screen ">
       <Sidebar notifCount={notifCount} onLogout={handleLogout} />
 
       <main className="flex-1 p-6 overflow-auto pt-20">

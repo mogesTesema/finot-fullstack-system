@@ -21,6 +21,7 @@ import EditProfile from "../pages/profile/EditProfile";
 import AnonymousIntro from "../pages/qa/AnonymousIntro";
 import QuestionList from "../pages/qa/QuestionList";
 import AskQuestion from "../pages/qa/AskQuestion";
+
 import {
   DonationOutside,
   DonationInside,
@@ -56,6 +57,7 @@ export default function AppRoutes() {
           <Route path="donate" element={<DonationOutside />} />
           <Route path="donate/success" element={<DonationSuccess />} />
           <Route path="donation/success" element={<DonationSuccess />} />
+          <Route path="/contact" element={<ContactPage/>}/>
 
           {/* Dashboard routes with persistent layout */}
           <Route
@@ -80,7 +82,10 @@ export default function AppRoutes() {
               <Route path="donations/history" element={<DonationHistory />} />
               <Route path="donations/profile" element={<DonationProfile />} />
               <Route path="questions" element={<DashboardQuestions />} />
-              <Route path="notifications" element={<DashboardNotifications />} />
+              <Route
+                path="notifications"
+                element={<DashboardNotifications />}
+              />
             </Route>
           </Route>
 
