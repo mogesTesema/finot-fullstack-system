@@ -20,7 +20,7 @@ const ProfileDetail = () => {
           <Link to="/dashboard" className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
             <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> Dashboard
           </Link>
-          <Link to="/profile/edit" className="btn-primary text-sm inline-flex items-center gap-1.5">
+          <Link to="/dashboard/profile/edit" className="btn-primary text-sm inline-flex items-center gap-1.5">
             <PencilIcon className="h-4 w-4" /> Edit Profile
           </Link>
         </div>

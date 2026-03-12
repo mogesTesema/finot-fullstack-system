@@ -44,7 +44,7 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
   const [selectedAnswer, setSelectedAnswer] = useState<{ question: Question; answer: Answer } | null>(null);
 
-  const isAdmin = user?.role === "super_admin";
+  const isAdmin = user?.role === "service_admin";
   const isLoggedIn = !!user;
 
   useEffect(() => { fetchQuestions(); }, []);

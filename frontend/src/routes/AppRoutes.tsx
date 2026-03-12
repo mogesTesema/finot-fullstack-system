@@ -31,8 +31,7 @@ import {
 } from "../pages/donation";
 import ServiceGroupDetail from "../pages/service/ServiceGroupDetail";
 import PreferenceForm from "../pages/service/PreferenceForm";
-import AdminDashboard from "../pages/admin/AdminDashboard";
-import GroupAdminDashboard from "../pages/admin/GroupAdminDashboard";
+import ManageAgeglotDashboard from "../pages/admin/ManageAgeglotDashboard";
 import ProtectedRoute from "../features/auth/components/ProtectedRoute";
 
 export default function AppRoutes() {
@@ -57,13 +56,13 @@ export default function AppRoutes() {
           <Route path="donate" element={<DonationOutside />} />
           <Route path="donate/success" element={<DonationSuccess />} />
           <Route path="donation/success" element={<DonationSuccess />} />
-          <Route path="/contact" element={<ContactPage/>}/>
+          <Route path="/contact" element={<ContactPage />} />
 
           {/* Dashboard routes with persistent layout */}
           <Route
             element={
               <ProtectedRoute
-                allowedRoles={["student", "service_admin", "super_admin"]}
+                allowedRoles={["student", "service_admin"]}
               />
             }
           >
@@ -82,24 +81,18 @@ export default function AppRoutes() {
               <Route path="donations/history" element={<DonationHistory />} />
               <Route path="donations/profile" element={<DonationProfile />} />
               <Route path="questions" element={<DashboardQuestions />} />
+              <Route path="notifications" element={<DashboardNotifications />} />
+              {/* Admin‑only routes inside dashboard layout */}
               <Route
-                path="notifications"
-                element={<DashboardNotifications />}
-              />
+                element={
+                  <ProtectedRoute allowedRoles={["service_admin"]} />
+                }
+              >
+                <Route path="manage-ageglot" element={<ManageAgeglotDashboard />} />
+              </Route>
             </Route>
           </Route>
 
-          {/* Admin‑only routes */}
-          <Route
-            element={
-              <ProtectedRoute allowedRoles={["service_admin", "super_admin"]} />
-            }
-          >
-            <Route path="group-admin" element={<GroupAdminDashboard />} />
-          </Route>
-          <Route element={<ProtectedRoute allowedRoles={["super_admin"]} />}>
-            <Route path="admin" element={<AdminDashboard />} />
-          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

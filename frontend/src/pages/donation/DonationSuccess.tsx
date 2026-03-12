@@ -70,7 +70,7 @@ const DonationSuccess = () => {
         )}
         {(status === "success" || status === "error" || status === "missing") && (
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to={user ? "/donate/history" : "/donate"} className="btn-primary text-sm">
+            <Link to={user ? "/dashboard/donations/history" : "/donate"} className="btn-primary text-sm">
               {user ? "View History" : "Donate Again"}
             </Link>
             <Link to={user ? "/dashboard" : "/"} className="btn-outline text-sm">

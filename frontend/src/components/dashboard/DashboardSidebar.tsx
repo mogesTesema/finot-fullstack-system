@@ -38,16 +38,13 @@ const DashboardSidebar = ({
     { to: "/dashboard/service", label: "Service Groups", icon: FiBriefcase },
     { to: "/dashboard/donations", label: "Donations", icon: FiHeart },
     { to: "/dashboard/questions", label: "Q&A", icon: FiMessageCircle },
-    { to: "/dashboard/notifications", label: "Notifications", icon: FiBell, badge: notifCount },
   ];
 
   // Add admin routes
-  if (role === "service_admin") {
-    navItems.push({ to: "/group-admin", label: "Group Admin", icon: FiSettings });
+  if (role === "ServiceAdmin" || role === "service_admin") {
+    navItems.push({ to: "/dashboard/manage-ageglot", label: "Manage Ageglot", icon: FiSettings });
   }
-  if (role === "super_admin") {
-    navItems.push({ to: "/admin", label: "Admin Panel", icon: FiSettings });
-  }
+  // Super admin is handled entirely via Django admin panel — no frontend route needed.
 
   return (
     <aside

@@ -26,6 +26,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
           const userData = await api.getUser();
           setUser(userData);
+          
+          // Request and register Firebase token
+          setTimeout(async () => {
+             try {
+                const { requestNotificationPermission } = await import('../lib/firebase');
+                const token = await requestNotificationPermission();
+                if (token) {
+                   await api.registerDeviceToken(token);
+                   console.log("FCM Token registered with backend.");
+                }
+             } catch (err) {
+                console.error("Firebase token registration failed:", err);
+             }
+          }, 1000); // Small delay to prioritize rendering
+
         } catch (error) {
           console.error("Failed to restore session:", error);
           localStorage.removeItem('access_token');

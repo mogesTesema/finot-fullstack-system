@@ -37,18 +37,16 @@ const Sidebar = ({ notifCount = 0, onLogout }: SidebarProps) => {
 
   const navItems: NavItem[] = [
     { to: "/dashboard", label: "Dashboard", icon: Squares2X2Icon, end: true },
-    { to: "/profile", label: "Profile", icon: UserIcon },
-    { to: "/dashboard/qa", label: "Q&A Forum", icon: ChatBubbleLeftRightIcon, badge: notifCount },
-    { to: "/donate/inside", label: "Donation", icon: HeartIcon, badge: donationReminder ? 1 : 0 },
-    { to: "/services", label: "Services", icon: Squares2X2Icon },
+    { to: "/dashboard/profile", label: "Profile", icon: UserIcon },
+    { to: "/dashboard/questions", label: "Q&A Forum", icon: ChatBubbleLeftRightIcon },
+    { to: "/dashboard/donations", label: "Donation", icon: HeartIcon, badge: donationReminder ? 1 : 0 },
+    { to: "/dashboard/service", label: "Services", icon: Squares2X2Icon },
   ];
 
-  if (role === "service_admin") {
-    navItems.push({ to: "/group-admin", label: "Group Admin", icon: UserIcon });
+  if (role === "ServiceAdmin" || role === "service_admin") {
+    navItems.push({ to: "/dashboard/manage-ageglot", label: "Manage Ageglot", icon: UserIcon });
   }
-  if (role === "super_admin") {
-    navItems.push({ to: "/admin", label: "Admin Panel", icon: UserIcon });
-  }
+  // Super admin is handled entirely via Django admin panel — no frontend route needed.
 
   return (
     <aside

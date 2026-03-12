@@ -19,12 +19,17 @@ import { api } from "../../lib/api";
 import { motion } from "framer-motion";
 
 type DashboardEvent = {
-  event_id?: string | number;
+  id?: string | number;
   title?: string;
-  quote?: string;
-  event_date?: string;
-  event_time?: string;
-  location?: string;
+  description?: string;
+  start_date?: string;
+  end_date?: string;
+  place_name?: string;
+  place_url?: string;
+  status?: string;
+  service_group_name?: string;
+  photo?: string;
+  created_by_name?: string;
 };
 
 const fadeIn = {
@@ -62,7 +67,7 @@ const StudentDashboard = () => {
       try {
         const upcomingEvents = await api.getEvents();
         setEvents((upcomingEvents || []) as DashboardEvent[]);
-        const notifs = await api.getUserNotifications(user?.id);
+        const notifs = await api.getUserNotifications();
         setNotifCount((notifs || []).filter((n: any) => !n.is_read).length);
         try {
           const fam = await api.getMyFamily();
@@ -133,7 +138,7 @@ const StudentDashboard = () => {
                 <span className="inline-flex items-center px-3 py-1 rounded-lg bg-accent/20 text-accent text-xs font-semibold">
                   {assignedGroup}
                 </span>
-                <Link to="/profile" className="p-2 rounded-xl text-primary-foreground/60 hover:text-accent hover:bg-white/10 transition">
+                <Link to="/dashboard/profile" className="p-2 rounded-xl text-primary-foreground/60 hover:text-accent hover:bg-white/10 transition">
                   <Cog6ToothIcon className="h-5 w-5" />
                 </Link>
               </div>
@@ -151,7 +156,7 @@ const StudentDashboard = () => {
                     <p className="text-xs text-primary-foreground/60">It's Thursday — consider your weekly 1 Birr donation.</p>
                   </div>
                 </div>
-                <Link to="/donate/inside" className="btn-primary text-xs px-4 py-2">Donate Now</Link>
+                <Link to="/dashboard/donations/give" className="btn-primary text-xs px-4 py-2">Donate Now</Link>
               </motion.div>
             )}
           </motion.div>
@@ -235,10 +240,10 @@ const StudentDashboard = () => {
 
 function OverviewTab({ events, loadingEvents, family, familyError, attendance, loadingAttendance, assignedGroup, setActiveTab }: any) {
   const quickActions = [
-    { label: "Donate", icon: HeartIcon, to: "/donate/inside", color: "bg-success/10 text-success" },
-    { label: "Q&A Forum", icon: ChatBubbleLeftRightIcon, to: "/dashboard/qa", color: "bg-primary/10 text-primary" },
-    { label: "Attendance", icon: CheckBadgeIcon, to: "/service/attendance", color: "bg-accent/10 text-accent-foreground" },
-    { label: "Services", icon: SparklesIcon, to: "/services", color: "bg-warning/10 text-warning" },
+    { label: "Donate", icon: HeartIcon, to: "/dashboard/donations/give", color: "bg-success/10 text-success" },
+    { label: "Q&A Forum", icon: ChatBubbleLeftRightIcon, to: "/dashboard/questions", color: "bg-primary/10 text-primary" },
+    { label: "Attendance", icon: CheckBadgeIcon, to: "/dashboard/attendance", color: "bg-accent/10 text-accent-foreground" },
+    { label: "Services", icon: SparklesIcon, to: "/dashboard/service", color: "bg-warning/10 text-warning" },
   ];
 
   return (
@@ -276,18 +281,18 @@ function OverviewTab({ events, loadingEvents, family, familyError, attendance, l
         ) : (
           <div className="space-y-2.5">
             {events.slice(0, 3).map((event: DashboardEvent) => (
-              <div key={event.event_id} className="flex gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition">
+              <div key={event.id} className="flex gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition">
                 <div className="flex-shrink-0 w-11 h-11 bg-primary/10 rounded-xl flex flex-col items-center justify-center">
                   <span className="text-[10px] font-bold text-primary uppercase">
-                    {event.event_date ? new Date(event.event_date).toLocaleDateString("en", { month: "short" }) : ""}
+                    {event.start_date ? new Date(event.start_date).toLocaleDateString("en", { month: "short" }) : ""}
                   </span>
                   <span className="text-sm font-bold text-primary leading-none">
-                    {event.event_date ? new Date(event.event_date).getDate() : ""}
+                    {event.start_date ? new Date(event.start_date).getDate() : ""}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <h4 className="font-semibold text-foreground text-sm truncate">{event.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">🕐 {event.event_time} • 📍 {event.location}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">🕐 {event.start_date ? new Date(event.start_date).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" }) : ""} • 📍 {event.place_name || "TBD"}</p>
                 </div>
               </div>
             ))}
@@ -350,7 +355,7 @@ function OverviewTab({ events, loadingEvents, family, familyError, attendance, l
             <p className="text-xs text-muted-foreground">Service Group</p>
             <p className="text-lg font-bold text-foreground">{assignedGroup}</p>
           </div>
-          <Link to="/service-groups/select" className="ml-auto btn-primary text-xs px-4 py-2">
+          <Link to="/dashboard/service/select" className="ml-auto btn-primary text-xs px-4 py-2">
             View Groups
           </Link>
         </div>
@@ -397,16 +402,16 @@ function EventsTab({ events, loading }: { events: DashboardEvent[]; loading: boo
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {events.map((event) => (
-        <div key={event.event_id} className="card hover:shadow-elevated transition-all">
+        <div key={event.id} className="card hover:shadow-elevated transition-all">
           <div className="flex gap-4">
             <div className="w-14 h-14 bg-primary/10 rounded-2xl flex flex-col items-center justify-center flex-shrink-0">
-              <span className="text-[10px] font-bold text-primary uppercase">{event.event_date ? new Date(event.event_date).toLocaleDateString("en", { month: "short" }) : ""}</span>
-              <span className="text-lg font-bold text-primary leading-none">{event.event_date ? new Date(event.event_date).getDate() : ""}</span>
+              <span className="text-[10px] font-bold text-primary uppercase">{event.start_date ? new Date(event.start_date).toLocaleDateString("en", { month: "short" }) : ""}</span>
+              <span className="text-lg font-bold text-primary leading-none">{event.start_date ? new Date(event.start_date).getDate() : ""}</span>
             </div>
             <div>
               <h4 className="font-semibold text-foreground">{event.title}</h4>
-              <p className="text-sm text-muted-foreground mt-1">{event.quote}</p>
-              <p className="text-xs text-muted-foreground mt-2">🕐 {event.event_time} • 📍 {event.location}</p>
+              <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+              <p className="text-xs text-muted-foreground mt-2">🕐 {event.start_date ? new Date(event.start_date).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" }) : ""} • 📍 {event.place_name || "TBD"}</p>
             </div>
           </div>
         </div>
@@ -448,7 +453,7 @@ function FamilyTab({ family, error }: { family: any; error: string | null }) {
           </div>
         </>
       )}
-      <Link to="/service/family" className="btn-outline text-sm mt-6 inline-flex items-center gap-2">
+      <Link to="/dashboard/family" className="btn-outline text-sm mt-6 inline-flex items-center gap-2">
         View Full Family Page <ArrowRightIcon className="h-4 w-4" />
       </Link>
     </div>
@@ -475,7 +480,7 @@ function AttendanceTab({ attendance, loading }: { attendance: any[]; loading: bo
           </div>
         ))}
       </div>
-      <Link to="/service/attendance" className="btn-outline text-sm mt-6 inline-flex items-center gap-2">
+      <Link to="/dashboard/attendance" className="btn-outline text-sm mt-6 inline-flex items-center gap-2">
         View All Attendance <ArrowRightIcon className="h-4 w-4" />
       </Link>
     </div>
@@ -485,7 +490,7 @@ function AttendanceTab({ attendance, loading }: { attendance: any[]; loading: bo
 function DonationsTab() {
   return (
     <div className="grid sm:grid-cols-2 gap-6 max-w-2xl">
-      <Link to="/donate/inside" className="card hover:shadow-elevated transition-all hover:-translate-y-1 group border-l-4 border-l-success">
+      <Link to="/dashboard/donations/give" className="card hover:shadow-elevated transition-all hover:-translate-y-1 group border-l-4 border-l-success">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-success/10 rounded-xl">
             <HeartIcon className="h-6 w-6 text-success" />
@@ -497,7 +502,7 @@ function DonationsTab() {
           <ArrowRightIcon className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
         </div>
       </Link>
-      <Link to="/donate/history" className="card hover:shadow-elevated transition-all hover:-translate-y-1 group border-l-4 border-l-primary">
+      <Link to="/dashboard/donations/history" className="card hover:shadow-elevated transition-all hover:-translate-y-1 group border-l-4 border-l-primary">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-primary/10 rounded-xl">
             <CalendarIcon className="h-6 w-6 text-primary" />
@@ -516,7 +521,7 @@ function DonationsTab() {
 function QATab() {
   return (
     <div className="grid sm:grid-cols-2 gap-6 max-w-2xl">
-      <Link to="/dashboard/qa" className="card hover:shadow-elevated transition-all hover:-translate-y-1 group border-l-4 border-l-primary">
+      <Link to="/dashboard/questions" className="card hover:shadow-elevated transition-all hover:-translate-y-1 group border-l-4 border-l-primary">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-primary/10 rounded-xl">
             <ChatBubbleLeftRightIcon className="h-6 w-6 text-primary" />

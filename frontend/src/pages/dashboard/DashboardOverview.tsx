@@ -19,12 +19,17 @@ import {
 } from "react-icons/fi";
 
 type DashboardEvent = {
-  event_id?: string | number;
+  id?: string | number;
   title?: string;
-  quote?: string;
-  event_date?: string;
-  event_time?: string;
-  location?: string;
+  description?: string;
+  start_date?: string;
+  end_date?: string;
+  place_name?: string;
+  place_url?: string;
+  status?: string;
+  service_group_name?: string;
+  photo?: string;
+  created_by_name?: string;
 };
 
 const DashboardOverview = () => {
@@ -84,7 +89,7 @@ const DashboardOverview = () => {
     : 0;
 
   const quickActions = [
-    { label: "Make Donation", icon: FiHeart, to: "/donate/inside", color: "bg-success/10 text-success" },
+    { label: "Make Donation", icon: FiHeart, to: "/dashboard/donations/give", color: "bg-success/10 text-success" },
     { label: "View Events", icon: FiCalendar, to: "/dashboard/events", color: "bg-primary/10 text-primary" },
     { label: "Service Groups", icon: FiBriefcase, to: "/dashboard/service", color: "bg-accent/10 text-accent-foreground" },
     { label: "Q&A Forum", icon: FiMessageCircle, to: "/dashboard/questions", color: "bg-warning/10 text-warning" },
@@ -125,7 +130,7 @@ const DashboardOverview = () => {
                 </p>
               </div>
             </div>
-            <Link to="/donate/inside" className="btn-secondary text-sm">
+            <Link to="/dashboard/donations/give" className="btn-secondary text-sm">
               Donate Now
             </Link>
           </div>
@@ -208,23 +213,23 @@ const DashboardOverview = () => {
               <div className="space-y-3">
                 {events.slice(0, 3).map((event) => (
                   <div
-                    key={event.event_id}
+                    key={event.id}
                     className="flex gap-4 rounded-xl bg-muted/50 p-4 transition hover:bg-muted"
                   >
                     <div className="flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-xl bg-primary/10">
                       <span className="text-xs font-bold uppercase text-primary">
-                        {event.event_date
-                          ? new Date(event.event_date).toLocaleDateString("en", { month: "short" })
+                        {event.start_date
+                          ? new Date(event.start_date).toLocaleDateString("en", { month: "short" })
                           : ""}
                       </span>
                       <span className="text-lg font-bold leading-none text-primary">
-                        {event.event_date ? new Date(event.event_date).getDate() : ""}
+                        {event.start_date ? new Date(event.start_date).getDate() : ""}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <h4 className="font-semibold text-foreground">{event.title}</h4>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        🕐 {event.event_time} • 📍 {event.location}
+                        🕐 {event.start_date ? new Date(event.start_date).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" }) : ""} • 📍 {event.place_name || "TBD"}
                       </p>
                     </div>
                   </div>

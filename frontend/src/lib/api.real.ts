@@ -3,17 +3,27 @@ import axiosInstance from './axios';
 import { AuthUser, Donation, ServiceSelection } from '../types';
 
 // Helper to combine user and profile
-const combineUserWithProfile = (userData: any, profileData: any): AuthUser => {
+const combineUserWithProfile = (userData: any, profileData: any, membershipData: any): AuthUser => {
   const full_name = `${userData.first_name || ''} ${userData.middle_name || ''} ${userData.last_name || ''}`.trim();
   
   const status: 'graduated' | 'active' = profileData?.status === 'GRADUATED' ? 'graduated' : 'active';
+
+  // Derive role from backend roles array (e.g. ["Student"], ["ServiceAdmin"])
+  // Note: SuperAdmin is handled entirely via Django admin panel — not mapped in frontend.
+  const backendRoles: string[] = userData.roles || [];
+  let role = 'student'; // default
+  if (backendRoles.includes('ServiceAdmin')) {
+    role = 'service_admin';
+  } else if (backendRoles.includes('FamilyAdmin')) {
+    role = 'family_admin';
+  }
 
   return {
     id: userData.id,
     full_name,
     email: userData.email,
     gender: userData.gender === 'M' ? 'Male' : (userData.gender === 'F' ? 'Female' : ''),
-    role: 'student', // TODO: add roles from backend if available
+    role,
     profile: {
       baptismal_name: profileData?.baptismal_name || '',
       profile_image: profileData?.profile_image || null,
@@ -30,7 +40,7 @@ const combineUserWithProfile = (userData: any, profileData: any): AuthUser => {
       dorm_block_room: profileData?.dorm_block && profileData?.dorm_room ? `Block ${profileData.dorm_block} - Room ${profileData.dorm_room}` : '',
       confession_father: profileData?.confession_father || '',
       status: status,
-      assignedGroup: null, // not in current schema
+      assignedGroup: membershipData?.service_group_name || null, // populated from membership endpoint
     },
   };
 };
@@ -51,7 +61,16 @@ export const api = {
         console.warn('Student profile not found. User may need onboarding.');
       }
 
-      return combineUserWithProfile(userData, profileData);
+      // Fetch service group membership
+      let membershipData = null;
+      try {
+        const membershipResponse = await axiosInstance.get('/api/service/groups/my-membership/');
+        membershipData = membershipResponse.data;
+      } catch (error) {
+        // User is not assigned to any service group — that's fine
+      }
+
+      return combineUserWithProfile(userData, profileData, membershipData);
     } catch (error) {
       throw error;
     }
@@ -177,10 +196,24 @@ export const api = {
     return response.data;
   },
 
-  getUserNotifications: async (userId?: string | number) => {
-    // The backend does not currently have a dedicated notifications endpoint.
-    // Returning an empty array to prevent TypeError on the frontend.
-    return [];
+  getUserNotifications: async () => {
+    const response = await axiosInstance.get('/api/notifications/');
+    return response.data;
+  },
+
+  markNotificationRead: async (notificationId: string | number) => {
+    const response = await axiosInstance.post(`/api/notifications/${notificationId}/mark-read/`);
+    return response.data;
+  },
+
+  markAllNotificationsRead: async () => {
+    const response = await axiosInstance.post('/api/notifications/mark-all-read/');
+    return response.data;
+  },
+
+  registerDeviceToken: async (token: string) => {
+    const response = await axiosInstance.post('/api/notifications/device-token/', { device_token: token });
+    return response.data;
   },
 
   submitSelection: async (selections: ServiceSelection[]) => {
@@ -285,6 +318,16 @@ export const api = {
   getGroupByAdminId: async (adminId: string | number) => {
     const response = await axiosInstance.get(`/api/service/groups/?admin=${adminId}`);
     return response.data[0] || null;
+  },
+
+  getMyManagedGroup: async () => {
+    const response = await axiosInstance.get('/api/service/groups/my-group/');
+    return response.data;
+  },
+
+  getMyMembership: async () => {
+    const response = await axiosInstance.get('/api/service/groups/my-membership/');
+    return response.data;
   },
 
   getAllSelections: async () => {

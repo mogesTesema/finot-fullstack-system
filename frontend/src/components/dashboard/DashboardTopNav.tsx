@@ -1,7 +1,8 @@
 import { useState, type SyntheticEvent } from "react";
 import { Link } from "react-router-dom";
 import { AuthUser } from "../../types";
-import { FiMenu, FiBell, FiSettings } from "react-icons/fi";
+import { FiMenu, FiSettings } from "react-icons/fi";
+import { NotificationBell } from "../notifications/NotificationBell";
 
 type DashboardTopNavProps = {
   user: AuthUser;
@@ -32,12 +33,7 @@ const DashboardTopNav = ({ user, onMenuClick, notifCount }: DashboardTopNavProps
         </div>
 
         <div className="flex items-center gap-3">
-          <Link to="/dashboard/notifications" className="relative rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Notifications">
-            <FiBell className="h-5 w-5" />
-            {notifCount > 0 && (
-              <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">{notifCount > 9 ? "9+" : notifCount}</span>
-            )}
-          </Link>
+          <NotificationBell />
           <Link to="/dashboard/profile" className="hidden rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground sm:block" aria-label="Settings">
             <FiSettings className="h-5 w-5" />
           </Link>
@@ -52,7 +48,7 @@ const DashboardTopNav = ({ user, onMenuClick, notifCount }: DashboardTopNavProps
                 <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
                 <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-xl border border-border bg-card p-2 shadow-elevated">
                   <Link to="/dashboard/profile" className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-muted" onClick={() => setShowUserMenu(false)}>View Profile</Link>
-                  <Link to="/profile/edit" className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-muted" onClick={() => setShowUserMenu(false)}>Edit Profile</Link>
+                  <Link to="/dashboard/profile/edit" className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-muted" onClick={() => setShowUserMenu(false)}>Edit Profile</Link>
                 </div>
               </>
             )}
