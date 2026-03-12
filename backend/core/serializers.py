@@ -21,10 +21,25 @@ class UserCreateSerializer(BaseUserCreateSerializer):
         return super().validate(attrs)
 
 class UserSerializer(BaseUserSerializer):
+    roles = serializers.SerializerMethodField()
+
     class Meta(BaseUserSerializer.Meta):
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'middle_name', 'last_name', 'gender')
-        read_only_fields = ('id', 'username', 'email', 'first_name', 'middle_name', 'last_name', 'gender')
+        fields = ('id', 'username', 'email', 'first_name', 'middle_name', 'last_name', 'gender', 'roles')
+        read_only_fields = ('id', 'username', 'email', 'first_name', 'middle_name', 'last_name', 'gender', 'roles')
 
+    def get_roles(self, obj):
+        return list(obj.roles.values_list('name', flat=True))
 
+from .models import Notification, FCMDeviceToken
 
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ('id', 'title', 'message', 'notification_type', 'is_read', 'created_at')
+        read_only_fields = ('id', 'created_at')
+
+class FCMDeviceTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FCMDeviceToken
+        fields = ('device_token',)

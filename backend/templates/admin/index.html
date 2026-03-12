@@ -1,0 +1,381 @@
+{% extends 'admin/base.html' %}
+{% load i18n %}
+
+{% block title %}
+{% if subtitle %} {{ subtitle }} | {% endif %}
+Dashboard | {{ site_title|default:_('Finot Admin') }}
+{% endblock %}
+
+{% block branding %}
+{% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+<style>
+  /* Main dashboard background to distinguish from white cards */
+  .finot-dashboard {
+    font-family: 'Inter', sans-serif;
+    border-radius: 8px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    /* Clear boundary */
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    /* Base shadow for component separation */
+    transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s;
+  }
+
+  .stat-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+    border-color: #2D78FF;
+    /* Finot Blue highlight */
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #fff;
+  }
+
+  /* Primary Finot Themes for icons - Info, Success, Warning contexts */
+  /* Blue = Info/Primary, Green = Success, Yellow = Warning/Action, Red = Danger, Indigo = Neutral */
+  .stat-icon.primary {
+    background: #EBF5FF;
+    color: #2D78FF;
+    border: 1px solid #BFDBFE;
+  }
+
+  .stat-icon.success {
+    background: #F0FDF4;
+    color: #16A34A;
+    border: 1px solid #BBF7D0;
+  }
+
+  .stat-icon.warning {
+    background: #FEFCE8;
+    color: #EAB308;
+    border: 1px solid #FEF08A;
+  }
+
+  .stat-icon.danger {
+    background: #FEF2F2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+  }
+
+  .stat-icon.neutral {
+    background: #F3F4F6;
+    color: #4B5563;
+    border: 1px solid #E5E7EB;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.2;
+    margin-top: 0.25rem;
+  }
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .chart-card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    /* Base shadow */
+  }
+
+  .chart-card h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1F2937;
+    border-bottom: 1px solid #E5E7EB;
+    padding-bottom: 0.75rem;
+  }
+
+  .chart-card canvas {
+    max-height: 300px;
+  }
+
+  @media (max-width: 768px) {
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chart-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="finot-dashboard">
+  <!-- ─── Stat Cards ──────────────────────────── -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-icon primary"><span class="material-symbols-outlined">people</span></div>
+      <div>
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">{{ total_users }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon success"><span class="material-symbols-outlined">school</span></div>
+      <div>
+        <div class="stat-label">Active Students</div>
+        <div class="stat-value">{{ active_students }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon warning"><span class="material-symbols-outlined">payments</span></div>
+      <div>
+        <div class="stat-label">Donations (ETB)</div>
+        <div class="stat-value">{{ total_donations }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon danger"><span class="material-symbols-outlined">help</span></div>
+      <div>
+        <div class="stat-label">Pending Q&A</div>
+        <div class="stat-value">{{ pending_questions }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon primary"><span class="material-symbols-outlined">event</span></div>
+      <div>
+        <div class="stat-label">Total Events</div>
+        <div class="stat-value">{{ total_events }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon success"><span class="material-symbols-outlined">family_restroom</span></div>
+      <div>
+        <div class="stat-label">Families</div>
+        <div class="stat-value">{{ total_families }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon neutral"><span class="material-symbols-outlined">groups</span></div>
+      <div>
+        <div class="stat-label">Service Groups</div>
+        <div class="stat-value">{{ total_service_groups }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon danger"><span class="material-symbols-outlined">notifications_active</span></div>
+      <div>
+        <div class="stat-label">Unread Alerts</div>
+        <div class="stat-value">{{ unread_notifications }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Charts ──────────────────────────────── -->
+  <div class="chart-grid">
+    <!-- Donations Over Time -->
+    <div class="chart-card">
+      <h3>📈 Donations Over Time</h3>
+      <canvas id="donationsOverTimeChart"></canvas>
+    </div>
+
+    <!-- Donations by Fund Category -->
+    <div class="chart-card">
+      <h3>📊 Donations by Fund</h3>
+      <canvas id="donationsByFundChart"></canvas>
+    </div>
+
+    <!-- Students by Department -->
+    <div class="chart-card">
+      <h3>🎓 Students by Department</h3>
+      <canvas id="studentsByDeptChart"></canvas>
+    </div>
+
+    <!-- Attendance Rate -->
+    <div class="chart-card">
+      <h3>✅ Attendance Breakdown</h3>
+      <canvas id="attendanceChart"></canvas>
+    </div>
+
+    <!-- Events by Status -->
+    <div class="chart-card">
+      <h3>📅 Events Overview</h3>
+      <canvas id="eventsChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const gridColor = 'rgba(0,0,0,0.06)';
+    const fontColor = '#6B7280';
+    const finotBlue = '#2D78FF';
+    const finotYellow = '#FACC15';
+
+    Chart.defaults.color = fontColor;
+
+    // ── Donations Over Time ──────────────────────
+    const donationMonths = {{ donation_months|safe }};
+    const donationAmounts = {{ donation_amounts|safe }};
+  new Chart(document.getElementById('donationsOverTimeChart'), {
+    type: 'line',
+    data: {
+      labels: donationMonths,
+      datasets: [{
+        label: 'Amount (ETB)',
+        data: donationAmounts,
+        borderColor: finotBlue,
+        backgroundColor: 'rgba(45, 120, 255, 0.15)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 5,
+        pointBackgroundColor: finotBlue,
+        borderWidth: 2.5,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: gridColor } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // ── Donations by Fund Category ───────────────
+  const fundLabels = {{ fund_labels|safe }};
+  const fundAmounts = {{ fund_amounts|safe }};
+  new Chart(document.getElementById('donationsByFundChart'), {
+    type: 'bar',
+    data: {
+      labels: fundLabels,
+      datasets: [{
+        label: 'Amount (ETB)',
+        data: fundAmounts,
+        backgroundColor: [finotBlue, finotYellow, '#60A5FA', '#FDE047', '#93C5FD'],
+        borderRadius: 6,
+        barPercentage: 0.6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: gridColor } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // ── Students by Department ───────────────────
+  const deptLabels = {{ dept_labels|safe }};
+  const deptCounts = {{ dept_counts|safe }};
+  new Chart(document.getElementById('studentsByDeptChart'), {
+    type: 'bar',
+    data: {
+      labels: deptLabels,
+      datasets: [{
+        label: 'Students',
+        data: deptCounts,
+        backgroundColor: finotBlue,
+        borderRadius: 6,
+        barPercentage: 0.6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, grid: { color: gridColor } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+
+    const attendanceData = [{{ attendance_present }}, {{ attendance_late }}, {{ attendance_absent }}, {{ attendance_excused }}];
+    const attendanceSum = attendanceData.reduce((a, b) => a + b, 0);
+
+    new Chart(document.getElementById('attendanceChart'), {
+      type: 'doughnut',
+      data: {
+        labels: attendanceSum === 0 ? ['No Data'] : ['Present', 'Late', 'Absent', 'Excused'],
+        datasets: [{
+          data: attendanceSum === 0 ? [1] : attendanceData,
+          backgroundColor: attendanceSum === 0 ? ['#F3F4F6'] : [finotBlue, finotYellow, '#FCA5A5', '#D1D5DB'],
+          borderWidth: 0,
+          hoverOffset: 8,
+        }]
+    },
+    options: {
+    responsive: true,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+    }
+  }
+  });
+
+    const eventsData = [{{ events_upcoming }}, {{ events_ongoing }}, {{ events_completed }}];
+    const eventsSum = eventsData.reduce((a, b) => a + b, 0);
+
+    new Chart(document.getElementById('eventsChart'), {
+      type: 'doughnut',
+      data: {
+        labels: eventsSum === 0 ? ['No Data'] : ['Upcoming', 'Ongoing', 'Completed'],
+        datasets: [{
+          data: eventsSum === 0 ? [1] : eventsData,
+          backgroundColor: eventsSum === 0 ? ['#F3F4F6'] : ['#93C5FD', finotYellow, finotBlue],
+          borderWidth: 0,
+          hoverOffset: 8,
+        }]
+    },
+    options: {
+    responsive: true,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+    }
+  }
+  });
+});
+</script>
+{% endblock %}

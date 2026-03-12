@@ -133,10 +133,11 @@ class FamilySerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    service_group_name = serializers.CharField(source='service_group.name', read_only=True, allow_null=True, default=None)
 
     class Meta:
         model = Event
-        fields = ['id', 'title', 'description', 'start_date', 'end_date', 'photo', 'status', 'created_by_name', 'created_at']
+        fields = ['id', 'title', 'description', 'start_date', 'end_date', 'photo', 'status', 'created_by_name', 'created_at', 'place_name', 'place_url', 'service_group', 'service_group_name']
 
 
 class ServiceGroupMembershipSerializer(serializers.ModelSerializer):

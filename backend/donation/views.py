@@ -7,6 +7,8 @@ from .models import Payment, StudentDonation, NonStudentDonation
 from .serializers import InitiateDonationSerializer, DonationHistorySerializer
 from .utils import ChapaPayment
 from core.emails import notify_donation_success, notify_donation_failure
+from core.notifications import send_push_notification
+from core.models import Notification
 from django.db import transaction
 from decouple import config
 from django.conf import settings
@@ -101,6 +103,15 @@ class InitiateDonationView(generics.GenericAPIView):
                 # Send failure notification for initiation phase failure
                 notify_donation_failure(payment)
                 
+                # Push Notification if Authenticated
+                if hasattr(payment, 'student_donation') and payment.student_donation:
+                    send_push_notification(
+                        user_id=payment.student_donation.student.id,
+                        title="Donation Initiation Failed",
+                        body=f"Failed to start donation of {payment.amount} ETB.",
+                        notification_type=Notification.TYPE_DONATION
+                    )
+                
                 return Response({"error": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -133,6 +144,14 @@ class VerifyDonationView(APIView):
             # Send success notification
             notify_donation_success(payment)
             
+            if hasattr(payment, 'student_donation') and payment.student_donation:
+                send_push_notification(
+                    user_id=payment.student_donation.student.id,
+                    title="Donation Successful",
+                    body=f"We received your donation of {payment.amount} ETB. Thank you!",
+                    notification_type=Notification.TYPE_DONATION
+                )
+            
             return Response({"status": "Payment Successful", "amount": payment.amount})
         else:
             # We assume it is failed or cancelled if not paid by the time they are verified here
@@ -141,6 +160,14 @@ class VerifyDonationView(APIView):
                 payment.save()
                 # Send failure notification
                 notify_donation_failure(payment)
+                
+                if hasattr(payment, 'student_donation') and payment.student_donation:
+                    send_push_notification(
+                        user_id=payment.student_donation.student.id,
+                        title="Donation Failed",
+                        body=f"Your donation of {payment.amount} ETB could not be verified.",
+                        notification_type=Notification.TYPE_DONATION
+                    )
                 
             return Response({"status": "Payment Verification Failed", "detail": "Transaction not found or pending"}, status=status.HTTP_400_BAD_REQUEST)
 

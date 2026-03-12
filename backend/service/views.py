@@ -20,10 +20,67 @@ class ServiceGroupViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Read-only endpoint for Service Groups (Ministries).
     Students browse this to decide what to pick.
+    Supports ?admin=<user_id> filtering.
     """
-    queryset = ServiceGroup.objects.all().select_related('admin')
     serializer_class = ServiceGroupSerializer
     # permission_classes = [permissions.AllowAny] # Or IsAuthenticated
+
+    def get_queryset(self):
+        qs = ServiceGroup.objects.all().select_related('admin')
+        admin_id = self.request.query_params.get('admin')
+        if admin_id:
+            qs = qs.filter(admin_id=admin_id)
+        return qs
+
+    @action(detail=False, methods=['GET'], url_path='my-group')
+    def my_group(self, request):
+        """
+        Returns the group managed by the current user (service admin).
+        Endpoint: /api/service/groups/my-group/
+        """
+        if not request.user.is_authenticated:
+            return Response({"detail": "Not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+        group = ServiceGroup.objects.filter(admin=request.user).select_related('admin').first()
+        if not group:
+            return Response({"detail": "No group assigned."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(group)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['GET'], url_path='my-membership')
+    def my_membership(self, request):
+        """
+        Returns the current user's active service group membership.
+        Falls back to checking if the user is a group admin.
+        Endpoint: /api/service/groups/my-membership/
+        """
+        if not request.user.is_authenticated:
+            return Response({"detail": "Not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Check membership first
+        try:
+            membership = ServiceGroupMembership.objects.select_related('service_group').get(
+                student=request.user, status=ServiceGroupMembership.ACTIVE
+            )
+            return Response({
+                'service_group_name': membership.service_group.name,
+                'service_group_id': membership.service_group.id,
+                'role': membership.role,
+                'status': membership.status
+            })
+        except ServiceGroupMembership.DoesNotExist:
+            pass
+
+        # Fallback: check if user is a group admin
+        managed_group = ServiceGroup.objects.filter(admin=request.user).first()
+        if managed_group:
+            return Response({
+                'service_group_name': managed_group.name,
+                'service_group_id': managed_group.id,
+                'role': 'ADMIN',
+                'status': 'ACTIVE'
+            })
+
+        return Response({"detail": "Not assigned to any service group."}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['GET'], url_path='members')
     def members(self, request, pk=None):
@@ -116,18 +173,29 @@ class FamilyViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Endpoint: /api/service/families/my-family/
         Returns the family the current user belongs to.
+        Also checks if the user is a father or mother of a family.
         """
         if not request.user.is_authenticated:
             return Response({"detail": "Not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
         
-        # Check membership
+        family = None
+        # Check membership first
         if hasattr(request.user, 'family_membership'):
             family = request.user.family_membership.family
+        
+        # Then check if user is father or mother
+        if not family:
+            from django.db.models import Q
+            family = Family.objects.filter(
+                Q(father=request.user) | Q(mother=request.user)
+            ).first()
+        
+        if family:
             # Pass request context so serializer can filter siblings
             serializer = self.get_serializer(family, context={'request': request})
             return Response(serializer.data)
-        else:
-            return Response({"detail": "You are not assigned to a family yet."}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({"detail": "You are not assigned to a family yet."}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['GET'])
     def members(self, request, pk=None):
@@ -143,13 +211,60 @@ class FamilyViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class EventViewSet(viewsets.ReadOnlyModelViewSet):
+from django.db.models import Q
+
+class EventViewSet(viewsets.ModelViewSet):
     """
-    Read-only view for Events.
+    View for Events.
+    Students see global events + events for their active service group.
+    Service Admins can CRUD events for their managed group.
     """
-    queryset = Event.objects.all().order_by('-start_date').select_related('created_by')
     serializer_class = EventSerializer
-    # permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        
+        # SuperAdmins see all
+        if user.is_staff or user.roles.filter(name='SuperAdmin').exists():
+            return Event.objects.all().order_by('-start_date').select_related('created_by', 'service_group')
+            
+        # Service Admins see global + their managed group's events
+        if user.roles.filter(name='ServiceAdmin').exists():
+            managed_groups = user.managed_service_groups.all()
+            if managed_groups.exists():
+                return Event.objects.filter(
+                    Q(service_group__isnull=True) | Q(service_group__in=managed_groups)
+                ).order_by('-start_date').select_related('created_by', 'service_group')
+
+        # Students see global + their active group's events
+        try:
+            membership = ServiceGroupMembership.objects.get(student=user, status=ServiceGroupMembership.ACTIVE)
+            group_id = membership.service_group_id
+            return Event.objects.filter(
+                Q(service_group__isnull=True) | Q(service_group_id=group_id)
+            ).order_by('-start_date').select_related('created_by', 'service_group')
+        except ServiceGroupMembership.DoesNotExist:
+            pass
+
+        # Fallback: only global events
+        return Event.objects.filter(service_group__isnull=True).order_by('-start_date').select_related('created_by', 'service_group')
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        
+        if user.is_staff or user.roles.filter(name='SuperAdmin').exists():
+             serializer.save(created_by=user)
+             return
+             
+        # If ServiceAdmin, enforce saving to their managed group
+        if user.roles.filter(name='ServiceAdmin').exists():
+            managed_group = user.managed_service_groups.first() # Assume one for now
+            if managed_group:
+                 serializer.save(created_by=user, service_group=managed_group)
+                 return
+                 
+        raise permissions.PermissionDenied("You do not have permission to create events.")
 
 
 class ServiceAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
@@ -216,3 +331,27 @@ class ServiceAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
         Explicit endpoint for my history (alias for list view but clearer intent).
         """
         return self.list(request)
+
+    @action(detail=False, methods=['GET'], url_path='group-members')
+    def group_members(self, request):
+        """
+        Endpoint for Service Admins to fetch the roster of their managed group
+        in order to mark attendance. Returns FamilyMemberSerializer for simplicity.
+        """
+        user = request.user
+        if not user.roles.filter(name='ServiceAdmin').exists() and not user.is_staff:
+             return Response({"detail": "Not authorized."}, status=status.HTTP_403_FORBIDDEN)
+             
+        managed_group = user.managed_service_groups.first()
+        if not managed_group:
+             return Response({"detail": "You do not manage any group."}, status=status.HTTP_404_NOT_FOUND)
+             
+        memberships = ServiceGroupMembership.objects.filter(
+            service_group=managed_group,
+            status=ServiceGroupMembership.ACTIVE
+        ).select_related('student__student_profile')
+        
+        users = [m.student for m in memberships]
+        from .serializers import FamilyMemberSerializer # Local import to avoid circular dependency if messy
+        serializer = FamilyMemberSerializer(users, many=True)
+        return Response(serializer.data)

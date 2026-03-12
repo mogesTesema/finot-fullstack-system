@@ -125,6 +125,20 @@ class Event(models.Model):
         default=UPCOMING
     )
     
+    # Adding Location Data
+    place_name = models.CharField(max_length=255, blank=True, null=True)
+    place_url = models.URLField(max_length=500, blank=True, null=True, help_text="Google Maps URL")
+
+    # Adding Service Group Isolation
+    service_group = models.ForeignKey(
+        ServiceGroup,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="events",
+        help_text="If blank, this is a general system-wide event. If set, it's specific to this service group."
+    )
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL, 
