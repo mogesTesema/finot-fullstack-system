@@ -19,15 +19,16 @@ class FCMDeviceTokenViewSet(viewsets.ModelViewSet):
         return FCMDeviceToken.objects.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        # Update or create the token for this user
-        device_token = serializer.validated_data['device_token']
+        device_token = request.data.get('device_token')
+        if not device_token:
+            return Response({"device_token": ["This field is required."]}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Update or create the token for this user without triggering the serializer's UniqueValidator
         token_obj, created = FCMDeviceToken.objects.update_or_create(
             device_token=device_token,
             defaults={'user': request.user}
         )
-        return Response(self.get_serializer(token_obj).data, status=status.HTTP_201_CREATED)
+        return Response(self.get_serializer(token_obj).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """
