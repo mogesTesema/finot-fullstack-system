@@ -6,9 +6,9 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-// No base URL – requests will be relative to the current origin
+// Base URL driven exclusively by environment variables
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 // Add token to requests
