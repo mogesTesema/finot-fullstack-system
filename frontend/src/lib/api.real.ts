@@ -256,7 +256,7 @@ export const api = {
   },
 
   // ========== DONATIONS ==========
-  getDonations: async (userId: string | number | null = null): Promise<Donation[]> => {
+  getDonations: async (): Promise<Donation[]> => {
     // If we wanted to filter by user on admin, we'd do it.
     // However the MyDonationHistoryViewSet handles its own filtering via the logged in token.
     const response = await axiosInstance.get<Donation[]>('/api/donations/my-history/');

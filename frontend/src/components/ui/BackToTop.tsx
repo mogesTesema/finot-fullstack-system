@@ -1,5 +1,5 @@
 // src/components/common/BackToTop.jsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { ArrowUpIcon } from "@heroicons/react/24/outline";
 
 const BackToTop = () => {

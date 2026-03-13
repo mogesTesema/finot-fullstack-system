@@ -33,8 +33,13 @@ const DonationInside = () => {
     try {
       const { checkout_url } = await api.createDonation({ fund_category: formData.purpose, amount: formData.amount.trim() });
       window.location.href = checkout_url;
-    } catch (error: any) {
-      Swal.fire({ icon: "error", title: "Payment Error", text: error?.response?.data?.detail || "Something went wrong." });
+    } catch (error: unknown) {
+      let msg = "Something went wrong.";
+      if (error && typeof error === "object") {
+        const errObj = error as Record<string, any>;
+        msg = errObj?.response?.data?.detail || errObj?.message || msg;
+      }
+      Swal.fire({ icon: "error", title: "Payment Error", text: msg });
     } finally { setIsSubmitting(false); }
   };
 

@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
-import { CheckCircleIcon, XCircleIcon, PrinterIcon, ArrowLeftIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, XCircleIcon, ArrowLeftIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 
 const fadeIn = { hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } } };
 
@@ -32,8 +32,13 @@ const DonationSuccess = () => {
         const data = await api.verifyDonation(txRef);
         setDetails(data);
         setStatus("success");
-      } catch (error: any) {
-        setErrorMessage(error?.response?.data?.detail || error?.message || "Unable to verify payment.");
+      } catch (error: unknown) {
+        let msg = "Unable to verify payment.";
+        if (error && typeof error === "object") {
+           const errObj = error as Record<string, any>;
+           msg = errObj?.response?.data?.detail || errObj?.message || msg;
+        }
+        setErrorMessage(msg);
         setStatus("error");
       }
     };
@@ -94,7 +99,7 @@ const DonationSuccess = () => {
                 <div className="space-y-4 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Donor Name</span>
-                    <span className="font-medium text-foreground text-right">{details.donor_name || (user ? user.first_name + ' ' + user.last_name : "Generous Donor")}</span>
+                    <span className="font-medium text-foreground text-right">{details.donor_name || (user ? (user as any).first_name + ' ' + (user as any).last_name : "Generous Donor")}</span>
                   </div>
                   
                   <div className="flex justify-between">

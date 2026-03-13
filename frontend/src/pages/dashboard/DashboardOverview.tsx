@@ -6,7 +6,6 @@ import { Card, StatsCard, SectionHeader } from "../../components/ui/Card";
 import { Avatar, AvatarGroup } from "../../components/ui/Avatar";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
-import { SkeletonCard } from "../../components/ui/SkeletonLoader";
 import {
   FiCalendar,
   FiUsers,

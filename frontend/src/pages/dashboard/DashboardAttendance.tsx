@@ -28,7 +28,6 @@ const DashboardAttendance = () => {
   }, [user]);
 
   const presentCount = attendance.filter((a) => a.status === "PRESENT").length;
-  const absentCount = attendance.filter((a) => a.status === "ABSENT").length;
   const lateCount = attendance.filter((a) => a.status === "LATE").length;
   const attendanceRate = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
 

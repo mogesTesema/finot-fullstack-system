@@ -40,8 +40,6 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [editedQuestionBody, setEditedQuestionBody] = useState("");
-  const [editingAnswer, setEditingAnswer] = useState<{ answerId: number; questionId: string } | null>(null);
-  const [editedAnswerBody, setEditedAnswerBody] = useState("");
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
   const [selectedAnswer, setSelectedAnswer] = useState<{ question: Question; answer: Answer } | null>(null);
 

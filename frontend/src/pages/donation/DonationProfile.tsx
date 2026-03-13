@@ -17,7 +17,7 @@ const DonationProfile = () => {
 
   useEffect(() => {
     if (user) {
-      api.getDonations(user?.id).then(setDonations).catch(console.error).finally(() => setLoading(false));
+      api.getDonations().then(setDonations).catch(console.error).finally(() => setLoading(false));
     }
   }, [user]);
 

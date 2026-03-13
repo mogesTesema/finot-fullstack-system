@@ -153,10 +153,11 @@ const DonationOutside = () => {
               <div
                 key={index}
                 className="relative overflow-hidden rounded-2xl shadow-lg p-6 flex flex-col items-center text-center min-h-[200px] transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer group"
+                style={{ "--hover-color": card.color } as React.CSSProperties}
               >
                 {/* Gradient overlay */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-b from-transparent to-transparent group-hover:from-[${card.color}] group-hover:to-white opacity-30 transition-all duration-500`}
+                  className="absolute inset-0 bg-gradient-to-b from-transparent to-transparent group-hover:from-[var(--hover-color)] group-hover:to-white opacity-30 transition-all duration-500"
                 />
 
                 <div
