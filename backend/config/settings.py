@@ -3,7 +3,7 @@ import dj_database_url
 import os
 from dotenv import load_dotenv
 from datetime import timedelta
-from decouple import config
+
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
@@ -119,12 +119,28 @@ AUTHENTICATION_BACKENDS = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://localhost:8000",
     "https://finot.vercel.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
+    "http://localhost:8000",
     "https://finot.vercel.app",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 
 
@@ -245,8 +261,8 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.environ.get("EMAIL_HOST_USER")
 
 
-PUBLIC_DOMAIN = config("PUBLIC_DOMAIN")
-FRONTEND_URL = config("FRONTEND_URL")
+PUBLIC_DOMAIN = os.environ.get("PUBLIC_DOMAIN", "")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "")
 
 RETURN_URL = f"{FRONTEND_URL}/donation/success"
 CALLBACK_URL = f"{PUBLIC_DOMAIN}/api/donations/verify/"
@@ -255,12 +271,14 @@ CALLBACK_URL = f"{PUBLIC_DOMAIN}/api/donations/verify/"
 raw_allowed = os.environ.get("ALLOWED_HOSTS", "")
 allowed_hosts = [h.strip() for h in raw_allowed.split(",") if h.strip()]
 if PUBLIC_DOMAIN:
-    allowed_hosts.append(PUBLIC_DOMAIN)
+    clean_domain = PUBLIC_DOMAIN.replace("https://", "").replace("http://", "")
+    allowed_hosts.append(clean_domain)
 # include generic Render wildcard domain
 allowed_hosts.append(".onrender.com")
 allowed_hosts.append("localhost")
-allowed_hosts.append("https://finot.vercel.app")
-ALLOWED_HOSTS = allowed_hosts
+allowed_hosts.append("127.0.0.1")
+allowed_hosts.append("finot.vercel.app")
+ALLOWED_HOSTS = list(set(allowed_hosts))  # Remove duplicates
 
 
 # =============================================================================
