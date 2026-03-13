@@ -130,9 +130,26 @@ class VerifyDonationView(APIView):
         except Payment.DoesNotExist:
              return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        # If already completed, just return success
+        # Helper to construct full receipt response
+        def get_receipt_response(payment, status_msg):
+            donor_name = "Guest Visitor"
+            if hasattr(payment, 'student_donation') and payment.student_donation:
+                donor_name = payment.student_donation.student.get_full_name() or payment.student_donation.student.email
+            elif hasattr(payment, 'guest_donation') and payment.guest_donation:
+                donor_name = f"{payment.guest_donation.first_name} {payment.guest_donation.last_name}"
+
+            return Response({
+                "status": status_msg,
+                "amount": payment.amount,
+                "currency": payment.currency,
+                "tx_ref": payment.transaction_reference,
+                "date": payment.created_at,
+                "donor_name": donor_name
+            })
+            
+        # If already completed, return full receipt
         if payment.status == Payment.STATUS_COMPLETED:
-            return Response({"status": "Payment already verified", "amount": payment.amount})
+            return get_receipt_response(payment, "Payment already verified")
 
         chapa = ChapaPayment()
         is_paid = chapa.verify_payment(tx_ref)
@@ -152,7 +169,7 @@ class VerifyDonationView(APIView):
                     notification_type=Notification.TYPE_DONATION
                 )
             
-            return Response({"status": "Payment Successful", "amount": payment.amount})
+            return get_receipt_response(payment, "Payment Successful")
         else:
             # We assume it is failed or cancelled if not paid by the time they are verified here
             if payment.status != Payment.STATUS_FAILED:

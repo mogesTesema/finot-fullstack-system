@@ -3,11 +3,13 @@ import json
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth
 from django.conf import settings
+from django.http import HttpRequest
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 
-def _safe_query(func, default=0):
+def _safe_query(func: Callable[[], Any], default: Any = 0) -> Any:
     """Run a database query safely, returning default on any error."""
     try:
         return func()
@@ -16,7 +18,7 @@ def _safe_query(func, default=0):
         return default
 
 
-def environment_callback(request):
+def environment_callback(request: HttpRequest) -> List[str]:
     """
     Returns environment label and color for the admin header badge.
     """
@@ -25,7 +27,7 @@ def environment_callback(request):
     return ["Production", "danger"]
 
 
-def dashboard_callback(request, context):
+def dashboard_callback(request: HttpRequest, context: Dict[str, Any]) -> Dict[str, Any]:
     """
     Prepares custom variables for the admin dashboard (templates/admin/index.html).
     Injects stat card counts and chart data for Chart.js.

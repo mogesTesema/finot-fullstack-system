@@ -17,8 +17,11 @@ def send_html_email(subject, recipient_list, template_name=None, context=None, m
         plain_message = strip_tags(html_message)
     else:
         # Fallback for simple string messages
-        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
-        logo_url = f"{frontend_url}/images/logo.png"
+        # Logo hosted on Cloudinary so it loads in all email clients
+        logo_url = getattr(
+            settings, 'FINOT_LOGO_URL',
+            'https://res.cloudinary.com/dkmtrm8kg/image/upload/v1773377920/finot/logo.png'
+        )
         current_year = datetime.date.today().year
 
         html_message = f"""

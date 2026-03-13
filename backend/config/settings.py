@@ -89,7 +89,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": dj_database_url.parse(
         os.environ.get("DATABASE_URL", None),
-        conn_max_age=600,
+        conn_max_age=700,
     )
 }
 
@@ -162,7 +162,7 @@ REST_FRAMEWORK = {
 }
 
 
-DOMAIN = "localhost:5173"  
+DOMAIN = "https://finot.onrender.com"  
 SITE_NAME = "Finot"
 
 
@@ -256,8 +256,8 @@ if PUBLIC_DOMAIN:
     allowed_hosts.append(PUBLIC_DOMAIN)
 # include generic Render wildcard domain
 allowed_hosts.append(".onrender.com")
-allowed_hosts.append('0.0.0.0')
-allowed_hosts.append('127.0.0.1')
+allowed_hosts.append("localhost")
+allowed_hosts.append("https://finot.vercel.app")
 ALLOWED_HOSTS = allowed_hosts
 
 
@@ -341,7 +341,7 @@ UNFOLD = {
                         "title": _("Dashboard"),
                         "icon": "dashboard",
                         "link": reverse_lazy("admin:index"),
-                        "permission": lambda request: request.user.is_superuser,
+                        "permission": lambda request: request.user.is_staff,
                     },
                 ],
             },
@@ -354,11 +354,13 @@ UNFOLD = {
                         "title": _("Users"),
                         "icon": "people",
                         "link": reverse_lazy("admin:core_user_changelist"),
+                        "permission": lambda request: request.user.has_perm("core.view_user"),
                     },
                     {
                         "title": _("Student Profiles"),
                         "icon": "school",
                         "link": reverse_lazy("admin:student_studentprofile_changelist"),
+                        "permission": lambda request: request.user.has_perm("student.view_studentprofile"),
                     },
                     {
                         "title": _("Roles"),
@@ -383,36 +385,43 @@ UNFOLD = {
                         "title": _("Service Groups"),
                         "icon": "groups",
                         "link": reverse_lazy("admin:service_servicegroup_changelist"),
+                        "permission": lambda request: request.user.has_perm("service.view_servicegroup"),
                     },
                     {
                         "title": _("Memberships"),
                         "icon": "badge",
                         "link": reverse_lazy("admin:service_servicegroupmembership_changelist"),
+                        "permission": lambda request: request.user.has_perm("service.view_servicegroupmembership"),
                     },
                     {
                         "title": _("Families"),
                         "icon": "family_restroom",
                         "link": reverse_lazy("admin:service_family_changelist"),
+                        "permission": lambda request: request.user.has_perm("service.view_family"),
                     },
                     {
                         "title": _("Family Members"),
                         "icon": "diversity_3",
                         "link": reverse_lazy("admin:service_familymembership_changelist"),
+                        "permission": lambda request: request.user.has_perm("service.view_familymembership"),
                     },
                     {
                         "title": _("Events"),
                         "icon": "event",
                         "link": reverse_lazy("admin:service_event_changelist"),
+                        "permission": lambda request: request.user.has_perm("service.view_event"),
                     },
                     {
                         "title": _("Attendance"),
                         "icon": "fact_check",
                         "link": reverse_lazy("admin:service_serviceattendance_changelist"),
+                        "permission": lambda request: request.user.has_perm("service.view_serviceattendance"),
                     },
                     {
                         "title": _("Ageglot Selections"),
                         "icon": "how_to_vote",
                         "link": reverse_lazy("admin:service_ageglotselection_changelist"),
+                        "permission": lambda request: request.user.has_perm("service.view_ageglotselection"),
                     },
                     {
                         "title": _("Service Config"),
@@ -431,16 +440,19 @@ UNFOLD = {
                         "title": _("Payments"),
                         "icon": "payments",
                         "link": reverse_lazy("admin:donation_payment_changelist"),
+                        "permission": lambda request: request.user.has_perm("donation.view_payment"),
                     },
                     {
                         "title": _("Student Donations"),
                         "icon": "volunteer_activism",
                         "link": reverse_lazy("admin:donation_studentdonation_changelist"),
+                        "permission": lambda request: request.user.has_perm("donation.view_studentdonation"),
                     },
                     {
                         "title": _("Guest Donations"),
                         "icon": "handshake",
                         "link": reverse_lazy("admin:donation_nonstudentdonation_changelist"),
+                        "permission": lambda request: request.user.has_perm("donation.view_nonstudentdonation"),
                     },
                 ],
             },
@@ -453,11 +465,13 @@ UNFOLD = {
                         "title": _("Questions"),
                         "icon": "help",
                         "link": reverse_lazy("admin:questionanswer_question_changelist"),
+                        "permission": lambda request: request.user.has_perm("questionanswer.view_question"),
                     },
                     {
                         "title": _("Answers"),
                         "icon": "question_answer",
                         "link": reverse_lazy("admin:questionanswer_answer_changelist"),
+                        "permission": lambda request: request.user.has_perm("questionanswer.view_answer"),
                     },
                 ],
             },
@@ -470,6 +484,7 @@ UNFOLD = {
                         "title": _("Notifications"),
                         "icon": "notifications",
                         "link": reverse_lazy("admin:core_notification_changelist"),
+                        "permission": lambda request: request.user.has_perm("core.view_notification"),
                     },
                     {
                         "title": _("Device Tokens"),
@@ -494,14 +509,17 @@ UNFOLD = {
                 {
                     "title": _("Payments"),
                     "link": reverse_lazy("admin:donation_payment_changelist"),
+                    "permission": lambda request: request.user.has_perm("donation.view_payment"),
                 },
                 {
                     "title": _("Student Donations"),
                     "link": reverse_lazy("admin:donation_studentdonation_changelist"),
+                    "permission": lambda request: request.user.has_perm("donation.view_studentdonation"),
                 },
                 {
                     "title": _("Guest Donations"),
                     "link": reverse_lazy("admin:donation_nonstudentdonation_changelist"),
+                    "permission": lambda request: request.user.has_perm("donation.view_nonstudentdonation"),
                 },
             ],
         },
@@ -514,10 +532,12 @@ UNFOLD = {
                 {
                     "title": _("Questions"),
                     "link": reverse_lazy("admin:questionanswer_question_changelist"),
+                    "permission": lambda request: request.user.has_perm("questionanswer.view_question"),
                 },
                 {
                     "title": _("Answers"),
                     "link": reverse_lazy("admin:questionanswer_answer_changelist"),
+                    "permission": lambda request: request.user.has_perm("questionanswer.view_answer"),
                 },
             ],
         },
@@ -530,10 +550,12 @@ UNFOLD = {
                 {
                     "title": _("Families"),
                     "link": reverse_lazy("admin:service_family_changelist"),
+                    "permission": lambda request: request.user.has_perm("service.view_family"),
                 },
                 {
                     "title": _("Family Members"),
                     "link": reverse_lazy("admin:service_familymembership_changelist"),
+                    "permission": lambda request: request.user.has_perm("service.view_familymembership"),
                 },
             ],
         },
@@ -546,10 +568,12 @@ UNFOLD = {
                 {
                     "title": _("Service Groups"),
                     "link": reverse_lazy("admin:service_servicegroup_changelist"),
+                    "permission": lambda request: request.user.has_perm("service.view_servicegroup"),
                 },
                 {
                     "title": _("Group Memberships"),
                     "link": reverse_lazy("admin:service_servicegroupmembership_changelist"),
+                    "permission": lambda request: request.user.has_perm("service.view_servicegroupmembership"),
                 },
             ],
         },
@@ -563,14 +587,17 @@ UNFOLD = {
                 {
                     "title": _("Users"),
                     "link": reverse_lazy("admin:core_user_changelist"),
+                    "permission": lambda request: request.user.has_perm("core.view_user"),
                 },
                 {
                     "title": _("Roles"),
                     "link": reverse_lazy("admin:core_role_changelist"),
+                    "permission": lambda request: request.user.is_superuser,
                 },
                 {
                     "title": _("User Roles"),
                     "link": reverse_lazy("admin:core_userrole_changelist"),
+                    "permission": lambda request: request.user.is_superuser,
                 },
             ],
         },
