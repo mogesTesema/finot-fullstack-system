@@ -52,12 +52,10 @@ const Sidebar = ({ notifCount = 0, onLogout }: SidebarProps) => {
     <aside
       className={`${
         collapsed ? "w-16" : "w-64"
-      } bg-blue-700 text-white flex flex-col h-screen sticky top-0 transition-all duration-300 shadow-soft`}
+      } bg-card border-r border-border flex flex-col h-screen sticky top-0 transition-all duration-300 shadow-soft`}
     >
       {/* Logo */}
-      <div
-        className={`p-4 border-b border-white/20 flex items-center ${collapsed ? "justify-center" : "justify-between"}`}
-      >
+      <div className={`p-4 border-b border-border flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
         {!collapsed && (
           <div className="flex items-center space-x-2">
             <img src="/images/logo.png" alt="finot" className="h-8 w-8" />
@@ -68,11 +66,7 @@ const Sidebar = ({ notifCount = 0, onLogout }: SidebarProps) => {
           onClick={() => setCollapsed(!collapsed)}
           className="p-1.5 rounded-lg hover:bg-muted transition text-muted-foreground"
         >
-          {collapsed ? (
-            <ChevronRightIcon className="h-4 w-4" />
-          ) : (
-            <ChevronLeftIcon className="h-4 w-4" />
-          )}
+          {collapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
         </button>
       </div>
 
@@ -86,15 +80,13 @@ const Sidebar = ({ notifCount = 0, onLogout }: SidebarProps) => {
             className={({ isActive }) =>
               `flex items-center ${collapsed ? "justify-center" : ""} px-3 py-2.5 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-white/20 text-white font-semibold"
-                  : "text-white/80 hover:bg-white/10 hover:text-white"
+                  ? "bg-accent text-accent-foreground font-semibold shadow-soft"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`
             }
           >
             <item.icon className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && (
-              <span className="ml-3 flex-1 text-sm">{item.label}</span>
-            )}
+            {!collapsed && <span className="ml-3 flex-1 text-sm">{item.label}</span>}
             {!collapsed && (item.badge ?? 0) > 0 && (
               <span className="bg-destructive text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center font-medium">
                 {item.badge}
