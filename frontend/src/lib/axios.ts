@@ -7,8 +7,10 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 // Base URL driven exclusively by environment variables
+// Base URL driven by environment variables with fallback safety
+const rawBaseURL = import.meta.env.VITE_API_URL;
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: rawBaseURL ? rawBaseURL.replace(/\/$/, '') : undefined,
 });
 
 // Add token to requests
