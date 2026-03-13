@@ -15,18 +15,24 @@ const messaging = getMessaging(app);
 
 export const requestNotificationPermission = async () => {
   try {
+    // Check if Notification API is available at all
+    if (!('Notification' in window)) {
+      return null;
+    }
+    // If already denied, don't prompt again (avoids browser console noise)
+    if (Notification.permission === 'denied') {
+      return null;
+    }
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       const token = await getToken(messaging, { 
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY || "BIweGretGW7ojWO_FwNixEBvFIkIdVvI_rv6MEbHRr8JsX_yoBQPXLKUcOndRGUoUTF5W8uS4JXbhXJhhKOCb6g"
       });
       return token;
-    } else {
-      console.warn("Notification permission denied");
-      return null;
     }
-  } catch (error) {
-    console.error("Error requesting notification permission:", error);
+    return null;
+  } catch {
+    // Silently handle — push notifications are optional
     return null;
   }
 };

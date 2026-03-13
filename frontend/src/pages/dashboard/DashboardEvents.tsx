@@ -14,6 +14,7 @@ type DashboardEvent = {
   end_date: string;
   place_name?: string;
   place_url?: string;
+  photo?: string | null;
   status: "UPCOMING" | "ONGOING" | "COMPLETED";
   service_group?: number;
   service_group_name?: string;
@@ -83,6 +84,15 @@ const DashboardEvents = () => {
             const isPast = eventDate && eventDate < new Date();
             return (
               <Card key={event.id} hoverable className={`overflow-hidden ${isPast ? "opacity-75" : ""}`}>
+                {/* Event Image */}
+                {event.photo && (
+                  <img
+                    src={event.photo}
+                    alt={event.title}
+                    className="w-full h-40 object-cover rounded-t-xl -mt-4 -mx-4 mb-4"
+                    style={{ width: 'calc(100% + 2rem)' }}
+                  />
+                )}
                 <div className="flex gap-4">
                   <div className="flex flex-col gap-2">
                     <div className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-xl bg-primary/10">

@@ -8,6 +8,7 @@ import {
   TrashIcon,
   ArrowsPointingOutIcon,
 } from "@heroicons/react/24/outline";
+import toast from "react-hot-toast";
 
 import Pagination from "../../components/ui/Pagination";
 import Spinner from "../../components/ui/Spinner";
@@ -51,7 +52,7 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
 
   const fetchQuestions = async () => {
     try { const data = await api.getQuestions(); setQuestions(data); }
-    catch (error) { console.error("Failed to fetch questions", error); }
+    catch (error) { console.error("Failed to fetch questions", error); toast.error("Failed to load questions"); }
     finally { setLoading(false); }
   };
 
@@ -60,21 +61,22 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
     if (!answer?.trim()) return;
     try {
       await api.postAnswer({ question: questionId, display_name: user?.full_name || "Anonymous", answer_body: answer });
+      toast.success("Answer posted successfully!");
       await fetchQuestions();
       setAnswerText((prev) => ({ ...prev, [questionId]: "" }));
-    } catch (error) { console.error("Failed to post answer", error); }
+    } catch (error) { console.error("Failed to post answer", error); toast.error("Failed to post answer"); }
   };
 
   const deleteQuestion = async (questionId: string) => {
     if (!window.confirm("Delete this question?")) return;
-    try { await api.deleteQuestion(questionId); await fetchQuestions(); }
-    catch (error) { console.error("Failed to delete question", error); }
+    try { await api.deleteQuestion(questionId); toast.success("Question deleted"); await fetchQuestions(); }
+    catch (error) { console.error("Failed to delete question", error); toast.error("Failed to delete question"); }
   };
 
   const deleteAnswer = async (answerId: number) => {
     if (!window.confirm("Delete this answer?")) return;
-    try { await api.deleteAnswer(answerId); await fetchQuestions(); }
-    catch (error) { console.error("Failed to delete answer", error); }
+    try { await api.deleteAnswer(answerId); toast.success("Answer deleted"); await fetchQuestions(); }
+    catch (error) { console.error("Failed to delete answer", error); toast.error("Failed to delete answer"); }
   };
 
   const canModify = (itemUserId?: number | null) => {
@@ -97,6 +99,10 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const getApprovedAnswers = (q: Question) => (q.answers || []).filter((a) => a.is_approved ?? true);
   const previewAnswer = (text: string) => text.length > LONG_ANSWER_LIMIT ? `${text.slice(0, LONG_ANSWER_LIMIT)}...` : text;
 
+  // Determine the correct Ask Question route & back route
+  const askRoute = isDashboard ? "/dashboard/questions/ask" : "/anonymous/ask";
+  const backRoute = isDashboard ? "/dashboard" : "/anonymous";
+
   if (loading) {
     return (
       <div className={`${isDashboard ? "" : "min-h-screen bg-background"} flex items-center justify-center py-20`}>
@@ -108,16 +114,18 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   return (
     <div className={isDashboard ? "" : "min-h-screen bg-background py-8 px-4"}>
       <div className="max-w-3xl mx-auto">
-        {!isDashboard && (
-          <div className="flex justify-between items-center mb-6">
-            <Link to="/anonymous" className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
+        {/* Header with Ask Question button */}
+        <div className="flex justify-between items-center mb-6">
+          {!isDashboard && (
+            <Link to={backRoute} className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
               <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> Back
             </Link>
-            <Link to="/anonymous/ask" className="btn-primary text-sm inline-flex items-center gap-1.5">
-              <PlusCircleIcon className="h-4 w-4" /> Ask Question
-            </Link>
-          </div>
-        )}
+          )}
+          {isDashboard && <div />}
+          <Link to={askRoute} className="btn-primary text-sm inline-flex items-center gap-1.5">
+            <PlusCircleIcon className="h-4 w-4" /> Ask Question
+          </Link>
+        </div>
 
         <motion.div initial="hidden" animate="visible" variants={fadeIn} className="space-y-5">
           <h1 className="text-2xl font-bold text-foreground">Community Questions</h1>
@@ -153,7 +161,14 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                   <div className="mt-3 space-y-2">
                     <textarea value={editedQuestionBody} onChange={(e) => setEditedQuestionBody(e.target.value)} className="input" rows={3} />
                     <div className="flex gap-2">
-                      <button onClick={async () => { await api.updateQuestion(q.id, { question_body: editedQuestionBody }); await fetchQuestions(); setEditingQuestion(null); }} className="btn-primary text-sm px-3 py-1.5">Save</button>
+                      <button onClick={async () => {
+                        try {
+                          await api.updateQuestion(q.id, { question_body: editedQuestionBody });
+                          toast.success("Question updated");
+                          await fetchQuestions();
+                          setEditingQuestion(null);
+                        } catch { toast.error("Failed to update question"); }
+                      }} className="btn-primary text-sm px-3 py-1.5">Save</button>
                       <button onClick={() => setEditingQuestion(null)} className="btn-outline text-sm px-3 py-1.5">Cancel</button>
                     </div>
                   </div>

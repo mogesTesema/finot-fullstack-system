@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
@@ -21,11 +21,16 @@ const categories = [
 
 const AskQuestion = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [nickname, setNickname] = useState("");
   const [category, setCategory] = useState("");
   const [question, setQuestion] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Detect if we're inside the dashboard
+  const isDashboard = location.pathname.startsWith("/dashboard");
+  const backRoute = isDashboard ? "/dashboard/questions" : "/anonymous/questions";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,18 +46,18 @@ const AskQuestion = () => {
         category,
         question_body: question,
       });
-      Swal.fire({ icon: "success", title: "Question Posted", text: "Your question has been submitted anonymously.", confirmButtonColor: "hsl(52,94%,54%)" });
-      navigate("/anonymous/questions");
+      Swal.fire({ icon: "success", title: "Question Posted", text: "Your question has been submitted.", confirmButtonColor: "hsl(52,94%,54%)" });
+      navigate(backRoute);
     } catch (error: any) {
       Swal.fire({ icon: "error", title: "Failed", text: error.message || "Something went wrong.", confirmButtonColor: "hsl(52,94%,54%)" });
     } finally { setIsSubmitting(false); }
   };
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
+    <div className={isDashboard ? "" : "min-h-screen bg-background py-12 px-4"}>
       <div className="max-w-xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <Link to="/anonymous/questions" className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
+          <Link to={backRoute} className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
             <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> Back to Questions
           </Link>
         </div>

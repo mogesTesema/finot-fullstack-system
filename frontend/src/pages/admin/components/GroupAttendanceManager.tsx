@@ -34,12 +34,14 @@ export default function GroupAttendanceManager({ groupId }: { groupId: number })
       
       // Fetch events to put in the dropdown
       const eventsData = await api.getEvents();
-      // Filter the global events down to just this group's events.
-      const groupEvents = eventsData.filter((e: any) => e.service_group === groupId);
-      setEvents(groupEvents);
+      // Show this group's events + global events for attendance marking
+      const relevantEvents = eventsData.filter(
+        (e: any) => e.service_group === groupId || e.service_group === null
+      );
+      setEvents(relevantEvents);
       
-      if (groupEvents.length > 0) {
-        setSelectedEventId(groupEvents[0].id.toString());
+      if (relevantEvents.length > 0) {
+        setSelectedEventId(relevantEvents[0].id.toString());
       }
       
       // Initialize attendance state to 'PRESENT' by default
@@ -77,7 +79,7 @@ export default function GroupAttendanceManager({ groupId }: { groupId: number })
     setSubmitting(true);
     try {
       const attendances = Object.entries(attendanceState).map(([studentId, status]) => ({
-        student: parseInt(studentId),
+        student_id: parseInt(studentId),
         status: status,
         remark: ""
       }));

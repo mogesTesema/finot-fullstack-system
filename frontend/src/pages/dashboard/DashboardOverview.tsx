@@ -41,6 +41,7 @@ const DashboardOverview = () => {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [loadingAttendance, setLoadingAttendance] = useState(true);
   const [donationReminder, setDonationReminder] = useState(false);
+  const [donatedThisWeek, setDonatedThisWeek] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -67,6 +68,30 @@ const DashboardOverview = () => {
           setAttendance([]);
         } finally {
           setLoadingAttendance(false);
+        }
+
+        // Check if user already donated "Weekly Donation" this week
+        try {
+          const donations = await api.getDonations();
+          const now = new Date();
+          // Get start of this week (Monday)
+          const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+          const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+          const weekStart = new Date(now);
+          weekStart.setDate(now.getDate() - diffToMonday);
+          weekStart.setHours(0, 0, 0, 0);
+
+          const hasWeeklyDonation = (donations || []).some((d: any) => {
+            const donatedDate = new Date(d.donated_at || d.payment?.created_at);
+            return (
+              d.fund_category === "Weekly Donation" &&
+              d.payment?.status === "COMPLETED" &&
+              donatedDate >= weekStart
+            );
+          });
+          setDonatedThisWeek(hasWeeklyDonation);
+        } catch {
+          // If donations fail to load, don't block the rest of the dashboard
         }
       } catch (error) {
         console.error("Failed to fetch dashboard data", error);
@@ -116,24 +141,43 @@ const DashboardOverview = () => {
           />
         </div>
 
-        {/* Donation Reminder */}
+        {/* Donation Reminder / Thank You */}
         {donationReminder && (
-          <div className="mt-4 flex items-center justify-between rounded-xl bg-accent/20 p-4">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-accent/30 p-2">
-                <FiHeart className="h-5 w-5 text-accent-foreground" />
+          donatedThisWeek ? (
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-green-500/20 p-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-green-500/30 p-2">
+                  <FiCheckCircle className="h-5 w-5 text-green-200" />
+                </div>
+                <div>
+                  <p className="font-semibold text-white">Thank You for Your Generosity! 🙏</p>
+                  <p className="text-sm text-white/80">
+                    You've already made your weekly donation. May God bless you abundantly.
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-white">Weekly Donation Reminder</p>
-                <p className="text-sm text-white/80">
-                  It's Thursday — consider your weekly 1 Birr donation.
-                </p>
-              </div>
+              <Link to="/dashboard/donations/history" className="btn-secondary text-sm">
+                View History
+              </Link>
             </div>
-            <Link to="/dashboard/donations/give" className="btn-secondary text-sm">
-              Donate Now
-            </Link>
-          </div>
+          ) : (
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-accent/20 p-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-accent/30 p-2">
+                  <FiHeart className="h-5 w-5 text-accent-foreground" />
+                </div>
+                <div>
+                  <p className="font-semibold text-white">Weekly Donation Reminder</p>
+                  <p className="text-sm text-white/80">
+                    It's Thursday — consider your weekly 1 Birr donation.
+                  </p>
+                </div>
+              </div>
+              <Link to="/dashboard/donations/give" className="btn-secondary text-sm">
+                Donate Now
+              </Link>
+            </div>
+          )
         )}
       </div>
 

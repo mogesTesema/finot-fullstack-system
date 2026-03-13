@@ -81,6 +81,7 @@ export default function AppRoutes() {
               <Route path="donations/history" element={<DonationHistory />} />
               <Route path="donations/profile" element={<DonationProfile />} />
               <Route path="questions" element={<DashboardQuestions />} />
+              <Route path="questions/ask" element={<AskQuestion />} />
               <Route path="notifications" element={<DashboardNotifications />} />
               {/* Admin‑only routes inside dashboard layout */}
               <Route
