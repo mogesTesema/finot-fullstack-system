@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 60-30-10 color scheme: warm, community-focused */
+    --background: 210 33% 98%;        /* #f8fafc - off-white */
+    --foreground: 224 30% 25%;         /* dark navy text */
+
+    --card: 0 0% 100%;                 /* pure white cards */
+    --card-foreground: 224 30% 25%;
+
+    --primary: 224 55% 25%;            /* #1B2E66 deep blue */
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 224 55% 35%;
+
+    --accent: 52 94% 54%;              /* #F7DF1E warm amber */
+    --accent-foreground: 224 55% 20%;
+    --accent-hover: 52 94% 48%;
+
+    --muted: 210 20% 95%;              /* light gray */
+    --muted-foreground: 215 16% 47%;   /* gray-500 */
+
+    --border: 214 20% 90%;             /* soft border */
+    --input: 214 20% 90%;
+    --ring: 52 94% 54%;                /* amber ring */
+
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --destructive: 0 84% 60%;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .input {
+    @apply w-full bg-background border border-border
+           rounded-xl px-4 py-3 text-foreground
+           placeholder:text-muted-foreground
+           focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent
+           transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-card p-6 rounded-2xl shadow-card border border-border;
+  }
+
+  .section-title {
+    @apply text-xl font-semibold text-foreground mb-6;
+  }
+
+  /* Skeleton loader */
+  .skeleton {
+    @apply bg-gradient-to-r from-muted via-background to-muted
+           bg-[length:200%_100%] animate-shimmer rounded-xl;
+  }
+
+  /* Button variants */
+  .btn-primary {
+    @apply bg-accent text-accent-foreground px-6 py-3 rounded-xl
+           font-semibold hover:bg-accent-hover
+           transition-all duration-200 shadow-soft hover:shadow-card
+           active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-xl
+           font-semibold hover:bg-primary-light
+           transition-all duration-200 shadow-soft hover:shadow-card
+           active:scale-[0.98];
+  }
+
+  .btn-outline {
+    @apply border-2 border-primary text-primary px-6 py-3 rounded-xl
+           font-semibold hover:bg-primary hover:text-primary-foreground
+           transition-all duration-200
+           active:scale-[0.98];
+  }
+}
