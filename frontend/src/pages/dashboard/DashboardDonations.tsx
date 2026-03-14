@@ -5,10 +5,12 @@ import { api } from "../../lib/api";
 import { Card, SectionHeader, StatsCard } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
+import { useTranslation } from "react-i18next";
 import { Donation } from "../../types";
 import { FiHeart, FiCalendar, FiTrendingUp, FiPlus, FiDollarSign } from "react-icons/fi";
 
 const DashboardDonations = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,24 +54,24 @@ const DashboardDonations = () => {
 
   return (
     <div className="space-y-6">
-      <SectionHeader title="Donations" description="Your contribution history and giving" icon={<FiHeart className="h-6 w-6" />}
+      <SectionHeader title={t("tab_donations")} description={t("contribution_history_giving")} icon={<FiHeart className="h-6 w-6" />}
         action={
           <Link to="/dashboard/donations/give" className="btn-primary inline-flex items-center gap-2 text-sm">
-            <FiPlus className="h-4 w-4" /> Make Donation
+            <FiPlus className="h-4 w-4" /> {t("make_donation")}
           </Link>
         }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatsCard title="Total Donations" value={totalDonations} icon={<FiHeart className="h-6 w-6" />} />
-        <StatsCard title="Total Amount" value={`${totalAmount.toFixed(2)} ETB`} icon={<FiDollarSign className="h-6 w-6" />} />
-        <StatsCard title="Completed" value={completedDonations} icon={<FiTrendingUp className="h-6 w-6" />} />
+        <StatsCard title={t("total_donations")} value={totalDonations} icon={<FiHeart className="h-6 w-6" />} />
+        <StatsCard title={t("total_amount")} value={`${totalAmount.toFixed(2)} ETB`} icon={<FiDollarSign className="h-6 w-6" />} />
+        <StatsCard title={t("status_completed")} value={completedDonations} icon={<FiTrendingUp className="h-6 w-6" />} />
       </div>
 
       <Card>
-        <h3 className="mb-4 text-lg font-semibold text-foreground">Donation History</h3>
+        <h3 className="mb-4 text-base font-medium text-foreground">{t("donation_history")}</h3>
         {donations.length === 0 ? (
-          <EmptyState icon={<FiHeart className="h-8 w-8" />} title="No donations yet" description="Your donation history will appear here." />
+          <EmptyState icon={<FiHeart className="h-8 w-8" />} title={t("no_donations_yet")} description={t("attendance_history_will_appear")} />
         ) : (
           <div className="space-y-2">
             {donations.map((donation) => (
@@ -84,7 +86,7 @@ const DashboardDonations = () => {
                     </div>
                   </div>
                 </div>
-                <Badge variant={statusVariant[donation.payment.status]} size="md">{donation.payment.status}</Badge>
+                <Badge variant={statusVariant[donation.payment.status]} size="md">{t("status_" + donation.payment.status.toLowerCase())}</Badge>
               </div>
             ))}
           </div>
@@ -98,8 +100,8 @@ const DashboardDonations = () => {
               <div className="flex items-center gap-4">
                 <div className="rounded-xl bg-success/10 p-3"><FiPlus className="h-6 w-6 text-success" /></div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Make a Donation</h3>
-                  <p className="text-sm text-muted-foreground">Support the fellowship</p>
+                  <h3 className="text-sm font-medium text-foreground">{t("make_donation")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("support_fellowship")}</p>
                 </div>
               </div>
               <FiTrendingUp className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
@@ -112,8 +114,8 @@ const DashboardDonations = () => {
               <div className="flex items-center gap-4">
                 <div className="rounded-xl bg-primary/10 p-3"><FiCalendar className="h-6 w-6 text-primary" /></div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Full History</h3>
-                  <p className="text-sm text-muted-foreground">View detailed records</p>
+                  <h3 className="text-sm font-medium text-foreground">{t("full_history")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("view_detailed_records")}</p>
                 </div>
               </div>
               <FiTrendingUp className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />

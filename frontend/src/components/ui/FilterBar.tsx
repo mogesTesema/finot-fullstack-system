@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 type Props = {
   categories: string[];
   selected: string;
@@ -9,6 +11,7 @@ export default function FilterBar({
   selected,
   onChange,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-wrap gap-2 mt-4">
       <button
@@ -20,7 +23,7 @@ export default function FilterBar({
             : "bg-[#142850] text-white"
         }`}
       >
-        All
+        {t("all")}
       </button>
 
       {categories.map((cat) => (
@@ -34,7 +37,7 @@ export default function FilterBar({
               : "bg-[#142850] text-white"
           }`}
         >
-          {cat}
+          {t(`cat_${cat.toLowerCase()}`) || cat}
         </button>
       ))}
     </div>

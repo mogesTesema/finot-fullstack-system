@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { UserGroupIcon, CalendarIcon, UsersIcon } from "@heroicons/react/24/outline";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import GroupEventsManager from "./components/GroupEventsManager";
 import GroupAttendanceManager from "./components/GroupAttendanceManager";
 
 export default function ManageAgeglotDashboard() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"events" | "attendance">("events");
   const [group, setGroup] = useState<any>(null);
@@ -31,6 +33,7 @@ export default function ManageAgeglotDashboard() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-muted border-t-primary" />
+        <span className="ml-3 text-sm text-muted-foreground">{t("loading")}...</span>
       </div>
     );
   }
@@ -39,9 +42,9 @@ export default function ManageAgeglotDashboard() {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center p-6 text-center">
         <UserGroupIcon className="mb-4 h-16 w-16 text-muted-foreground" />
-        <h2 className="text-2xl font-bold text-foreground">No Group Assigned</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t("no_group_assigned")}</h2>
         <p className="mt-2 max-w-md text-muted-foreground">
-          You are currently logged in as a Service Admin, but you have not been assigned to manage any specific group yet. Please contact a Super Admin.
+          {t("no_group_assigned_msg")}
         </p>
       </div>
     );
@@ -51,7 +54,7 @@ export default function ManageAgeglotDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Manage {group.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("manage_group", { name: group.name })}</h1>
           <p className="text-muted-foreground">{group.description}</p>
         </div>
         
@@ -66,7 +69,7 @@ export default function ManageAgeglotDashboard() {
             }`}
           >
             <CalendarIcon className="h-4 w-4" />
-            <span>Events</span>
+            <span>{t("events")}</span>
           </button>
           <button
             onClick={() => setActiveTab("attendance")}
@@ -77,7 +80,7 @@ export default function ManageAgeglotDashboard() {
             }`}
           >
             <UsersIcon className="h-4 w-4" />
-            <span>Attendance</span>
+            <span>{t("attendance")}</span>
           </button>
         </div>
       </div>

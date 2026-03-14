@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   SparklesIcon,
   UserGroupIcon,
@@ -18,31 +19,32 @@ const fadeInUp = {
 };
 const stagger = { visible: { transition: { staggerChildren: 0.12 } } };
 
-const serviceGroups = [
-  { name: "Choir (Mezmur)", icon: MusicalNoteIcon, desc: "Leading worship through spiritual hymns and songs." },
-  { name: "Charity & Outreach", icon: HeartIcon, desc: "Serving the community through charitable works." },
-  { name: "Media & Communication", icon: FilmIcon, desc: "Documenting events and managing digital outreach." },
-  { name: "Teaching (Timhirt)", icon: BookOpenIcon, desc: "Facilitating Bible study and spiritual education." },
-  { name: "Evangelism (Sibket)", icon: MegaphoneIcon, desc: "Spreading the faith through outreach programs." },
-  { name: "Prayer & Liturgy", icon: HandRaisedIcon, desc: "Organizing prayer sessions and liturgical services." },
-];
-
-const stats = [
-  { label: "Years of Fellowship", value: "30+", icon: SparklesIcon },
-  { label: "Active Students", value: "500+", icon: AcademicCapIcon },
-  { label: "Service Groups", value: "6+", icon: UserGroupIcon },
-  { label: "Graduates Impacted", value: "5000+", icon: HeartIcon },
-];
-
-const galleryImages = [
-  "/images/gibi1.jpg",
-  "/images/gibi2.jpg",
-  "/images/gibi3.jpg",
-  "/images/gibi4.jpg",
-  "/images/gibi5.jpg",
-];
-
 export default function AboutPage() {
+  const { t } = useTranslation();
+
+  const serviceGroups = [
+    { name: t("group_choir"), icon: MusicalNoteIcon, desc: t("group_choir_desc") },
+    { name: t("group_charity"), icon: HeartIcon, desc: t("group_charity_desc") },
+    { name: t("group_media"), icon: FilmIcon, desc: t("group_media_desc") },
+    { name: t("group_teaching"), icon: BookOpenIcon, desc: t("group_teaching_desc") },
+    { name: t("group_evangelism"), icon: MegaphoneIcon, desc: t("group_evangelism_desc") },
+    { name: t("group_prayer"), icon: HandRaisedIcon, desc: t("group_prayer_desc") },
+  ];
+
+  const stats = [
+    { label: t("stats_years"), value: "30+", icon: SparklesIcon },
+    { label: t("stats_students"), value: "500+", icon: AcademicCapIcon },
+    { label: t("stats_groups"), value: "6+", icon: UserGroupIcon },
+    { label: t("stats_graduates"), value: "5000+", icon: HeartIcon },
+  ];
+
+  const galleryImages = [
+    "/images/gibi1.jpg",
+    "/images/gibi2.jpg",
+    "/images/gibi3.jpg",
+    "/images/gibi4.jpg",
+    "/images/gibi5.jpg",
+  ];
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Banner */}
@@ -55,13 +57,13 @@ export default function AboutPage() {
               className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 text-white/90 text-sm font-medium backdrop-blur-sm border border-white/10 mb-4"
             >
               <SparklesIcon className="h-4 w-4 mr-2 text-accent" />
-              Our Story
+              {t("our_story_desc")}
             </motion.span>
             <motion.h1 variants={fadeInUp} className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
-              About <span className="text-accent">ASTU Gibi Gubae</span>
+              {t("about")} <span className="text-accent">{t("astu_gibi_gubae")}</span>
             </motion.h1>
             <motion.p variants={fadeInUp} className="text-lg text-white/80 max-w-2xl mx-auto">
-              A fellowship of believers dedicated to spiritual growth, community service, and mutual support since 1995.
+              {t("fellowship_desc")}
             </motion.p>
           </motion.div>
         </div>
@@ -107,9 +109,9 @@ export default function AboutPage() {
             variants={stagger}
           >
             <motion.div variants={fadeInUp} className="text-center mb-12">
-              <span className="text-accent font-semibold text-sm uppercase tracking-wider">History</span>
+              <span className="text-accent font-semibold text-sm uppercase tracking-wider">{t("history")}</span>
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">
-                30 Years of <span className="text-accent">Fellowship</span>
+                {t("years_of_fellowship")}
               </h2>
               <div className="w-16 h-1 bg-accent mx-auto rounded-full mt-3" />
             </motion.div>
@@ -131,19 +133,19 @@ export default function AboutPage() {
               {/* Text */}
               <motion.div variants={fadeInUp} className="space-y-5 text-muted-foreground leading-relaxed">
                 <p>
-                  The ASTU Gibi Gubae is a spiritual and academic fellowship established at Adama Science and Technology University during the time when the institution was still known as Nazareth Technical College. It was founded in <strong className="text-foreground">1995 (1988 EC)</strong> by committed Orthodox Christian students and teachers.
+                  {t("history_p1")}
                 </p>
                 <p>
-                  For the past thirty years, Gibi Gubae has played a significant role in nurturing thousands of students. Many of its members have graduated and gone on to serve the Holy Church and the nation in various professional and spiritual capacities.
+                  {t("history_p2")}
                 </p>
-                <h4 className="text-lg font-semibold text-foreground mt-6 mb-3">Currently providing:</h4>
+                <h4 className="text-lg font-semibold text-foreground mt-6 mb-3">{t("currently_providing")}</h4>
                 <ul className="space-y-2">
                   {[
-                    "Regular spiritual teachings and Bible study",
-                    "Liturgical services and prayer gatherings",
-                    "Spiritual counseling and mentorship",
-                    "Training programs rooted in Orthodox doctrine",
-                    "A strong fellowship network promoting unity",
+                    t("service_teaching"),
+                    t("service_liturgy"),
+                    t("service_counseling"),
+                    t("service_training"),
+                    t("service_fellowship"),
                   ].map((item) => (
                     <li key={item} className="flex items-start">
                       <span className="h-2 w-2 rounded-full bg-accent mt-2 mr-3 flex-shrink-0" />
@@ -167,8 +169,8 @@ export default function AboutPage() {
             variants={stagger}
           >
             <motion.div variants={fadeInUp} className="text-center mb-12">
-              <span className="text-accent font-semibold text-sm uppercase tracking-wider">Ageglot</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">Service Groups</h2>
+              <span className="text-accent font-semibold text-sm uppercase tracking-wider">{t("services")}</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2">{t("service_groups")}</h2>
               <div className="w-16 h-1 bg-accent mx-auto rounded-full mt-3" />
             </motion.div>
 
@@ -207,7 +209,7 @@ export default function AboutPage() {
           >
             <motion.div variants={fadeInUp} className="text-center mb-10">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                Our <span className="text-accent">Community</span>
+                {t("our_community")}
               </h2>
             </motion.div>
             <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -237,14 +239,14 @@ export default function AboutPage() {
           >
             <div className="inline-flex items-center px-3 py-1 bg-accent/10 text-accent-foreground rounded-full text-sm font-medium mb-4">
               <SparklesIcon className="h-4 w-4 mr-1.5 text-accent" />
-              The Platform
+              {t("the_platform")}
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-4">About finot</h3>
+            <h3 className="text-2xl font-bold text-foreground mb-4">{t("about")} finot</h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              Finot is a digital platform created specifically for the Gibi Gubae community. It streamlines membership management, enables anonymous support, facilitates transparent donations, and helps members find service groups.
+              {t("platform_desc")}
             </p>
             <p className="font-semibold text-primary">
-              Built with love by and for the community. ✨
+              {t("built_with_love")}
             </p>
           </motion.div>
         </div>
@@ -259,13 +261,13 @@ export default function AboutPage() {
             viewport={{ once: true }}
             variants={fadeInUp}
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Ready to join the fellowship?</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{t("ready_to_join")}</h2>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Create your account and become part of the Gibi Gubae community today.
+              {t("join_desc")}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link to="/register" className="btn-primary text-lg px-8 py-4">Get Started</Link>
-              <Link to="/" className="btn-outline text-lg px-8 py-4">Back to Home</Link>
+              <Link to="/register" className="btn-primary text-lg px-8 py-4">{t("get_started")}</Link>
+              <Link to="/" className="btn-outline text-lg px-8 py-4">{t("back_to_home")}</Link>
             </div>
           </motion.div>
         </div>

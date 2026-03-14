@@ -2,9 +2,11 @@ import { Link, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/navigation/Sidebar";
 import QuestionList from "../qa/QuestionList";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "react-i18next";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 const DashboardQA = () => {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -13,7 +15,7 @@ const DashboardQA = () => {
     navigate("/");
   };
 
-  if (!user) return <div className="p-8 text-white">Loading...</div>;
+  if (!user) return <div className="p-8 text-white">{t("loading")}...</div>;
 
   return (
     <div className="flex min-h-screen bg-[#1B3067]">
@@ -28,7 +30,7 @@ const DashboardQA = () => {
               className="inline-flex items-center text-yellow-400 hover:text-yellow-300 transition"
             >
               <ArrowLeftIcon className="h-5 w-5 mr-2" />
-              Back to Dashboard
+              {t("back_to_dashboard")}
             </Link>
           </div>
 

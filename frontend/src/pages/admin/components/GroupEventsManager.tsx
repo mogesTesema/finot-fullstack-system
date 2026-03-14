@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../../../lib/api";
 import { PlusIcon, MapPinIcon, TrashIcon, PhotoIcon, PencilIcon, XMarkIcon, FunnelIcon } from "@heroicons/react/24/outline";
+import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 
 interface EventFormData {
@@ -24,6 +25,7 @@ const emptyForm: EventFormData = {
 type StatusFilter = "ALL" | "UPCOMING" | "ONGOING" | "COMPLETED";
 
 export default function GroupEventsManager({ groupId }: { groupId: number }) {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -47,7 +49,7 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
       const data = await api.getEvents();
       setEvents(data || []);
     } catch (err) {
-      toast.error("Failed to fetch events");
+      toast.error(t("failed_fetch_events"));
     } finally {
       setLoading(false);
     }
@@ -113,12 +115,12 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
         await axiosInstance.patch(`/api/service/events/${editingEventId}/`, fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        toast.success("Event updated successfully!");
+        toast.success(t("event_updated_success"));
       } else {
         await axiosInstance.post("/api/service/events/", fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        toast.success("Event created successfully!");
+        toast.success(t("event_created_success"));
       }
 
       resetForm();
@@ -126,7 +128,7 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
     } catch (err: any) {
       const detail = err.response?.data?.detail;
       const errors = err.response?.data;
-      let msg = "Failed to save event";
+      let msg = t("failed_save_event");
       if (detail) msg = detail;
       else if (errors && typeof errors === 'object') {
         const firstKey = Object.keys(errors)[0];
@@ -141,14 +143,14 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
   };
 
   const handleDelete = async (eventId: number) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
+    if (!window.confirm(t("delete_question_confirm"))) return;
     try {
       const { default: axiosInstance } = await import("../../../lib/axios");
       await axiosInstance.delete(`/api/service/events/${eventId}/`);
-      toast.success("Event deleted successfully");
+      toast.success(t("event_deleted_success"));
       fetchEvents();
     } catch (err) {
-      toast.error("Failed to delete event");
+      toast.error(t("failed_delete_event"));
     }
   };
 
@@ -160,7 +162,7 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-xl font-bold">Group Events</h2>
+        <h2 className="text-xl font-bold">{t("group_events")}</h2>
         <button
           onClick={() => {
             if (showForm) { resetForm(); } else { setShowForm(true); }
@@ -168,9 +170,9 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
           className="btn-primary flex items-center gap-2 text-sm"
         >
           {showForm ? (
-            <><XMarkIcon className="h-4 w-4" /> Cancel</>
+            <><XMarkIcon className="h-4 w-4" /> {t("cancel")}</>
           ) : (
-            <><PlusIcon className="h-4 w-4" /> Create Event</>
+            <><PlusIcon className="h-4 w-4" /> {t("create_event")}</>
           )}
         </button>
       </div>
@@ -178,45 +180,45 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-card p-6 rounded-xl border border-border shadow-soft space-y-4">
           <h3 className="font-semibold text-lg text-foreground">
-            {editingEventId ? "Edit Event" : "New Event"}
+            {editingEventId ? t("edit_event") : t("new_event")}
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Title *</label>
+              <label className="text-sm font-medium text-muted-foreground">{t("title")} *</label>
               <input type="text" name="title" required value={formData.title} onChange={handleChange}
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Start Date & Time *</label>
+              <label className="text-sm font-medium text-muted-foreground">{t("start_date_time")} *</label>
               <input type="datetime-local" name="start_date" required value={formData.start_date} onChange={handleChange}
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">End Date & Time</label>
+              <label className="text-sm font-medium text-muted-foreground">{t("end_date_time")}</label>
               <input type="datetime-local" name="end_date" value={formData.end_date} onChange={handleChange}
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Place Name (Optional)</label>
+              <label className="text-sm font-medium text-muted-foreground">{t("place_name_opt")}</label>
               <input type="text" name="place_name" value={formData.place_name} onChange={handleChange} placeholder="e.g. Main Hall"
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Google Maps URL (Optional)</label>
+              <label className="text-sm font-medium text-muted-foreground">{t("maps_url_opt")}</label>
               <input type="url" name="place_url" value={formData.place_url} onChange={handleChange} placeholder="https://maps.google.com/..."
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div className="md:col-span-2">
-              <label className="text-sm font-medium text-muted-foreground">Description</label>
+              <label className="text-sm font-medium text-muted-foreground">{t("description")}</label>
               <textarea name="description" rows={3} value={formData.description} onChange={handleChange}
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div className="md:col-span-2">
-              <label className="text-sm font-medium text-muted-foreground">Event Image (Optional)</label>
+              <label className="text-sm font-medium text-muted-foreground">{t("event_image_opt")}</label>
               <div className="mt-1 flex items-center gap-4">
                 <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground transition hover:bg-muted/50">
                   <PhotoIcon className="h-5 w-5" />
-                  <span>{photoFile ? photoFile.name : "Choose image..."}</span>
+                  <span>{photoFile ? photoFile.name : t("choose_image")}</span>
                   <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
                 </label>
                 {photoPreview && (
@@ -226,9 +228,9 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={resetForm} className="btn-outline text-sm">Cancel</button>
+            <button type="button" onClick={resetForm} className="btn-outline text-sm">{t("cancel")}</button>
             <button type="submit" disabled={submitting} className="btn-primary">
-              {submitting ? "Saving..." : editingEventId ? "Update Event" : "Save Event"}
+              {submitting ? `${t("saving")}...` : editingEventId ? t("update_event") : t("save_event")}
             </button>
           </div>
         </form>
@@ -248,7 +250,7 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
                   : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
-              {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()}
+              {s === "ALL" ? t("all") : t("event_" + s.toLowerCase())}
               {s !== "ALL" && (
                 <span className="ml-1 opacity-70">
                   ({events.filter((e) => e.status === s).length})
@@ -265,7 +267,7 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
         </div>
       ) : filteredEvents.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-12 text-center shadow-soft text-muted-foreground">
-          {events.length === 0 ? "No events created yet." : "No events match this filter."}
+          {events.length === 0 ? t("no_events_created") : t("no_events_match")}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -282,7 +284,7 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
                     event.status === 'ONGOING' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
                     'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
                   }`}>
-                    {event.status}
+                    {t("event_" + event.status.toLowerCase())}
                   </span>
                 </div>
                 <p className="text-sm text-foreground">
@@ -290,7 +292,7 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
                 </p>
                 {event.service_group_name && (
                   <span className="inline-block text-xs px-2 py-0.5 rounded bg-accent/20 text-accent-foreground font-medium">
-                    {event.service_group_name} Group
+                    {event.service_group_name} {t("group")}
                   </span>
                 )}
                 {(event.place_name || event.place_url) && (
@@ -303,7 +305,7 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
                     )}
                     {event.place_url && (
                       <a href={event.place_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:text-primary-light ml-5 underline underline-offset-2">
-                        View on Map
+                        {t("view_on_map")}
                       </a>
                     )}
                   </div>
@@ -313,19 +315,19 @@ export default function GroupEventsManager({ groupId }: { groupId: number }) {
                 )}
               </div>
               <div className="bg-muted/30 px-5 py-3 border-t border-border flex justify-between items-center text-xs text-muted-foreground">
-                <span>By {event.created_by_name}</span>
+                <span>{t("by")} {event.created_by_name}</span>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => startEdit(event)}
                     className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                    title="Edit Event"
+                    title={t("edit_event")}
                   >
                     <PencilIcon className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(event.id)}
                     className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                    title="Delete Event"
+                    title={t("delete_event")}
                   >
                     <TrashIcon className="h-4 w-4" />
                   </button>

@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Bars3Icon, XMarkIcon, HeartIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import LanguageSelector from "../ui/LanguageSelector";
 
 const Navbar = () => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -62,7 +65,7 @@ const Navbar = () => {
                 }`}
               >
                 <HeartIcon className="h-4 w-4" />
-                Donate
+                {t("donate")}
               </Link>
               <Link
                 to="/anonymous"
@@ -73,7 +76,7 @@ const Navbar = () => {
                 }`}
               >
                 <ChatBubbleLeftRightIcon className="h-4 w-4" />
-                Anonymous Q&A
+                {t("anonymous_qa")}
               </Link>
             </div>
           </div>
@@ -88,7 +91,7 @@ const Navbar = () => {
                   : "text-white/90 hover:text-accent hover:bg-white/10"
               }`}
             >
-              About
+              {t("about")}
             </Link>
             {/* <a
               href="#footer"
@@ -108,7 +111,7 @@ const Navbar = () => {
                   : "text-white/90 hover:text-accent hover:bg-white/10"
               }`}
             >
-              Contact
+              {t("contact")}
             </Link>
 
             <Link
@@ -119,11 +122,14 @@ const Navbar = () => {
                   : "text-white hover:bg-white/10"
               }`}
             >
-              Sign In
+              {t("sign_in")}
             </Link>
             <Link to="/register" className="btn-primary text-sm px-5 py-2">
-              Sign Up
+              {t("sign_up")}
             </Link>
+            <div className="ml-2">
+              <LanguageSelector />
+            </div>
           </div>
 
           {/* Mobile hamburger */}
@@ -157,7 +163,7 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                   className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
                 >
-                  About
+                  {t("about")}
                 </Link>
                 <Link
                   to="/donate"
@@ -165,7 +171,7 @@ const Navbar = () => {
                   className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
                 >
                   <HeartIcon className="h-4 w-4 inline mr-2" />
-                  Donate
+                  {t("donate")}
                 </Link>
                 <Link
                   to="/anonymous"
@@ -173,14 +179,14 @@ const Navbar = () => {
                   className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
                 >
                   <ChatBubbleLeftRightIcon className="h-4 w-4 inline mr-2" />
-                  Anonymous Q&A
+                  {t("anonymous_qa")}
                 </Link>
                 <a
                   href="#footer"
                   onClick={(e) => scrollToSection(e, "footer")}
                   className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
                 >
-                  Contact
+                  {t("contact")}
                 </a>
                 <div className="pt-3 border-t border-border flex gap-3 px-4">
                   <Link
@@ -188,15 +194,18 @@ const Navbar = () => {
                     onClick={() => setIsOpen(false)}
                     className="btn-outline text-sm flex-1 text-center py-2.5"
                   >
-                    Sign In
+                    {t("sign_in")}
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setIsOpen(false)}
                     className="btn-primary text-sm flex-1 text-center py-2.5"
                   >
-                    Sign Up
+                    {t("sign_up")}
                   </Link>
+                </div>
+                <div className="px-4 py-2">
+                  <LanguageSelector />
                 </div>
               </div>
             </motion.div>

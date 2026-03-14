@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import {
   UsersIcon,
@@ -14,40 +15,37 @@ const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
-const purposes = [
-  "Weekly Donation",
-  "Building Fund",
-  "Charity (Poor)",
-  "Special Events",
-  "Other",
-];
-
-// Cards data with Heroicons
-const introCards = [
-  {
-    title: "Student Donations",
-    description:
-      "Members can donate continuously through the weekly system to support fellow students.",
-    icon: UsersIcon,
-    color: "#253D7F",
-  },
-  {
-    title: "One-Time Donations",
-    description:
-      "Outsiders can contribute anytime as they wish to support community projects.",
-    icon: CurrencyDollarIcon,
-    color: "#EDCF07",
-  },
-  {
-    title: "Transparent & Trackable",
-    description:
-      "Every contribution is recorded, ensuring accountability and clarity.",
-    icon: ShieldCheckIcon,
-    color: "#253D7F",
-  },
-];
-
 const DonationOutside = () => {
+  const { t } = useTranslation();
+
+  const purposes = [
+    t("weekly_donation"),
+    t("building_fund"),
+    t("charity_(poor)"),
+    t("special_events"),
+    t("other"),
+  ];
+
+  const introCards = [
+    {
+      title: t("student_donations"),
+      description: t("student_donations_desc"),
+      icon: UsersIcon,
+      color: "#253D7F",
+    },
+    {
+      title: t("one_time_donations"),
+      description: t("one_time_donations_desc"),
+      icon: CurrencyDollarIcon,
+      color: "#EDCF07",
+    },
+    {
+      title: t("transparent_trackable"),
+      description: t("transparent_trackable_desc"),
+      icon: ShieldCheckIcon,
+      color: "#253D7F",
+    },
+  ];
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -76,8 +74,8 @@ const DonationOutside = () => {
     ) {
       Swal.fire({
         icon: "warning",
-        title: "Missing Fields",
-        text: "Please complete all required fields.",
+        title: t("missing_fields"),
+        text: t("missing_donation_fields"),
         confirmButtonColor: "hsl(52,94%,54%)",
       });
       return;
@@ -86,8 +84,8 @@ const DonationOutside = () => {
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       Swal.fire({
         icon: "warning",
-        title: "Invalid Amount",
-        text: "Enter a valid amount.",
+        title: t("invalid_amount"),
+        text: t("invalid_amount_text"),
         confirmButtonColor: "hsl(52,94%,54%)",
       });
       return;
@@ -105,11 +103,11 @@ const DonationOutside = () => {
     } catch (error: any) {
       Swal.fire({
         icon: "error",
-        title: "Payment Error",
+        title: t("payment_error"),
         text:
           error?.response?.data?.detail ||
           error?.message ||
-          "Something went wrong.",
+          t("something_went_wrong"),
         confirmButtonColor: "hsl(52,94%,54%)",
       });
     } finally {
@@ -126,7 +124,7 @@ const DonationOutside = () => {
             to="/"
             className="inline-flex items-center text-[#253D7F] hover:text-[#1f3160] font-medium text-sm transition"
           >
-            <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> Back to Home
+            <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> {t("back_to_home_link")}
           </Link>
         </div>
 
@@ -139,12 +137,10 @@ const DonationOutside = () => {
           className="mb-10"
         >
           <h1 className="text-3xl md:text-4xl font-extrabold text-[#253D7F] mb-6 text-center">
-            Support Our Students & Community
+            {t("support_students_community")}
           </h1>
           <p className="text-center text-slate-700 mb-8 max-w-2xl mx-auto">
-            Contribute to a growing and sustainable community. Students can
-            donate continuously, while supporters from outside can donate as
-            they wish. Every donation counts!
+            {t("donation_intro_desc")}
           </p>
 
           {/* Gradient Hover Cards */}
@@ -153,11 +149,10 @@ const DonationOutside = () => {
               <div
                 key={index}
                 className="relative overflow-hidden rounded-2xl shadow-lg p-6 flex flex-col items-center text-center min-h-[200px] transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer group"
-                style={{ "--hover-color": card.color } as React.CSSProperties}
               >
                 {/* Gradient overlay */}
                 <div
-                  className="absolute inset-0 bg-gradient-to-b from-transparent to-transparent group-hover:from-[var(--hover-color)] group-hover:to-white opacity-30 transition-all duration-500"
+                  className={`absolute inset-0 bg-gradient-to-b from-transparent to-transparent group-hover:from-[${card.color}] group-hover:to-white opacity-30 transition-all duration-500`}
                 />
 
                 <div
@@ -188,9 +183,9 @@ const DonationOutside = () => {
             <div className="inline-flex items-center justify-center w-12 h-12 bg-[#EDCF07] rounded-2xl mb-3">
               <CurrencyDollarIcon className="h-6 w-6 text-[#253D7F]" />
             </div>
-            <h1 className="text-xl font-bold text-[#253D7F]">Donate Now</h1>
+            <h1 className="text-xl font-bold text-[#253D7F]">{t("donate_now")}</h1>
             <p className="text-sm text-slate-700 mt-1">
-              We'll redirect you to Chapa to complete the payment securely.
+              {t("chapa_redirect")}
             </p>
           </div>
 
@@ -198,32 +193,32 @@ const DonationOutside = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-[#253D7F] mb-1.5">
-                  First Name *
+                  {t("first_name_label")} *
                 </label>
                 <input
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  placeholder="Abebe"
+                  placeholder={t("first_name_placeholder")}
                   className="input"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#253D7F] mb-1.5">
-                  Last Name *
+                  {t("last_name_label")} *
                 </label>
                 <input
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  placeholder="Kebede"
+                  placeholder={t("last_name_placeholder")}
                   className="input"
                 />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-[#253D7F] mb-1.5">
-                Email *
+                {t("email")} *
               </label>
               <input
                 name="email"
@@ -236,7 +231,7 @@ const DonationOutside = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-[#253D7F] mb-1.5">
-                Phone (optional)
+                {t("phone")} ({t("optional")})
               </label>
               <input
                 name="phone"
@@ -249,7 +244,7 @@ const DonationOutside = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-[#253D7F] mb-1.5">
-                Purpose *
+                {t("purpose")} *
               </label>
               <select
                 name="purpose"
@@ -257,7 +252,7 @@ const DonationOutside = () => {
                 onChange={handleChange}
                 className="input"
               >
-                <option value="">Select a purpose</option>
+                <option value="">{t("select_purpose")}</option>
                 {purposes.map((p) => (
                   <option key={p} value={p}>
                     {p}
@@ -267,7 +262,7 @@ const DonationOutside = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-[#253D7F] mb-1.5">
-                Amount (ETB) *
+                {t("amount_etb")} *
               </label>
               <input
                 name="amount"
@@ -285,7 +280,7 @@ const DonationOutside = () => {
               disabled={isSubmitting}
               className="btn-primary w-full"
             >
-              {isSubmitting ? "Redirecting to Chapa..." : "Donate with Chapa"}
+              {isSubmitting ? t("redirecting_to_chapa") : t("donate_with_chapa")}
             </button>
           </form>
         </motion.div>

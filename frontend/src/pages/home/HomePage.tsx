@@ -1,5 +1,7 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   HeartIcon,
   ChatBubbleLeftRightIcon,
@@ -9,6 +11,7 @@ import {
 import BackToTop from "../../components/ui/BackToTop";
 import PhotoCarousel from "../../components/home/PhotoCarousel";
 import AboutImageCarousel from "./AboutImageCarousel";
+import LanguageSelector from "../../components/ui/LanguageSelector";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -17,6 +20,8 @@ const fadeInUp = {
 const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
 
 const HomePage = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
@@ -31,7 +36,7 @@ const HomePage = () => {
             <motion.div variants={fadeInUp} className="mb-6">
               <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 text-white/90 text-sm font-medium backdrop-blur-sm border border-white/10">
                 <SparklesIcon className="h-4 w-4 mr-2 text-accent" />
-                Gibi Gubae Community Platform
+                {t("community_platform")}
               </span>
             </motion.div>
 
@@ -39,7 +44,7 @@ const HomePage = () => {
               variants={fadeInUp}
               className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
             >
-              Welcome to{" "}
+              {t("welcome")}{" "}
               <span className="text-accent relative">
                 finot
                 <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none">
@@ -52,24 +57,25 @@ const HomePage = () => {
               variants={fadeInUp}
               className="text-lg sm:text-xl md:text-2xl max-w-2xl mx-auto text-white/80 mb-10 leading-relaxed"
             >
-              A fellowship of believers dedicated to spiritual growth, community service, and mutual support.
+              {t("fellowship_desc")}
             </motion.p>
 
-            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center gap-4 mb-4">
               <Link
                 to="/register"
                 className="btn-primary text-lg px-8 py-4 inline-flex items-center justify-center group"
               >
-                Get Started
+                {t("get_started")}
                 <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/login"
                 className="bg-white/10 backdrop-blur-sm text-white border border-white/20 px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition-all text-lg inline-flex items-center justify-center"
               >
-                Sign In
+                {t("sign_in")}
               </Link>
             </motion.div>
+
 
             <motion.div variants={fadeInUp}>
               <Link
@@ -77,7 +83,7 @@ const HomePage = () => {
                 className="inline-flex items-center text-white/70 hover:text-accent text-base font-medium transition group"
               >
                 <ChatBubbleLeftRightIcon className="h-5 w-5 mr-2" />
-                Visit Anonymous Q&A Forum
+                {t("anonymous_qa_forum")}
                 <ArrowRightIcon className="h-4 w-4 ml-1 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
               </Link>
             </motion.div>
@@ -104,9 +110,9 @@ const HomePage = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <span className="text-accent font-semibold text-sm uppercase tracking-wider">Our Story</span>
+            <span className="text-accent font-semibold text-sm uppercase tracking-wider">{t("our_story")}</span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mt-2 mb-4">
-              About <span className="text-primary">ASTU Gibi Gubae</span>
+              {t("about")} <span className="text-primary">{t("astu_gibi_gubae")}</span>
             </h2>
             <div className="w-16 h-1 bg-accent mx-auto rounded-full" />
           </motion.div>
@@ -127,26 +133,26 @@ const HomePage = () => {
             {/* Cards for About Info */}
             <div className="flex-1 flex flex-col gap-5 justify-center">
               <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-2">
-                <h3 className="text-lg font-bold text-foreground mb-1">30 Years of <span className="text-accent">Fellowship</span></h3>
+                <h3 className="text-lg font-bold text-foreground mb-1">{t("years_of_fellowship")}</h3>
                 <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
-                  <li>Founded in 1995 at Adama Science and Technology University</li>
-                  <li>Established by Orthodox Christian students and teachers</li>
-                  <li>Spiritual and academic fellowship for thousands of students</li>
+                  <li>{t("founded_desc")}</li>
+                  <li>{t("established_desc")}</li>
+                  <li>{t("fellowship_desc_2")}</li>
                 </ul>
               </div>
               <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-2">
-                <h4 className="font-semibold text-foreground mb-1">Our Impact</h4>
+                <h4 className="font-semibold text-foreground mb-1">{t("our_impact")}</h4>
                 <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
-                  <li>Many graduates serve the Holy Church and the nation</li>
-                  <li>Members contribute in professional and spiritual capacities</li>
-                  <li>Decades of nurturing faith and leadership</li>
+                  <li>{t("church_service_desc")}</li>
+                  <li>{t("member_contributions")}</li>
+                  <li>{t("decades_nurturing")}</li>
                 </ul>
               </div>
               <Link
                 to="/about"
                 className="btn-primary text-base px-7 py-3 mt-2 self-start inline-flex items-center gap-2 group"
               >
-                Read More
+                {t("read_more")}
                 <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -164,8 +170,8 @@ const HomePage = () => {
             viewport={{ once: true }}
             className="text-center mb-10"
           >
-            <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">Get Involved</h3>
-            <p className="text-muted-foreground">Support our mission or ask questions anonymously.</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">{t("get_involved")}</h3>
+            <p className="text-muted-foreground">{t("support_mission")}</p>
           </motion.div>
 
           <motion.div
@@ -184,8 +190,8 @@ const HomePage = () => {
                   <HeartIcon className="h-6 w-6 text-success" />
                 </div>
                 <div className="text-left">
-                  <span className="font-semibold text-foreground block">Donate</span>
-                  <span className="text-sm text-muted-foreground">Support the fellowship</span>
+                  <span className="font-semibold text-foreground block">{t("donate")}</span>
+                  <span className="text-sm text-muted-foreground">{t("support_fellowship")}</span>
                 </div>
                 <ArrowRightIcon className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform ml-4" />
               </Link>
@@ -200,8 +206,8 @@ const HomePage = () => {
                   <ChatBubbleLeftRightIcon className="h-6 w-6 text-primary" />
                 </div>
                 <div className="text-left">
-                  <span className="font-semibold text-foreground block">Anonymous Q&A</span>
-                  <span className="text-sm text-muted-foreground">Ask safely & privately</span>
+                  <span className="font-semibold text-foreground block">{t("anonymous_qa")}</span>
+                  <span className="text-sm text-muted-foreground">{t("ask_safely")}</span>
                 </div>
                 <ArrowRightIcon className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform ml-4" />
               </Link>

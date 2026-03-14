@@ -1,6 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import { api } from "../../lib/api";
@@ -11,21 +12,20 @@ const fadeInUp = {
 };
 
 const ForgotPasswordPage = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [hasSentOnce, setHasSentOnce] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       Swal.fire({
         icon: "warning",
-        title: "Missing Email",
-        text: "Please enter your email address.",
-        confirmButtonColor: "#EDCF07",
-        background: "#253D7F",
-        color: "#fff",
+        title: t("missing_email"),
+        text: t("enter_email_error"),
+        confirmButtonColor: "hsl(52, 94%, 54%)",
       });
       return;
     }
@@ -35,21 +35,17 @@ const ForgotPasswordPage = () => {
       await api.requestPasswordReset(email);
       Swal.fire({
         icon: "success",
-        title: "Reset Link Sent",
-        text: "If an account exists with that email, you will receive password reset instructions.",
-        confirmButtonColor: "#EDCF07",
-        background: "#253D7F",
-        color: "#fff",
+        title: t("reset_link_sent"),
+        text: t("reset_link_sent_desc"),
+        confirmButtonColor: "hsl(52, 94%, 54%)",
       });
       setHasSentOnce(true);
-    } catch (error) {
+    } catch (error: any) {
       Swal.fire({
         icon: "error",
-        title: "Request Failed",
-        text: error.message || "Something went wrong. Please try again.",
-        confirmButtonColor: "#EDCF07",
-        background: "#253D7F",
-        color: "#fff",
+        title: t("request_failed"),
+        text: error.message || t("something_went_wrong"),
+        confirmButtonColor: "hsl(52, 94%, 54%)",
       });
     } finally {
       setIsSubmitting(false);
@@ -60,11 +56,9 @@ const ForgotPasswordPage = () => {
     if (!email) {
       Swal.fire({
         icon: "warning",
-        title: "Missing Email",
-        text: "Please enter your email address first, then tap resend.",
-        confirmButtonColor: "#EDCF07",
-        background: "#253D7F",
-        color: "#fff",
+        title: t("missing_email"),
+        text: t("enter_email_resend_error"),
+        confirmButtonColor: "hsl(52, 94%, 54%)",
       });
       return;
     }
@@ -73,20 +67,16 @@ const ForgotPasswordPage = () => {
       await api.requestPasswordReset(email);
       Swal.fire({
         icon: "success",
-        title: "Reset Link Re-sent",
-        text: "If an account exists with that email, another reset link has been sent.",
-        confirmButtonColor: "#EDCF07",
-        background: "#253D7F",
-        color: "#fff",
+        title: t("reset_link_resent"),
+        text: t("reset_link_resent_desc"),
+        confirmButtonColor: "hsl(52, 94%, 54%)",
       });
-    } catch (error) {
+    } catch (error: any) {
       Swal.fire({
         icon: "error",
-        title: "Resend Failed",
-        text: error.message || "Something went wrong. Please try again.",
-        confirmButtonColor: "#EDCF07",
-        background: "#253D7F",
-        color: "#fff",
+        title: t("resend_failed"),
+        text: error.message || t("something_went_wrong"),
+        confirmButtonColor: "hsl(52, 94%, 54%)",
       });
     } finally {
       setIsResending(false);
@@ -94,16 +84,16 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Link
             to="/"
-            className="inline-flex items-center text-[#253D7F] hover:text-[#1f3160] font-medium text-sm transition"
+            className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
-            Back to Home
+            {t("back_to_home")}
           </Link>
           <img src="/images/logo.png" alt="finot" className="h-12 w-12" />
         </div>
@@ -113,20 +103,20 @@ const ForgotPasswordPage = () => {
           initial="hidden"
           animate="visible"
           variants={fadeInUp}
-          className="bg-white rounded-2xl shadow-xl p-8"
+          className="card"
         >
-          <h1 className="text-3xl font-bold text-center text-[#253D7F] mb-2">
-            Reset Password
+          <h1 className="text-3xl font-bold text-center text-foreground mb-2">
+            {t("reset_password")}
           </h1>
-          <p className="text-center text-slate-600 mb-8">
-            Enter your email address and we'll send you a link to reset your password.
+          <p className="text-center text-muted-foreground mb-8">
+            {t("reset_password_desc")}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Input */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#253D7F] mb-1">
-                Email Address
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
+                {t("email_address")}
               </label>
               <input
                 id="email"
@@ -135,7 +125,7 @@ const ForgotPasswordPage = () => {
                 disabled={hasSentOnce}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-2 bg-[#EAEFFF] border border-[#253D7F] rounded-lg text-[#253D7F] focus:outline-none focus:ring-2 focus:ring-[#EDCF07] disabled:opacity-50"
+                className="input disabled:opacity-50"
               />
             </div>
 
@@ -143,9 +133,9 @@ const ForgotPasswordPage = () => {
             <button
               type="submit"
               disabled={isSubmitting || hasSentOnce}
-              className="w-full bg-[#253D7F] text-[#EDCF07] py-3 px-6 rounded-lg font-semibold hover:bg-[#1f3160] hover:scale-105 transition transform disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full"
             >
-              {isSubmitting ? "Sending..." : "Send Reset Link"}
+              {isSubmitting ? t("sending") : t("send_reset_link")}
             </button>
 
             {/* Resend Button */}
@@ -153,18 +143,18 @@ const ForgotPasswordPage = () => {
               type="button"
               onClick={handleResend}
               disabled={!hasSentOnce || isResending || isSubmitting}
-              className="w-full border border-[#253D7F] text-[#253D7F] py-3 px-6 rounded-lg font-semibold hover:bg-[#253D7F] hover:text-[#EDCF07] hover:scale-105 transition transform disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full border border-primary text-primary py-3 px-6 rounded-lg font-semibold hover:bg-primary hover:text-primary-foreground hover:scale-105 transition transform disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isResending ? "Resending..." : "Didn't get it? Resend email"}
+              {isResending ? t("resending") : t("resend_email_q")}
             </button>
 
             {/* Back to Login */}
             <div className="text-center text-sm">
               <Link
                 to="/login"
-                className="text-[#253D7F] hover:text-[#1f3160] transition"
+                className="text-primary hover:text-primary-light transition"
               >
-                Back to Login
+                {t("back_to_login")}
               </Link>
             </div>
           </form>

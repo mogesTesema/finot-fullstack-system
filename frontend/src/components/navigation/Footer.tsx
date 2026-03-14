@@ -3,9 +3,11 @@ import {
   PhoneIcon,
   MapPinIcon,
 } from "@heroicons/react/24/outline";
+import { useTranslation } from "react-i18next";
 import { FaTelegram, FaInstagram, FaTiktok } from "react-icons/fa";
 
 const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -19,20 +21,19 @@ const Footer = () => {
               <h3 className="text-2xl font-bold text-accent">finot</h3>
             </div>
             <p className="text-white/70 text-sm leading-relaxed">
-              Digitizing our Gibigubae community for better management and
-              engagement. Join us in building a stronger fellowship.
+              {t("contact_desc")}
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-accent">Quick Links</h3>
+            <h3 className="text-lg font-semibold text-accent">{t("quick_links")}</h3>
             <ul className="space-y-2.5 text-sm">
               {[
-                { href: "#about", label: "About Us" },
-                { href: "#join", label: "Join Gibigubae" },
-                { href: "/donate", label: "Donate" },
-                { href: "/anonymous", label: "Anonymous Q&A" },
+                { href: "#about", label: t("about") },
+                { href: "#join", label: t("get_started") },
+                { href: "/donate", label: t("donate") },
+                { href: "/anonymous", label: t("anonymous_qa") },
               ].map((link) => (
                 <li key={link.href}>
                   <a href={link.href} className="text-white/70 hover:text-accent transition-colors">
@@ -45,7 +46,7 @@ const Footer = () => {
 
           {/* Contact */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-accent">Contact</h3>
+            <h3 className="text-lg font-semibold text-accent">{t("contact")}</h3>
             <div className="space-y-3 text-sm">
               {[
                 { icon: EnvelopeIcon, text: "info@finot.org" },
@@ -62,7 +63,7 @@ const Footer = () => {
 
           {/* Social */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-accent">Follow Us</h3>
+            <h3 className="text-lg font-semibold text-accent">{t("follow_us")}</h3>
             <div className="flex space-x-3">
               {[
                 { href: "https://t.me/Astugibigubae", icon: FaTelegram, label: "Telegram" },
@@ -85,8 +86,8 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-white/10 pt-6 text-center text-white/50 text-sm">
-          <p>&copy; {currentYear} finot. All rights reserved.</p>
-          <p className="mt-1">Built with ❤️ for the Gibigubae community.</p>
+          <p>&copy; {currentYear} finot. {t("all_rights_reserved")}</p>
+          <p className="mt-1">{t("built_with_heart")}</p>
         </div>
       </div>
     </footer>

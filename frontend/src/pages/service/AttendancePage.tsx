@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { CalendarIcon } from "@heroicons/react/24/outline";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import { AttendanceRecord } from "../../types";
@@ -19,6 +20,7 @@ const statusStyles: Record<string, string> = {
 };
 
 const AttendancePage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,13 +50,13 @@ const AttendancePage = () => {
       <div className="card">
         <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
           <CalendarIcon className="h-5 w-5 text-accent-foreground" />
-          My Attendance
+          {t("my_attendance")}
         </h2>
         {attendance.length === 0 ? (
           <EmptyState
             icon={<CalendarIcon className="h-8 w-8" />}
-            title="No attendance records"
-            description="Your attendance history will appear here."
+            title={t("no_attendance_records")}
+            description={t("attendance_history_will_appear")}
           />
         ) : (
           <div className="space-y-2">
@@ -68,7 +70,7 @@ const AttendancePage = () => {
                   </p>
                 </div>
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-lg ${statusStyles[a.status] || "bg-muted text-muted-foreground"}`}>
-                  {a.status}
+                  {t("status_" + a.status.toLowerCase())}
                 </span>
               </div>
             ))}

@@ -5,7 +5,10 @@ import { api } from '../../lib/api';
 import { onMessageListener } from '../../lib/firebase';
 import { toast } from 'react-hot-toast';
 
-export const NotificationBell = () => {
+import { useTranslation } from 'react-i18next';
+
+export const NotificationBell = ({ iconClassName }: { iconClassName?: string }) => {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -90,7 +93,7 @@ export const NotificationBell = () => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground relative"
+        className={iconClassName || "rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground relative"}
       >
         <BellIcon className="h-6 w-6" />
         {unreadCount > 0 && (
@@ -106,13 +109,13 @@ export const NotificationBell = () => {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden z-50">
           <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">{t("notifications")}</h3>
             {unreadCount > 0 && (
               <button 
                 onClick={markAllAsRead}
                 className="text-xs text-primary hover:text-primary-light font-medium transition-colors"
               >
-                Mark all read
+                {t("mark_all_read")}
               </button>
             )}
           </div>
@@ -120,7 +123,7 @@ export const NotificationBell = () => {
           <div className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="p-6 text-center text-gray-500 dark:text-gray-400 text-sm">
-                No notifications yet.
+                {t("no_notifications")}
               </div>
             ) : (
               <ul className="divide-y divide-gray-100 dark:divide-gray-700/50">
@@ -156,7 +159,7 @@ export const NotificationBell = () => {
                             }}
                             className="text-xs text-primary hover:text-primary-light font-medium"
                           >
-                            Mark read
+                            {t("mark_read")}
                           </button>
                         )}
                       </div>

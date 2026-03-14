@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
@@ -11,6 +12,7 @@ const fadeInUp = {
 };
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
@@ -23,8 +25,8 @@ const LoginPage = () => {
     if (!email || !password) {
       Swal.fire({
         icon: "warning",
-        title: "Missing Fields",
-        text: "Please enter both email and password.",
+        title: t("missing_fields"),
+        text: t("missing_fields_text"),
         confirmButtonColor: "hsl(52, 94%, 54%)",
       });
       return;
@@ -36,10 +38,10 @@ const LoginPage = () => {
     } catch (error: any) {
       Swal.fire({
         icon: "error",
-        title: "Login Failed",
+        title: t("login_failed"),
         html: error.message?.includes("Incorrect")
-          ? `Incorrect Email or Password. <br/><br/>Don't have an account? <a href="/register" style="color: hsl(52, 94%, 54%); text-decoration: underline;">Register here</a>.`
-          : error.message || "Invalid email or password.",
+          ? t("incorrect_credentials")
+          : error.message || t("invalid_credentials"),
         confirmButtonColor: "hsl(52, 94%, 54%)",
       });
     } finally {
@@ -64,16 +66,16 @@ const LoginPage = () => {
           className="card"
         >
           <h1 className="text-2xl font-bold text-center text-foreground mb-1">
-            Welcome Back
+            {t("welcome_back_simple")}
           </h1>
           <p className="text-center text-muted-foreground mb-8 text-sm">
-            Sign in to your finot account
+            {t("sign_in_to_account")}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
-                Email Address
+                {t("email_address")}
               </label>
               <input
                 id="email"
@@ -87,7 +89,7 @@ const LoginPage = () => {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
-                Password
+                {t("password")}
               </label>
               <div className="relative">
                 <input
@@ -95,7 +97,7 @@ const LoginPage = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder={t("enter_password")}
                   className="input pr-10"
                 />
                 <button
@@ -110,10 +112,10 @@ const LoginPage = () => {
 
             <div className="flex items-center justify-between text-sm">
               <Link to="/forgot-password" className="text-primary hover:text-primary-light font-medium transition">
-                Forgot password?
+                {t("forgot_password_q")}
               </Link>
               <Link to="/register" className="text-primary hover:text-primary-light font-medium transition">
-                Create account
+                {t("create_account")}
               </Link>
             </div>
 
@@ -122,7 +124,7 @@ const LoginPage = () => {
               disabled={isSubmitting}
               className="btn-primary w-full"
             >
-              {isSubmitting ? "Signing in..." : "Sign In"}
+              {isSubmitting ? t("signing_in") : t("sign_in")}
             </button>
           </form>
         </motion.div>

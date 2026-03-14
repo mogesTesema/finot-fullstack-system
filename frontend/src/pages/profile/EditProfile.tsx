@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { FiArrowLeft } from "react-icons/fi";
 import Swal from "sweetalert2";
+import { useTranslation } from "react-i18next";
 import { api } from "../../lib/api";
 
 type EditProfileFormData = {
@@ -14,6 +15,7 @@ type EditProfileFormData = {
 };
 
 const EditProfile = () => {
+  const { t } = useTranslation();
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
 
@@ -71,19 +73,19 @@ const EditProfile = () => {
       await api.updateProfile(fd);
       const refreshedUser = await api.getUser();
       setUser(refreshedUser);
-      Swal.fire({ icon: "success", title: "Profile Updated", text: "Your changes have been saved.", confirmButtonColor: "hsl(var(--accent))" });
+      Swal.fire({ icon: "success", title: t("profile_updated"), text: t("profile_update_success"), confirmButtonColor: "hsl(var(--accent))" });
       navigate("/dashboard/profile");
     } catch (error: any) {
-      Swal.fire({ icon: "error", title: "Update Failed", text: error?.message || "Something went wrong.", confirmButtonColor: "hsl(var(--accent))" });
+      Swal.fire({ icon: "error", title: t("update_failed"), text: error?.message || t("something_went_wrong"), confirmButtonColor: "hsl(var(--accent))" });
     } finally { setIsSubmitting(false); }
   };
 
   const batches = [
-    { label: "Freshman", value: "1" }, { label: "2nd Year", value: "2" },
-    { label: "3rd Year", value: "3" }, { label: "4th Year", value: "4" },
-    { label: "5th/GC", value: "5" },
+    { label: t("freshman"), value: "1" }, { label: t("2nd_year"), value: "2" },
+    { label: t("3rd_year"), value: "3" }, { label: t("4th_year"), value: "4" },
+    { label: t("5th_gc"), value: "5" },
   ];
-  const statuses = [{ label: "In Campus", value: "IN_CAMPUS" }, { label: "Graduated", value: "GRADUATED" }];
+  const statuses = [{ label: t("in_campus"), value: "IN_CAMPUS" }, { label: t("graduated_status"), value: "GRADUATED" }];
 
   const labelClass = "block text-sm font-medium text-foreground mb-1.5";
   const inputClass = "input";
@@ -92,19 +94,19 @@ const EditProfile = () => {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Link to="/dashboard/profile" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition">
-          <FiArrowLeft className="h-4 w-4" /> Back to Profile
+          <FiArrowLeft className="h-4 w-4" /> {t("back_to_profile")}
         </Link>
       </div>
 
       <div className="card">
-        <h1 className="text-xl font-bold text-foreground mb-6">Edit Profile</h1>
+        <h1 className="text-xl font-bold text-foreground mb-6">{t("edit_profile")}</h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Photo */}
           <div className="flex items-center gap-5">
             <img src={imagePreview} alt="Profile" className="w-20 h-20 rounded-2xl object-cover border-2 border-accent/30" />
             <div>
-              <label className={labelClass}>Change Photo</label>
+              <label className={labelClass}>{t("change_photo")}</label>
               <input type="file" accept="image/*" onChange={handleImageChange}
                 className="text-sm text-muted-foreground file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-accent file:text-accent-foreground hover:file:bg-accent-hover file:cursor-pointer" />
             </div>
@@ -113,8 +115,8 @@ const EditProfile = () => {
           {/* Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
-              { name: "full_name", label: "Full Name", type: "text", required: true },
-              { name: "email", label: "Email", type: "email", required: true },
+              { name: "full_name", label: t("full_name_label"), type: "text", required: true },
+              { name: "email", label: t("email_address"), type: "email", required: true },
             ].map((f) => (
               <div key={f.name}>
                 <label className={labelClass}>{f.label} {f.required && "*"}</label>
@@ -122,37 +124,37 @@ const EditProfile = () => {
               </div>
             ))}
             <div>
-              <label className={labelClass}>Gender *</label>
+              <label className={labelClass}>{t("gender_label")} *</label>
               <select name="gender" value={formData.gender} onChange={handleChange} className={inputClass}>
-                <option value="">Select</option>
-                <option value="M">Male</option>
-                <option value="F">Female</option>
+                <option value="">{t("select_gender")}</option>
+                <option value="M">{t("gender_m")}</option>
+                <option value="F">{t("gender_f")}</option>
               </select>
             </div>
             <div>
-              <label className={labelClass}>Baptismal Name</label>
+              <label className={labelClass}>{t("baptismal_name")}</label>
               <input type="text" name="baptismal_name" value={formData.baptismal_name} onChange={handleChange} className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Batch</label>
+              <label className={labelClass}>{t("batch_year")}</label>
               <select name="batch" value={formData.batch} onChange={handleChange} className={inputClass}>
-                <option value="">Select</option>
+                <option value="">{t("select_gender")}</option>
                 {batches.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
               </select>
             </div>
             {[
-              { name: "department", label: "Department" },
-              { name: "telegram", label: "Telegram", placeholder: "@username" },
-              { name: "personal_phone", label: "Phone" },
-              { name: "emergency_name", label: "Emergency Name" },
-              { name: "emergency_phone", label: "Emergency Phone" },
-              { name: "emergency_relation", label: "Emergency Relation" },
-              { name: "home_address", label: "Home Address" },
-              { name: "previous_church", label: "Previous Church" },
-              { name: "activity_serving", label: "Activity Serving" },
-              { name: "dorm_block", label: "Dorm Block" },
-              { name: "dorm_room", label: "Dorm Room" },
-              { name: "confession_father", label: "Confession Father" },
+              { name: "department", label: t("department") },
+              { name: "telegram", label: t("telegram"), placeholder: t("telegram_placeholder") },
+              { name: "personal_phone", label: t("phone") },
+              { name: "emergency_name", label: t("emergency_name") },
+              { name: "emergency_phone", label: t("phone") },
+              { name: "emergency_relation", label: t("relationship") },
+              { name: "home_address", label: t("home_address") },
+              { name: "previous_church", label: t("previous_church") },
+              { name: "activity_serving", label: t("activities_serving") },
+              { name: "dorm_block", label: t("dorm_block") },
+              { name: "dorm_room", label: t("dorm_room") },
+              { name: "confession_father", label: t("confession_father") },
             ].map((f) => (
               <div key={f.name}>
                 <label className={labelClass}>{f.label}</label>
@@ -160,16 +162,16 @@ const EditProfile = () => {
               </div>
             ))}
             <div>
-              <label className={labelClass}>Status</label>
+              <label className={labelClass}>{t("status")}</label>
               <select name="status" value={formData.status} onChange={handleChange} className={inputClass}>
-                <option value="">Select</option>
+                <option value="">{t("select_gender")}</option>
                 {statuses.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
           </div>
 
           <button type="submit" disabled={isSubmitting} className="btn-primary w-full">
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? t("saving") : t("save_changes")}
           </button>
         </form>
       </div>

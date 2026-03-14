@@ -119,6 +119,7 @@ export const api = {
       email: userData.email,
       gender: userData.gender, // M or F
       password: userData.password,
+      re_password: userData.password, // Required by Djoser default config
     };
 
     console.log('🚀 Sending registration payload:', payload);
@@ -256,7 +257,7 @@ export const api = {
   },
 
   // ========== DONATIONS ==========
-  getDonations: async (): Promise<Donation[]> => {
+  getDonations: async (userId: string | number | null = null): Promise<Donation[]> => {
     // If we wanted to filter by user on admin, we'd do it.
     // However the MyDonationHistoryViewSet handles its own filtering via the logged in token.
     const response = await axiosInstance.get<Donation[]>('/api/donations/my-history/');

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
@@ -11,6 +12,7 @@ const fadeInUp = {
 };
 
 const RegisterPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { register } = useAuth();
   const [formData, setFormData] = useState({
@@ -39,13 +41,13 @@ const RegisterPage = () => {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.first_name) newErrors.first_name = "First name is required";
-    if (!formData.middle_name) newErrors.middle_name = "Middle name is required";
-    if (!formData.last_name) newErrors.last_name = "Last name is required";
-    if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.gender) newErrors.gender = "Gender is required";
-    if (!formData.password) newErrors.password = "Password is required";
-    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+    if (!formData.first_name) newErrors.first_name = t("field_required", { field: t("first_name_label") });
+    if (!formData.middle_name) newErrors.middle_name = t("field_required", { field: t("middle_name_label") });
+    if (!formData.last_name) newErrors.last_name = t("field_required", { field: t("last_name_label") });
+    if (!formData.email) newErrors.email = t("field_required", { field: t("email") });
+    if (!formData.gender) newErrors.gender = t("field_required", { field: t("gender_label") });
+    if (!formData.password) newErrors.password = t("field_required", { field: t("password") });
+    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = t("passwords_dont_match");
     return newErrors;
   };
 
@@ -59,8 +61,8 @@ const RegisterPage = () => {
     if (!isPasswordStrong(formData.password)) {
       Swal.fire({
         icon: "warning",
-        title: "Weak Password",
-        text: "Use at least 8 characters, including uppercase, lowercase, number, and special character.",
+        title: t("weak_password"),
+        text: t("weak_password_text"),
         confirmButtonColor: "hsl(52, 94%, 54%)",
       });
       return;
@@ -72,8 +74,8 @@ const RegisterPage = () => {
     } catch (error: any) {
       Swal.fire({
         icon: "error",
-        title: "Registration Failed",
-        text: error.message || "Something went wrong. Please try again.",
+        title: t("registration_failed"),
+        text: error.message || t("something_went_wrong"),
         confirmButtonColor: "hsl(52, 94%, 54%)",
       });
     } finally {
@@ -100,18 +102,18 @@ const RegisterPage = () => {
           className="card"
         >
           <h1 className="text-2xl font-bold text-center text-foreground mb-1">
-            Join finot
+            {t("join_finot")}
           </h1>
           <p className="text-center text-muted-foreground mb-6 text-sm">
-            Create your account to get started
+            {t("create_account_to_start")}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { name: "first_name", label: "First Name", placeholder: "Abebe" },
-                { name: "middle_name", label: "Middle Name", placeholder: "Kebede" },
-                { name: "last_name", label: "Last Name", placeholder: "Desta" },
+                { name: "first_name", label: t("first_name_label"), placeholder: "Abebe" },
+                { name: "middle_name", label: t("middle_name_label"), placeholder: "Kebede" },
+                { name: "last_name", label: t("last_name_label"), placeholder: "Desta" },
               ].map((field) => (
                 <div key={field.name}>
                   <label className={labelClass}>{field.label} *</label>
@@ -129,30 +131,30 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label className={labelClass}>Email *</label>
+              <label className={labelClass}>{t("email")} *</label>
               <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="you@example.com" className={inputClass} />
               {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
             </div>
 
             <div>
-              <label className={labelClass}>Gender *</label>
+              <label className={labelClass}>{t("gender_label")} *</label>
               <select name="gender" value={formData.gender} onChange={handleChange} className={inputClass}>
-                <option value="">Select gender</option>
-                <option value="M">Male</option>
-                <option value="F">Female</option>
+                <option value="">{t("select_gender")}</option>
+                <option value="M">{t("male")}</option>
+                <option value="F">{t("female")}</option>
               </select>
               {errors.gender && <p className="mt-1 text-xs text-destructive">{errors.gender}</p>}
             </div>
 
             <div>
-              <label className={labelClass}>Password *</label>
+              <label className={labelClass}>{t("password")} *</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Create a strong password"
+                  placeholder={t("create_strong_password")}
                   className={`${inputClass} pr-10`}
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground">
@@ -163,14 +165,14 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label className={labelClass}>Confirm Password *</label>
+              <label className={labelClass}>{t("confirm_password")} *</label>
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="Re-enter your password"
+                  placeholder={t("re_enter_password")}
                   className={`${inputClass} pr-10`}
                 />
                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground">
@@ -181,12 +183,12 @@ const RegisterPage = () => {
             </div>
 
             <button type="submit" disabled={isSubmitting} className="btn-primary w-full mt-2">
-              {isSubmitting ? "Creating account..." : "Create Account"}
+              {isSubmitting ? t("creating_account") : t("create_account")}
             </button>
 
             <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link to="/login" className="text-primary font-medium hover:text-primary-light transition">Sign in</Link>
+              {t("already_have_account")}{" "}
+              <Link to="/login" className="text-primary font-medium hover:text-primary-light transition">{t("sign_in")}</Link>
             </p>
           </form>
         </motion.div>

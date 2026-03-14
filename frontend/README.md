@@ -1,21 +1,3 @@
-# Recent Development Log (March 2026)
-
-## Features & Improvements
-* **Dashboard & Navigation**: Fixed broken UI links across dashboards (Donate, Profile, Edit History, Home). Adjusted super-status routing so only valid roles appear on the frontend, leaving superadmin purely for Django Admin.
-* **Service & Ageglot Management**: Fixed service admin visibility. Admins can now fully manage their groups (CRUD operations on Events).
-* **Event System**: Added Cloudinary image upload to event creation. Event images now render elegantly in both the Admin Manager and Student Event Feeds.
-* **Attendance Tracking**: Fixed an issue with empty event dropdowns in the attendance manager and corrected API payloads (`student` -> `student_id`).
-* **Donations & Receipts**: 
-  * Implemented a "Weekly Donation Reminder" popup that automatically checks if the user has donated this week.
-  * Enhanced the `/donation/success` page to render a full, printable receipt (Amount, Date, Tx Ref, Donor Name) with a native browser "Download / Print" button.
-* **Q&A System**: Added an "Ask Question" button directly into the student dashboard. Added interactive toast notifications for all Q&A actions (Ask, Reply, Edit, Delete).
-* **Notifications**: 
-  * Unread notification count now accurately displays in the navbar bell icon.
-  * Clicking notifications now marks them as read.
-  * Dropdown closes automatically when clicking outside.
-  * Handled Firebase notification permission denials gracefully.
-* **Email Templates**: Replaced broken localhost logo links with a permanently hosted Cloudinary Finot Logo URL in all HTML email templates.
-
 # Finot — Gibi Gubae Spiritual Lifecycle Management System
 
 ## UI/UX Product & Design Documentation

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { UserGroupIcon, PhoneIcon, ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import { Family, FamilyMember } from "../../types";
@@ -12,6 +13,7 @@ const fadeIn = {
 };
 
 const FamilyPage = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [family, setFamily] = useState<Family | null>(null);
   const [members, setMembers] = useState<FamilyMember[]>([]);
@@ -45,8 +47,8 @@ const FamilyPage = () => {
     return (
       <EmptyState
         icon={<UserGroupIcon className="h-10 w-10" />}
-        title="No Family Assigned"
-        description="You haven't been assigned to a mentorship family yet. This will happen soon!"
+        title={t("no_family_assigned")}
+        description={t("no_family_assigned_desc")}
       />
     );
   }
@@ -60,15 +62,15 @@ const FamilyPage = () => {
         {/* Parents */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
           {[
-            { label: "Spiritual Father", data: family.father },
-            { label: "Spiritual Mother", data: family.mother },
+            { label: t("spiritual_father"), data: family.father },
+            { label: t("spiritual_mother"), data: family.mother },
           ].map(({ label, data }) => (
             <div key={label} className="p-4 bg-muted/50 rounded-xl">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">{label}</p>
               <p className="font-semibold text-foreground text-lg">{data?.name || "—"}</p>
               {data?.profile && (
                 <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                  {data.profile.department && <p>{data.profile.department} • Batch {data.profile.batch}</p>}
+                  {data.profile.department && <p>{data.profile.department} • {t("batch")} {data.profile.batch}</p>}
                   {data.profile.personal_phone && (
                     <p className="flex items-center gap-1.5">
                       <PhoneIcon className="h-3.5 w-3.5" /> {data.profile.personal_phone}
@@ -87,7 +89,7 @@ const FamilyPage = () => {
 
         {family.religious_father && (
           <div className="p-4 bg-accent/5 rounded-xl border border-accent/20">
-            <p className="text-xs text-muted-foreground font-medium mb-1">Religious Father</p>
+            <p className="text-xs text-muted-foreground font-medium mb-1">{t("religious_father")}</p>
             <p className="font-medium text-foreground">{family.religious_father}</p>
           </div>
         )}
@@ -96,10 +98,10 @@ const FamilyPage = () => {
       {/* Members */}
       <div className="card">
         <h3 className="font-semibold text-foreground mb-4">
-          Family Members ({members.length})
+          {t("family_members")} ({members.length})
         </h3>
         {members.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No other members in this family.</p>
+          <p className="text-muted-foreground text-sm">{t("no_family_members")}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {members.map((member) => (
@@ -110,7 +112,7 @@ const FamilyPage = () => {
                 <div className="min-w-0">
                   <p className="font-medium text-foreground text-sm truncate">{member.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {member.profile?.department || ""} {member.profile?.batch ? `• Batch ${member.profile.batch}` : ""}
+                    {member.profile?.department || ""} {member.profile?.batch ? `• ${t("batch")} ${member.profile.batch}` : ""}
                   </p>
                 </div>
               </div>

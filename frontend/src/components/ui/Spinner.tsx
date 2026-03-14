@@ -1,4 +1,5 @@
 // src/components/ui/Spinner.tsx
+import React from "react";
 
 type SpinnerProps = {
   size?: string;

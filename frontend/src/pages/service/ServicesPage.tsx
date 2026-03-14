@@ -6,14 +6,18 @@ import ServiceGroupList from "./ServiceGroupList";
 import FamilyPage from "./FamilyPage";
 import AttendancePage from "./AttendancePage";
 
-const tabs = [
-  { id: "groups", label: "Service Groups", component: ServiceGroupList },
-  { id: "family", label: "My Family", component: FamilyPage },
-  { id: "attendance", label: "Attendance", component: AttendancePage },
-];
+import { useTranslation } from "react-i18next";
 
 const ServicesPage = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("groups");
+
+  const tabs = [
+    { id: "groups", label: t("tab_groups"), component: ServiceGroupList },
+    { id: "family", label: t("tab_family"), component: FamilyPage },
+    { id: "attendance", label: t("tab_attendance"), component: AttendancePage },
+  ];
+
   const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component;
 
   return (
@@ -25,9 +29,9 @@ const ServicesPage = () => {
             className="inline-flex items-center text-primary hover:text-primary-light font-medium transition text-sm"
           >
             <ArrowLeftIcon className="h-4 w-4 mr-1.5" />
-            Back to Dashboard
+            {t("back_to_dashboard")}
           </Link>
-          <h1 className="text-2xl font-bold text-foreground">Services</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("services")}</h1>
         </div>
 
         <div className="flex space-x-1 mb-6 bg-muted p-1 rounded-xl w-fit">

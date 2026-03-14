@@ -5,10 +5,12 @@ import { api } from "../../lib/api";
 import { Card, SectionHeader } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
+import { useTranslation } from "react-i18next";
 import { ServiceGroup } from "../../types";
 import { FiBriefcase, FiUsers, FiArrowRight, FiSettings } from "react-icons/fi";
 
 const DashboardService = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [serviceGroups, setServiceGroups] = useState<ServiceGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,13 +53,13 @@ const DashboardService = () => {
   return (
     <div className="space-y-6">
       <SectionHeader
-        title="Service Groups"
-        description="Join a ministry and serve the fellowship"
+        title={t("service_groups")}
+        description={t("join_ministry")}
         icon={<FiBriefcase className="h-6 w-6" />}
         action={
           <Link to="/dashboard/service/select" className="btn-primary inline-flex items-center gap-2 text-sm">
             <FiSettings className="h-4 w-4" />
-            Manage Preferences
+            {t("manage_preferences")}
           </Link>
         }
       />
@@ -65,11 +67,11 @@ const DashboardService = () => {
       {/* My Selections */}
       {mySelection.length > 0 && (
         <Card className="border-l-4 border-l-accent">
-          <h3 className="mb-3 text-lg font-semibold text-foreground">My Selected Groups</h3>
+          <h3 className="mb-3 text-base font-medium text-foreground">{t("my_selected_groups")}</h3>
           <div className="flex flex-wrap gap-2">
             {mySelection.map((selection: any) => (
               <Badge key={selection.id} variant="accent" size="md">
-                {selection.service_group_name} (Priority {selection.priority})
+                {selection.service_group_name} ({t("priority")} {selection.priority})
               </Badge>
             ))}
           </div>
@@ -81,8 +83,8 @@ const DashboardService = () => {
         <Card>
           <EmptyState
             icon={<FiBriefcase className="h-10 w-10" />}
-            title="No service groups available"
-            description="Check back later for ministry opportunities."
+            title={t("no_service_groups")}
+            description={t("ministry_opportunities")}
           />
         </Card>
       ) : (
@@ -99,22 +101,22 @@ const DashboardService = () => {
                     </div>
                     {isSelected && (
                       <Badge variant="success" size="sm">
-                        Selected
+                        {t("selected")}
                       </Badge>
                     )}
                   </div>
-                  <h3 className="mt-4 text-lg font-bold text-foreground">{group.name}</h3>
+                  <h3 className="mt-4 text-base font-medium text-foreground">{group.name}</h3>
                   <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                    {group.description || "No description available"}
+                    {group.description || t("no_description_available")}
                   </p>
                   {group.admin_name && (
                     <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
                       <FiUsers className="h-4 w-4" />
-                      <span>Admin: {group.admin_name}</span>
+                      <span>{t("admin")}: {group.admin_name}</span>
                     </div>
                   )}
                   <div className="mt-4 flex items-center justify-end text-primary">
-                    <span className="text-sm font-medium">View Details</span>
+                    <span className="text-sm font-medium">{t("view_details")}</span>
                     <FiArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </Card>

@@ -1,9 +1,12 @@
+import React from "react";
+import { useTranslation } from "react-i18next";
 
 function DashboardNotifications() {
+  const { t } = useTranslation();
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold">Dashboard Notifications</h1>
-      <p>This is a placeholder for the Dashboard Notifications page.</p>
+      <h1 className="text-lg font-medium text-foreground">{t("notifications")}</h1>
+      <p>{t("notifications_placeholder")}</p>
     </div>
   );
 }

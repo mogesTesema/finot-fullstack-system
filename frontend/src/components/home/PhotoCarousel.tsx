@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 const photos = [
+// ... (rest of the file stays same)
   { src: "/images/service-groups/group1.jpg", alt: "Fellowship group 1" },
   { src: "/images/service-groups/group2.jpg", alt: "Fellowship group 2" },
   { src: "/images/service-groups/group3.jpg", alt: "Fellowship group 3" },
@@ -17,16 +19,17 @@ const photos = [
 const duplicated = [...photos, ...photos];
 
 const PhotoCarousel = () => {
+  const { t } = useTranslation();
   return (
     <section className="py-16 bg-background overflow-hidden">
       <div className="container mx-auto px-4 mb-8">
         <div className="text-center">
-          <span className="text-accent font-semibold text-sm uppercase tracking-wider">Our Students</span>
+          <span className="text-accent font-semibold text-sm uppercase tracking-wider">{t("our_students")}</span>
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mt-2 mb-2">
-            Finot <span className="text-primary">Community</span>
+            {t("finot_community_prefix")} <span className="text-primary">{t("finot_community_suffix")}</span>
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Moments from our fellowship gatherings, services, and community life.
+            {t("community_moments")}
           </p>
         </div>
       </div>

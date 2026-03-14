@@ -4,10 +4,12 @@ import { api } from "../../lib/api";
 import { Card, SectionHeader, StatsCard } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
+import { useTranslation } from "react-i18next";
 import { AttendanceRecord } from "../../types";
 import { FiCheckCircle, FiCalendar, FiTrendingUp, FiAward } from "react-icons/fi";
 
 const DashboardAttendance = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +30,7 @@ const DashboardAttendance = () => {
   }, [user]);
 
   const presentCount = attendance.filter((a) => a.status === "PRESENT").length;
+  const absentCount = attendance.filter((a) => a.status === "ABSENT").length;
   const lateCount = attendance.filter((a) => a.status === "LATE").length;
   const attendanceRate = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
 
@@ -58,22 +61,22 @@ const DashboardAttendance = () => {
   return (
     <div className="space-y-6">
       <SectionHeader
-        title="Attendance"
-        description="Track your participation in fellowship activities"
+        title={t("tab_attendance")}
+        description={t("tracking_participation")}
         icon={<FiCheckCircle className="h-6 w-6" />}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard title="Attendance Rate" value={`${attendanceRate}%`} icon={<FiTrendingUp className="h-6 w-6" />} trend={{ value: 5, positive: true }} />
-        <StatsCard title="Present" value={presentCount} icon={<FiCheckCircle className="h-6 w-6" />} />
-        <StatsCard title="Late" value={lateCount} icon={<FiCalendar className="h-6 w-6" />} />
-        <StatsCard title="Total Events" value={attendance.length} icon={<FiAward className="h-6 w-6" />} />
+        <StatsCard title={t("attendance_rate")} value={`${attendanceRate}%`} icon={<FiTrendingUp className="h-6 w-6" />} trend={{ value: 5, positive: true }} />
+        <StatsCard title={t("present")} value={presentCount} icon={<FiCheckCircle className="h-6 w-6" />} />
+        <StatsCard title={t("late")} value={lateCount} icon={<FiCalendar className="h-6 w-6" />} />
+        <StatsCard title={t("total_events")} value={attendance.length} icon={<FiAward className="h-6 w-6" />} />
       </div>
 
       <Card>
-        <h3 className="mb-4 text-lg font-semibold text-foreground">Attendance History</h3>
+        <h3 className="mb-4 text-base font-medium text-foreground">{t("attendance_history")}</h3>
         {attendance.length === 0 ? (
-          <EmptyState icon={<FiCheckCircle className="h-8 w-8" />} title="No attendance records" description="Your attendance history will appear here." />
+          <EmptyState icon={<FiCheckCircle className="h-8 w-8" />} title={t("no_attendance_records")} description={t("attendance_history_will_appear")} />
         ) : (
           <div className="space-y-2">
             {attendance.map((record) => (
@@ -84,10 +87,10 @@ const DashboardAttendance = () => {
                     {record.event_date ? new Date(record.event_date).toLocaleDateString() : "—"}
                     {record.remark && ` • ${record.remark}`}
                   </p>
+                  <Badge variant={statusStyles[record.status] as any} size="sm">
+                    {t(`status_${record.status.toLowerCase()}`)}
+                  </Badge>
                 </div>
-                <Badge variant={statusStyles[record.status] as any} size="md">
-                  {record.status}
-                </Badge>
               </div>
             ))}
           </div>

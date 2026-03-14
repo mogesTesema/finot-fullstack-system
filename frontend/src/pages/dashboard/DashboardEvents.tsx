@@ -4,6 +4,7 @@ import { api } from "../../lib/api";
 import { Card, SectionHeader } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
+import { useTranslation } from "react-i18next";
 import { FiCalendar, FiMapPin, FiClock, FiMessageCircle } from "react-icons/fi";
 
 type DashboardEvent = {
@@ -21,6 +22,7 @@ type DashboardEvent = {
 };
 
 const DashboardEvents = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [events, setEvents] = useState<DashboardEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,13 +60,11 @@ const DashboardEvents = () => {
 
   return (
     <div className="space-y-6">
-      <SectionHeader title="Events" description="Fellowship gatherings and spiritual activities" icon={<FiCalendar className="h-6 w-6" />} />
-
       <div className="flex gap-2 overflow-x-auto">
         {[
-          { key: "all", label: "All Events" },
-          { key: "upcoming", label: "Upcoming" },
-          { key: "completed", label: "Past" },
+          { key: "all", label: t("all_events") },
+          { key: "upcoming", label: t("event_upcoming") },
+          { key: "completed", label: t("event_completed") },
         ].map((tab) => (
           <button key={tab.key} onClick={() => setFilter(tab.key as any)}
             className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${filter === tab.key ? "bg-primary text-primary-foreground shadow-soft" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
@@ -75,7 +75,7 @@ const DashboardEvents = () => {
 
       {filteredEvents.length === 0 ? (
         <Card>
-          <EmptyState icon={<FiCalendar className="h-10 w-10" />} title="No events found" description="Check back soon for fellowship gatherings and activities." />
+          <EmptyState icon={<FiCalendar className="h-10 w-10" />} title={t("no_events_found")} description={t("events_check_back")} />
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -96,23 +96,23 @@ const DashboardEvents = () => {
                 <div className="flex gap-4">
                   <div className="flex flex-col gap-2">
                     <div className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-xl bg-primary/10">
-                      <span className="text-xs font-bold uppercase text-primary">{eventDate ? eventDate.toLocaleDateString("en", { month: "short" }) : "TBD"}</span>
-                      <span className="text-2xl font-bold leading-none text-primary">{eventDate ? eventDate.getDate() : ""}</span>
+                      <span className="text-xs font-bold uppercase text-primary">{eventDate ? eventDate.toLocaleDateString(undefined, { month: "short" }) : t("tbd")}</span>
+                      <span className="text-lg font-medium leading-none text-primary">{eventDate ? eventDate.getDate() : ""}</span>
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-col gap-1 items-start justify-between">
                       <div className="flex w-full justify-between items-start">
-                        <h3 className="font-bold text-foreground line-clamp-1">{event.title}</h3>
-                        {isPast && <Badge variant="default" size="sm" className="ml-2">Done</Badge>}
+                        <h3 className="text-sm font-medium text-foreground line-clamp-1">{event.title}</h3>
+                        {isPast && <Badge variant="default" size="sm" className="ml-2">{t("event_completed")}</Badge>}
                       </div>
                       {event.service_group_name ? (
                         <div className="inline-flex items-center rounded-md bg-accent/20 px-2 py-0.5 text-xs font-medium text-accent">
-                          {event.service_group_name} Group
+                          {event.service_group_name} {t("service_group")}
                         </div>
                       ) : (
                         <div className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                          General
+                          {t("general")}
                         </div>
                       )}
                     </div>
@@ -125,17 +125,17 @@ const DashboardEvents = () => {
                     <div className="mt-3 space-y-1">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <FiClock className="h-4 w-4" />
-                        <span>{eventDate ? eventDate.toLocaleTimeString("en", { hour: "numeric", minute: "2-digit" }) : "Time TBD"}</span>
+                        <span>{eventDate ? eventDate.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : t("location_tbd")}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <FiMapPin className="h-4 w-4 flex-shrink-0" />
                         <span className="truncate">
                           {event.place_url ? (
                             <a href={event.place_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                              {event.place_name || "View Location"}
+                              {event.place_name || t("view_location")}
                             </a>
                           ) : (
-                            event.place_name || "Location TBD"
+                            event.place_name || t("location_tbd")
                           )}
                         </span>
                       </div>
