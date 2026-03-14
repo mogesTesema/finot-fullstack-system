@@ -67,7 +67,7 @@ const DashboardService = () => {
       {/* My Selections */}
       {mySelection.length > 0 && (
         <Card className="border-l-4 border-l-accent">
-          <h3 className="mb-3 text-lg font-semibold text-foreground">{t("my_selected_groups")}</h3>
+          <h3 className="mb-3 text-base font-medium text-foreground">{t("my_selected_groups")}</h3>
           <div className="flex flex-wrap gap-2">
             {mySelection.map((selection: any) => (
               <Badge key={selection.id} variant="accent" size="md">
@@ -105,7 +105,7 @@ const DashboardService = () => {
                       </Badge>
                     )}
                   </div>
-                  <h3 className="mt-4 text-lg font-bold text-foreground">{group.name}</h3>
+                  <h3 className="mt-4 text-base font-medium text-foreground">{group.name}</h3>
                   <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
                     {group.description || t("no_description_available")}
                   </p>

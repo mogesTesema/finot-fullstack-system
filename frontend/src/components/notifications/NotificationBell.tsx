@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 
 import { useTranslation } from 'react-i18next';
 
-export const NotificationBell = () => {
+export const NotificationBell = ({ iconClassName }: { iconClassName?: string }) => {
   const { t } = useTranslation();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -93,7 +93,7 @@ export const NotificationBell = () => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground relative"
+        className={iconClassName || "rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground relative"}
       >
         <BellIcon className="h-6 w-6" />
         {unreadCount > 0 && (

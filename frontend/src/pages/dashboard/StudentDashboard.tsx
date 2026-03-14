@@ -115,56 +115,9 @@ const StudentDashboard = () => {
       <Sidebar notifCount={notifCount} onLogout={handleLogout} />
 
       <main className="flex-1 overflow-auto">
-        {/* Top Header Bar */}
-        <div className="bg-primary px-4 md:px-8 pt-6 pb-20">
-          <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-6xl mx-auto">
-            <motion.div variants={fadeIn} className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <img
-                  src={profileImage}
-                  alt={fullName}
-                  className="w-12 h-12 md:w-14 md:h-14 rounded-2xl object-cover border-2 border-accent/40"
-                  onError={(event: SyntheticEvent<HTMLImageElement>) => {
-                    event.currentTarget.src = "/images/default-avatar.jpg";
-                  }}
-                />
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold text-primary-foreground">
-                    {t("welcome_back", { name: fullName.split(" ")[0] })}
-                  </h1>
-                  <p className="text-primary-foreground/60 text-sm">{department} • {batch}</p>
-                </div>
-              </div>
-              <div className="hidden md:flex items-center gap-2">
-                <span className="inline-flex items-center px-3 py-1 rounded-lg bg-accent/20 text-accent text-xs font-semibold">
-                  {assignedGroup}
-                </span>
-                <Link to="/dashboard/profile" className="p-2 rounded-xl text-primary-foreground/60 hover:text-accent hover:bg-white/10 transition">
-                  <Cog6ToothIcon className="h-5 w-5" />
-                </Link>
-              </div>
-            </motion.div>
 
-            {/* Donation reminder */}
-            {donationReminder && (
-              <motion.div variants={fadeIn} className="bg-accent/15 border border-accent/30 rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-accent/20 rounded-xl">
-                    <HeartIcon className="h-5 w-5 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-primary-foreground text-sm">{t("weekly_donation_reminder")}</h3>
-                    <p className="text-xs text-primary-foreground/60">{t("donation_reminder_text")}</p>
-                  </div>
-                </div>
-                <Link to="/dashboard/donations/give" className="btn-primary text-xs px-4 py-2">{t("donate_now")}</Link>
-              </motion.div>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Tab Navigation - overlaps the header */}
-        <div className="-mt-12 px-4 md:px-8">
+        {/* Tab Navigation */}
+        <div className="pt-6 px-4 md:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="bg-card rounded-2xl shadow-elevated border border-border p-1.5 flex gap-1 overflow-x-auto">
               {tabs.map((tab) => (

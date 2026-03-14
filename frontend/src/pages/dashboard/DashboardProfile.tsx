@@ -85,7 +85,7 @@ const DashboardProfile = () => {
         <div className="flex flex-col items-center gap-6 md:flex-row">
           <Avatar src={profile.profile_image} alt={full_name} size="xl" className="h-24 w-24" />
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-foreground">{full_name}</h2>
+            <h2 className="text-lg font-medium text-foreground">{full_name}</h2>
             <p className="mt-1 text-muted-foreground">{profile.department} {profile.batch && `• ${profile.batch}`}</p>
             <div className="mt-3 flex flex-wrap justify-center gap-2 md:justify-start">
               <Badge variant="primary">{t("student_id")}: {id}</Badge>
@@ -100,7 +100,7 @@ const DashboardProfile = () => {
           <Card key={section.title}>
             <div className="mb-4 flex items-center gap-2">
               <div className="text-primary">{section.icon}</div>
-              <h3 className="text-lg font-semibold text-foreground">{section.title}</h3>
+              <h3 className="text-base font-medium text-foreground">{section.title}</h3>
             </div>
             <div className="space-y-4">
               {section.items.map((item) => (

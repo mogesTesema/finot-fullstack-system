@@ -97,13 +97,13 @@ const DashboardEvents = () => {
                   <div className="flex flex-col gap-2">
                     <div className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center rounded-xl bg-primary/10">
                       <span className="text-xs font-bold uppercase text-primary">{eventDate ? eventDate.toLocaleDateString(undefined, { month: "short" }) : t("tbd")}</span>
-                      <span className="text-2xl font-bold leading-none text-primary">{eventDate ? eventDate.getDate() : ""}</span>
+                      <span className="text-lg font-medium leading-none text-primary">{eventDate ? eventDate.getDate() : ""}</span>
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-col gap-1 items-start justify-between">
                       <div className="flex w-full justify-between items-start">
-                        <h3 className="font-bold text-foreground line-clamp-1">{event.title}</h3>
+                        <h3 className="text-sm font-medium text-foreground line-clamp-1">{event.title}</h3>
                         {isPast && <Badge variant="default" size="sm" className="ml-2">{t("event_completed")}</Badge>}
                       </div>
                       {event.service_group_name ? (

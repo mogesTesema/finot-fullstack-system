@@ -130,7 +130,7 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
         </div>
 
         <motion.div initial="hidden" animate="visible" variants={fadeIn} className="space-y-5">
-          <h1 className="text-2xl font-bold text-foreground">{t("community_questions")}</h1>
+          <h1 className="text-lg font-medium text-foreground">{t("community_questions")}</h1>
 
           <SearchBar value={searchTerm} onChange={(v) => { setSearchTerm(v); setCurrentPage(1); }} />
           <FilterBar categories={categories} selected={categoryFilter} onChange={(v) => { setCategoryFilter(v); setCurrentPage(1); }} />

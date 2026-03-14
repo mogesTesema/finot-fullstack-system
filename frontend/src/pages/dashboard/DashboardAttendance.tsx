@@ -74,7 +74,7 @@ const DashboardAttendance = () => {
       </div>
 
       <Card>
-        <h3 className="mb-4 text-lg font-semibold text-foreground">{t("attendance_history")}</h3>
+        <h3 className="mb-4 text-base font-medium text-foreground">{t("attendance_history")}</h3>
         {attendance.length === 0 ? (
           <EmptyState icon={<FiCheckCircle className="h-8 w-8" />} title={t("no_attendance_records")} description={t("attendance_history_will_appear")} />
         ) : (

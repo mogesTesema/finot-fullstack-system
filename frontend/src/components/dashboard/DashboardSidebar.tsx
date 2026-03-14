@@ -53,23 +53,23 @@ const DashboardSidebar = ({
     <aside
       className={`${className} ${
         collapsed ? "w-20" : "w-64"
-      } flex flex-col border-r border-border bg-card shadow-soft transition-all duration-300`}
+      } flex flex-col border-r border-white/10 bg-primary shadow-soft transition-all duration-300`}
     >
       {/* Logo Header */}
       <div
-        className={`flex items-center border-b border-border p-4 ${
+        className={`flex items-center border-b border-white/10 p-4 ${
           collapsed ? "justify-center" : "justify-between"
         }`}
       >
         {!collapsed && (
           <div className="flex items-center space-x-2">
             <img src="/images/logo.png" alt="finot" className="h-8 w-8" />
-            <span className="text-lg font-bold text-primary">Finot</span>
+            <span className="text-base font-semibold text-white">Finot</span>
           </div>
         )}
         <button
           onClick={onToggle}
-          className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted"
+          className="rounded-lg p-1.5 text-white/60 transition hover:bg-white/10 hover:text-white"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
@@ -88,12 +88,12 @@ const DashboardSidebar = ({
             to={item.to}
             end={item.end}
             className={({ isActive }) =>
-              `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+              `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-normal transition-all duration-200 ${
                 collapsed ? "justify-center" : ""
               } ${
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-soft"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-white/20 text-white shadow-soft"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
               }`
             }
             title={collapsed ? item.label : undefined}
@@ -117,10 +117,10 @@ const DashboardSidebar = ({
       </nav>
 
       {/* Logout Button */}
-      <div className="border-t border-border p-3">
+      <div className="border-t border-white/10 p-3">
         <button
           onClick={onLogout}
-          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive ${
+          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-normal text-white/70 transition hover:bg-destructive/20 hover:text-white ${
             collapsed ? "justify-center" : ""
           }`}
           title={collapsed ? "Logout" : undefined}

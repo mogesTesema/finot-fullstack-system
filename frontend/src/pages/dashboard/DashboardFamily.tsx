@@ -58,7 +58,7 @@ const DashboardFamily = () => {
                   <Avatar src={null} alt={parent.data?.name || "?"} size="lg" />
                   <div className="flex-1">
                     <Badge variant="primary" size="sm" className="mb-2">{parent.role}</Badge>
-                    <h3 className="text-lg font-bold text-foreground">{parent.data?.name || "—"}</h3>
+                    <h3 className="text-base font-medium text-foreground">{parent.data?.name || "—"}</h3>
                     {parent.data?.email && (
                       <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><FiMail className="h-4 w-4" /><span>{parent.data.email}</span></div>
                     )}
@@ -74,7 +74,7 @@ const DashboardFamily = () => {
           {family.siblings && family.siblings.length > 0 && (
             <Card>
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-foreground">{t("siblings_count", { count: family.siblings.length })}</h3>
+                <h3 className="text-base font-medium text-foreground">{t("siblings_count", { count: family.siblings.length })}</h3>
                 <AvatarGroup avatars={family.siblings.slice(0, 5).map((sib: any) => ({ src: null, alt: sib.name || "?" }))} max={5} size="sm" />
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -97,7 +97,7 @@ const DashboardFamily = () => {
                 <div className="rounded-xl bg-accent/10 p-3"><FiUser className="h-6 w-6 text-accent-foreground" /></div>
                 <div>
                   <p className="text-sm text-muted-foreground">{t("religious_father")}</p>
-                  <p className="text-lg font-bold text-foreground">{family.religious_father}</p>
+                  <p className="text-base font-medium text-foreground">{family.religious_father}</p>
                 </div>
               </div>
             </Card>

@@ -69,7 +69,7 @@ const DashboardDonations = () => {
       </div>
 
       <Card>
-        <h3 className="mb-4 text-lg font-semibold text-foreground">{t("donation_history")}</h3>
+        <h3 className="mb-4 text-base font-medium text-foreground">{t("donation_history")}</h3>
         {donations.length === 0 ? (
           <EmptyState icon={<FiHeart className="h-8 w-8" />} title={t("no_donations_yet")} description={t("attendance_history_will_appear")} />
         ) : (
@@ -100,7 +100,7 @@ const DashboardDonations = () => {
               <div className="flex items-center gap-4">
                 <div className="rounded-xl bg-success/10 p-3"><FiPlus className="h-6 w-6 text-success" /></div>
                 <div>
-                  <h3 className="font-semibold text-foreground">{t("make_donation")}</h3>
+                  <h3 className="text-sm font-medium text-foreground">{t("make_donation")}</h3>
                   <p className="text-sm text-muted-foreground">{t("support_fellowship")}</p>
                 </div>
               </div>
@@ -114,7 +114,7 @@ const DashboardDonations = () => {
               <div className="flex items-center gap-4">
                 <div className="rounded-xl bg-primary/10 p-3"><FiCalendar className="h-6 w-6 text-primary" /></div>
                 <div>
-                  <h3 className="font-semibold text-foreground">{t("full_history")}</h3>
+                  <h3 className="text-sm font-medium text-foreground">{t("full_history")}</h3>
                   <p className="text-sm text-muted-foreground">{t("view_detailed_records")}</p>
                 </div>
               </div>

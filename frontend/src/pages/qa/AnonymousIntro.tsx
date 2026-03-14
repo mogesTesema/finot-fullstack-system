@@ -79,7 +79,7 @@ const AnonymousIntro = () => {
       <div className="max-w-5xl mx-auto text-center">
         {/* Hero / Intro Section */}
         <motion.div initial="hidden" animate="visible" variants={fadeInUp}>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-[#253D7F] mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-[#253D7F] mb-4">
             {t("emahoy_title")}
           </h1>
           <p className="text-[#253D7F] text-lg md:text-xl mb-12">
@@ -128,7 +128,7 @@ const AnonymousIntro = () => {
 
         {/* How It Works Section */}
         <section className="mt-16">
-          <h2 className="text-3xl font-bold text-[#253D7F] text-center mb-12">
+          <h2 className="text-3xl font-semibold text-[#253D7F] text-center mb-12">
             {t("how_it_works")}
           </h2>
 
