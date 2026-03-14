@@ -121,10 +121,13 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8000",
     "https://finot.vercel.app",
+    "http://localhost:5176",
+    "https://finot.onrender.com"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
+    "http://localhost:5176",
     "http://localhost:8000",
     "https://finot.vercel.app",
 ]
