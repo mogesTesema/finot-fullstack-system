@@ -89,6 +89,7 @@ const DashboardSidebar = ({
             key={item.to}
             to={item.to}
             end={item.end}
+            onClick={onNavClick}
             className={({ isActive }) =>
               `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-normal transition-all duration-200 ${
                 collapsed ? "justify-center" : ""
