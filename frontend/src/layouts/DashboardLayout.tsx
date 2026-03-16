@@ -55,17 +55,18 @@ const DashboardLayout = () => {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            className="fixed inset-0 z-40 bg-black/50 md:hidden transition-opacity"
             onClick={toggleMobileSidebar}
           />
-          {/* Mobile Sidebar */}
-          <div className="fixed inset-y-0 left-0 z-50 w-64 md:hidden">
+          {/* Mobile Sidebar - 75% width max */}
+          <div className="fixed inset-y-0 left-0 z-50 w-[75vw] max-w-[280px] md:hidden">
             <DashboardSidebar
               collapsed={false}
               onToggle={toggleMobileSidebar}
               onLogout={handleLogout}
               notifCount={notifCount}
               user={user}
+              onNavClick={toggleMobileSidebar}
             />
           </div>
         </>
