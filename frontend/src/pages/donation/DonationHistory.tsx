@@ -46,7 +46,7 @@ const DonationHistory = () => {
         ) : (
           <div className="space-y-3">
             {donations.map((d) => (
-              <div key={d.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+              <div key={d.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-4 bg-muted/50 rounded-xl">
                 <div>
                   <p className="font-medium text-foreground">{t(d.fund_category.toLowerCase().replace(/ /g, "_")) || d.fund_category}</p>
                   <p className="text-xs text-muted-foreground">{new Date(d.donated_at).toLocaleString()}</p>
@@ -54,9 +54,9 @@ const DonationHistory = () => {
                     {d.payment?.status === "COMPLETED" ? t("status_completed") : t("status_pending")}
                   </span>
                 </div>
-                <div className="text-right">
+                <div className="sm:text-right">
                   <p className="text-xl font-bold text-primary">{Number(d.payment?.amount ?? 0).toLocaleString()} <span className="text-xs font-normal text-muted-foreground">{t("etb")}</span></p>
-                  <p className="text-xs text-muted-foreground">{t("reference")}: {d.payment?.transaction_reference ?? "—"}</p>
+                  <p className="text-xs text-muted-foreground truncate">{t("reference")}: {d.payment?.transaction_reference ?? "—"}</p>
                 </div>
               </div>
             ))}

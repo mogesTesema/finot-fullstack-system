@@ -178,8 +178,8 @@ const DashboardOverview = () => {
                    View All <FiArrowRight className="h-4 w-4" />
                 </Link>
              </div>
-             <div className="p-6">
-               {loadingEvents ? (
+             <div className="p-4 sm:p-6">
+                {loadingEvents ? (
                  <div className="space-y-4">
                    {[1, 2, 3].map((i) => (
                      <div key={i} className="skeleton h-24 rounded-xl" />

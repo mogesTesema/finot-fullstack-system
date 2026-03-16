@@ -86,7 +86,7 @@ type SectionHeaderProps = {
 
 export const SectionHeader = ({ title, description, action, icon }: SectionHeaderProps) => {
   return (
-    <div className="mb-6 flex items-center justify-between">
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
         {icon && <div className="text-primary">{icon}</div>}
         <div>
