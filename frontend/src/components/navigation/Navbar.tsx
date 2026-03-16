@@ -157,38 +157,39 @@ const Navbar = () => {
               transition={{ duration: 0.3 }}
               className="md:hidden overflow-hidden"
             >
-              <div className="pb-4 space-y-1">
+              <div className="rounded-xl bg-card/95 backdrop-blur-lg border border-border shadow-lg mb-3 mx-1 p-3 flex flex-col space-y-1">
                 <Link
                   to="/about"
                   onClick={() => setIsOpen(false)}
-                  className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
+                  className="flex items-center gap-2 py-3 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium text-sm"
                 >
                   {t("about")}
                 </Link>
                 <Link
                   to="/donate"
                   onClick={() => setIsOpen(false)}
-                  className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
+                  className="flex items-center gap-2 py-3 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium text-sm"
                 >
-                  <HeartIcon className="h-4 w-4 inline mr-2" />
+                  <HeartIcon className="h-4 w-4 flex-shrink-0" />
                   {t("donate")}
                 </Link>
                 <Link
                   to="/anonymous"
                   onClick={() => setIsOpen(false)}
-                  className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
+                  className="flex items-center gap-2 py-3 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium text-sm"
                 >
-                  <ChatBubbleLeftRightIcon className="h-4 w-4 inline mr-2" />
+                  <ChatBubbleLeftRightIcon className="h-4 w-4 flex-shrink-0" />
                   {t("anonymous_qa")}
                 </Link>
-                <a
-                  href="#footer"
-                  onClick={(e) => scrollToSection(e, "footer")}
-                  className="block py-2.5 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium"
+                <Link
+                  to="/contact"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 py-3 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium text-sm"
                 >
                   {t("contact")}
-                </a>
-                <div className="pt-3 border-t border-border flex gap-3 px-4">
+                </Link>
+
+                <div className="pt-2 mt-1 border-t border-border flex gap-3 px-1">
                   <Link
                     to="/login"
                     onClick={() => setIsOpen(false)}
@@ -204,7 +205,7 @@ const Navbar = () => {
                     {t("sign_up")}
                   </Link>
                 </div>
-                <div className="px-4 py-2">
+                <div className="px-1 pt-2">
                   <LanguageSelector />
                 </div>
               </div>
