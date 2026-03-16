@@ -148,14 +148,14 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
     <div className={isDashboard ? "" : "min-h-screen bg-background py-8 px-4"}>
       <div className="max-w-3xl mx-auto">
         {/* Header with Ask Question button */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6">
           {!isDashboard && (
             <Link to={backRoute} className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
               <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> {t("back")}
             </Link>
           )}
           {isDashboard && <div />}
-          <Link to={askRoute} className="btn-primary text-sm inline-flex items-center gap-1.5">
+          <Link to={askRoute} className="btn-primary text-sm inline-flex items-center gap-1.5 self-start sm:self-auto">
             <PlusCircleIcon className="h-4 w-4" /> {t("ask_question")}
           </Link>
         </div>
