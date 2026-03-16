@@ -117,14 +117,14 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
     <div className={isDashboard ? "" : "min-h-screen bg-background py-8 px-4"}>
       <div className="max-w-3xl mx-auto">
         {/* Header with Ask Question button */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6">
           {!isDashboard && (
             <Link to={backRoute} className="inline-flex items-center text-primary hover:text-primary-light font-medium text-sm transition">
               <ArrowLeftIcon className="h-4 w-4 mr-1.5" /> {t("back")}
             </Link>
           )}
           {isDashboard && <div />}
-          <Link to={askRoute} className="btn-primary text-sm inline-flex items-center gap-1.5">
+          <Link to={askRoute} className="btn-primary text-sm inline-flex items-center gap-1.5 self-start sm:self-auto">
             <PlusCircleIcon className="h-4 w-4" /> {t("ask_question")}
           </Link>
         </div>
@@ -139,14 +139,14 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
             const answers = getApprovedAnswers(q);
             return (
               <div key={q.id} className="card">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-accent/10 text-accent-foreground">
                       {t(`cat_${q.category.toLowerCase()}`) || q.category}
                     </span>
                     <span className="text-xs text-muted-foreground">{q.display_name} • {formatDate(q.created_at)}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 self-start">
                     <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-lg">{t("answers_count", { count: answers.length })}</span>
                     {canModify(q.user) && (
                       <>

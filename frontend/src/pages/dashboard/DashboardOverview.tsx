@@ -169,17 +169,17 @@ const DashboardOverview = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* Upcoming Events */}
           <Card className="flex flex-col" padding="none">
-             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+             <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                    <h3 className="text-base font-semibold text-slate-900">{t("upcoming_events", "Recent Events")}</h3>
                    <p className="text-xs text-muted-foreground mt-0.5">Latest events assigned to you</p>
                 </div>
-                <Link to="/dashboard/events" className="text-sm font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
-                   View All Events <FiArrowRight className="h-4 w-4" />
+                <Link to="/dashboard/events" className="text-sm font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 self-start">
+                   View All <FiArrowRight className="h-4 w-4" />
                 </Link>
              </div>
-             <div className="p-6">
-               {loadingEvents ? (
+             <div className="p-4 sm:p-6">
+                {loadingEvents ? (
                  <div className="space-y-4">
                    {[1, 2, 3].map((i) => (
                      <div key={i} className="skeleton h-24 rounded-xl" />
@@ -208,11 +208,11 @@ const DashboardOverview = () => {
                           </div>
                           <span className="text-[10px] font-bold text-amber-600 uppercase bg-amber-50 px-2 py-1 rounded border border-amber-100">MEDIUM</span>
                        </div>
-                       <div className="flex items-center gap-6 text-xs text-slate-500 mt-2 font-medium">
-                          <span className="flex items-center gap-1.5">📍 Location Available</span>
-                          <span className="flex items-center gap-1.5">📅 {event.start_date ? new Date(event.start_date).toLocaleDateString() : ""}</span>
-                          <span className="flex items-center gap-1.5">👤 {event.created_by_name || "Organizer"}</span>
-                       </div>
+                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-2 font-medium">
+                           <span className="flex items-center gap-1.5">📍 Location Available</span>
+                           <span className="flex items-center gap-1.5">📅 {event.start_date ? new Date(event.start_date).toLocaleDateString() : ""}</span>
+                           <span className="flex items-center gap-1.5">👤 {event.created_by_name || "Organizer"}</span>
+                        </div>
                      </div>
                    ))}
                  </div>
@@ -222,17 +222,17 @@ const DashboardOverview = () => {
 
           {/* Recent Attendance */}
           <Card className="flex flex-col" padding="none">
-             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                   <h3 className="text-base font-semibold text-slate-900">{t("recent_attendance", "Recent Attendance")}</h3>
-                   <p className="text-xs text-muted-foreground mt-0.5">Your recent participation</p>
-                </div>
-                <Link to="/dashboard/attendance" className="text-sm font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
-                   View All <FiArrowRight className="h-4 w-4" />
-                </Link>
-             </div>
-             <div className="p-6">
-                <div className="grid gap-3 sm:grid-cols-2">
+             <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                 <div>
+                    <h3 className="text-base font-semibold text-slate-900">{t("recent_attendance", "Recent Attendance")}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Your recent participation</p>
+                 </div>
+                 <Link to="/dashboard/attendance" className="text-sm font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 self-start">
+                    View All <FiArrowRight className="h-4 w-4" />
+                 </Link>
+              </div>
+             <div className="p-4 sm:p-6">
+                 <div className="grid gap-3 sm:grid-cols-2">
                   {loadingAttendance ? (
                     <>
                       {[1, 2, 3, 4].map((i) => (
