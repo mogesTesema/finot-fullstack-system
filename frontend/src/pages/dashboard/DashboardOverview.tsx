@@ -222,15 +222,15 @@ const DashboardOverview = () => {
 
           {/* Recent Attendance */}
           <Card className="flex flex-col" padding="none">
-             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                   <h3 className="text-base font-semibold text-slate-900">{t("recent_attendance", "Recent Attendance")}</h3>
-                   <p className="text-xs text-muted-foreground mt-0.5">Your recent participation</p>
-                </div>
-                <Link to="/dashboard/attendance" className="text-sm font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
-                   View All <FiArrowRight className="h-4 w-4" />
-                </Link>
-             </div>
+             <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                 <div>
+                    <h3 className="text-base font-semibold text-slate-900">{t("recent_attendance", "Recent Attendance")}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">Your recent participation</p>
+                 </div>
+                 <Link to="/dashboard/attendance" className="text-sm font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 self-start">
+                    View All <FiArrowRight className="h-4 w-4" />
+                 </Link>
+              </div>
              <div className="p-6">
                 <div className="grid gap-3 sm:grid-cols-2">
                   {loadingAttendance ? (
