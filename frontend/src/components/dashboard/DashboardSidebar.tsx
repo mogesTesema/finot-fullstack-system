@@ -18,6 +18,7 @@ type DashboardSidebarProps = {
   notifCount: number;
   user: AuthUser;
   className?: string;
+  onNavClick?: () => void;
 };
 
 const DashboardSidebar = ({
@@ -27,6 +28,7 @@ const DashboardSidebar = ({
   notifCount,
   user,
   className = "",
+  onNavClick,
 }: DashboardSidebarProps) => {
   const { t } = useTranslation();
   const role = user?.role;
