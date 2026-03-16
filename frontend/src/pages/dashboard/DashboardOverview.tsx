@@ -208,11 +208,11 @@ const DashboardOverview = () => {
                           </div>
                           <span className="text-[10px] font-bold text-amber-600 uppercase bg-amber-50 px-2 py-1 rounded border border-amber-100">MEDIUM</span>
                        </div>
-                       <div className="flex items-center gap-6 text-xs text-slate-500 mt-2 font-medium">
-                          <span className="flex items-center gap-1.5">📍 Location Available</span>
-                          <span className="flex items-center gap-1.5">📅 {event.start_date ? new Date(event.start_date).toLocaleDateString() : ""}</span>
-                          <span className="flex items-center gap-1.5">👤 {event.created_by_name || "Organizer"}</span>
-                       </div>
+                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-2 font-medium">
+                           <span className="flex items-center gap-1.5">📍 Location Available</span>
+                           <span className="flex items-center gap-1.5">📅 {event.start_date ? new Date(event.start_date).toLocaleDateString() : ""}</span>
+                           <span className="flex items-center gap-1.5">👤 {event.created_by_name || "Organizer"}</span>
+                        </div>
                      </div>
                    ))}
                  </div>
