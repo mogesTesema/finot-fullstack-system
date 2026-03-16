@@ -231,8 +231,8 @@ const DashboardOverview = () => {
                     View All <FiArrowRight className="h-4 w-4" />
                  </Link>
               </div>
-             <div className="p-6">
-                <div className="grid gap-3 sm:grid-cols-2">
+             <div className="p-4 sm:p-6">
+                 <div className="grid gap-3 sm:grid-cols-2">
                   {loadingAttendance ? (
                     <>
                       {[1, 2, 3, 4].map((i) => (
