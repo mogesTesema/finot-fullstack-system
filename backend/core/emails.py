@@ -4,7 +4,10 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 import datetime
 
-def send_html_email(subject, recipient_list, template_name=None, context=None, message_body=None):
+
+def send_html_email(
+    subject, recipient_list, template_name=None, context=None, message_body=None
+):
     """
     Central utility to send HTML emails.
     Can accept either a template_name + context OR a simple message_body string.
@@ -19,8 +22,9 @@ def send_html_email(subject, recipient_list, template_name=None, context=None, m
         # Fallback for simple string messages
         # Logo hosted on Cloudinary so it loads in all email clients
         logo_url = getattr(
-            settings, 'FINOT_LOGO_URL',
-            'https://res.cloudinary.com/dkmtrm8kg/image/upload/v1773377920/finot/logo.png'
+            settings,
+            "FINOT_LOGO_URL",
+            "https://res.cloudinary.com/dkmtrm8kg/image/upload/v1773377920/finot/logo.png",
         )
         current_year = datetime.date.today().year
 
@@ -64,55 +68,58 @@ def send_html_email(subject, recipient_list, template_name=None, context=None, m
         print(f"Failed to send email to {recipient_list}: {e}")
         return False
 
+
 def notify_new_event(event, recipients):
     """
     Sends an email notification about a new event.
     """
     subject = f"New Event: {event.title}"
-    
+
     # In a real app, use a template like 'emails/new_event.html'
     # For now, we construct a nice message body
     message_body = f"""
     <strong>{event.title}</strong> has been scheduled!<br><br>
-    <strong>When:</strong> {event.start_date.strftime('%B %d, %Y at %I:%M %p')}<br>
+    <strong>When:</strong> {event.start_date.strftime("%B %d, %Y at %I:%M %p")}<br>
     <strong>Where:</strong> {event.description[:100]}...<br><br>
     Please login to the platform to see full details.
     """
-    
+
     send_html_email(subject, recipients, message_body=message_body)
+
 
 def get_donation_details(payment_obj):
     """Helper to extract recipient email, name and category from a Payment object"""
     email = None
     name = None
     category = None
-    
-    if hasattr(payment_obj, 'student_donation'):
+
+    if hasattr(payment_obj, "student_donation"):
         email = payment_obj.student_donation.student.email
         name = payment_obj.student_donation.student.first_name
         category = payment_obj.student_donation.get_fund_category_display()
-    elif hasattr(payment_obj, 'nonstudentdonation'):
+    elif hasattr(payment_obj, "nonstudentdonation"):
         email = payment_obj.nonstudentdonation.email
         name = payment_obj.nonstudentdonation.first_name
         category = payment_obj.nonstudentdonation.get_fund_category_display()
-        
+
     return email, name, category
+
 
 def notify_donation_success(payment_obj):
     """
     Sends an email notification for a successful donation.
     """
     email, name, category = get_donation_details(payment_obj)
-    
+
     if not email:
         return False
-        
+
     subject = "Thank You for Your Donation - Receipt"
     amount = f"{payment_obj.amount} {payment_obj.currency}"
     tx_ref = payment_obj.transaction_reference
-    
+
     message_body = f"""
-    <p style="font-size: 16px;">Dear <strong>{name or 'Supporter'}</strong>,</p>
+    <p style="font-size: 16px;">Dear <strong>{name or "Supporter"}</strong>,</p>
     <p>We have successfully received your generous donation. Thank you for your support!</p>
     
     <div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 15px; margin: 20px 0; border-radius: 4px;">
@@ -124,24 +131,25 @@ def notify_donation_success(payment_obj):
     
     <p>May God bless you!</p>
     """
-    
+
     return send_html_email(subject, [email], message_body=message_body)
+
 
 def notify_donation_failure(payment_obj):
     """
     Sends an email notification for a failed donation.
     """
     email, name, category = get_donation_details(payment_obj)
-    
+
     if not email:
         return False
-        
+
     subject = "Action Required: Donation Payment Failed"
     amount = f"{payment_obj.amount} {payment_obj.currency}"
     tx_ref = payment_obj.transaction_reference
-    
+
     message_body = f"""
-    <p style="font-size: 16px;">Dear <strong>{name or 'Supporter'}</strong>,</p>
+    <p style="font-size: 16px;">Dear <strong>{name or "Supporter"}</strong>,</p>
     <p>Unfortunately, your recent attempt to donate has failed or was not completed successfully.</p>
     
     <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 4px;">
@@ -153,8 +161,8 @@ def notify_donation_failure(payment_obj):
     
     <p>If you encountered an issue, please try again using a different payment method, or contact our support team.</p>
     <div style="text-align: center; margin-top: 30px;">
-        <a href="{getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')}/donation" style="background-color: #fbbf24; color: #1e3a8a; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; display: inline-block;">Try Again</a>
+        <a href="{getattr(settings, "FRONTEND_URL", "http://localhost:5173")}/donation" style="background-color: #fbbf24; color: #1e3a8a; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 6px; display: inline-block;">Try Again</a>
     </div>
     """
-    
+
     return send_html_email(subject, [email], message_body=message_body)

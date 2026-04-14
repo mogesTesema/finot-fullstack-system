@@ -284,45 +284,74 @@ class ServiceAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Bulk mark attendance for an event.
         Endpoint: /api/service/attendance/mark/
+        Uses efficient bulk DB operations instead of per-item queries.
         """
         # Ideally check permission here (IsAdminUser or specific role)
-        
+
         serializer = BulkAttendanceSerializer(data=request.data)
         if serializer.is_valid():
             event_id = serializer.validated_data['event_id']
             attendances_data = serializer.validated_data['attendances']
-            
+
             try:
                 event = Event.objects.get(id=event_id)
             except Event.DoesNotExist:
                 return Response({"detail": "Event not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            response_data = []
-            
+            # Collect student IDs from the request payload
+            student_ids = [item['student'].id for item in attendances_data]
+
             with transaction.atomic():
+                # Single query: fetch all existing attendance records for this event + these students
+                existing_attendance_queryset = ServiceAttendance.objects.filter(
+                    event=event, student_id__in=student_ids
+                ).select_for_update()
+                existing_attendance_by_student = {
+                    record.student_id: record for record in existing_attendance_queryset
+                }
+
+                records_to_create = []
+                records_to_update = []
+                response_data = []
+
                 for item in attendances_data:
-                    # 'student' is now a User object because of PrimaryKeyRelatedField source='student'
-                    student_obj = item['student']
-                    status_val = item['status']
+                    student_user = item['student']
+                    attendance_status = item['status']
                     remark = item.get('remark', '')
 
-                    # Update or Create attendance record
-                    attendance, created = ServiceAttendance.objects.update_or_create(
-                        event=event,
-                        student=student_obj,
-                        defaults={
-                            'status': status_val,
-                            'remark': remark
-                        }
-                    )
-                    response_data.append({
-                        "student": student_obj.id, 
-                        "status": status_val, 
-                        "updated": not created
-                    })
-            
+                    if student_user.id in existing_attendance_by_student:
+                        # Update existing record
+                        existing_record = existing_attendance_by_student[student_user.id]
+                        existing_record.status = attendance_status
+                        existing_record.remark = remark
+                        records_to_update.append(existing_record)
+                        response_data.append({
+                            "student": student_user.id,
+                            "status": attendance_status,
+                            "updated": True,
+                        })
+                    else:
+                        # Prepare new record for bulk insert
+                        records_to_create.append(ServiceAttendance(
+                            event=event,
+                            student=student_user,
+                            status=attendance_status,
+                            remark=remark,
+                        ))
+                        response_data.append({
+                            "student": student_user.id,
+                            "status": attendance_status,
+                            "updated": False,
+                        })
+
+                # Execute in 1-2 queries instead of O(N)
+                if records_to_create:
+                    ServiceAttendance.objects.bulk_create(records_to_create)
+                if records_to_update:
+                    ServiceAttendance.objects.bulk_update(records_to_update, fields=['status', 'remark'])
+
             return Response({"detail": "Attendance marked successfully", "records": response_data}, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['GET'], url_path='my-history')

@@ -6,8 +6,11 @@ from core.models import Notification
 
 User = get_user_model()
 
+
 class Command(BaseCommand):
-    help = 'Sends a weekly donation reminder to all students via Firebase Cloud Messaging.'
+    help = (
+        "Sends a weekly donation reminder to all students via Firebase Cloud Messaging."
+    )
 
     def handle(self, *args, **kwargs):
         users = User.objects.filter(is_active=True)
@@ -23,11 +26,15 @@ class Command(BaseCommand):
                     user=user,
                     title=title,
                     message=message,
-                    notification_type=Notification.TYPE_REMINDER
+                    notification_type=Notification.TYPE_REMINDER,
                 )
                 if success:
                     count += 1
             except Exception as e:
-                self.stderr.write(self.style.ERROR(f"Failed for user {user.username}: {e}"))
+                self.stderr.write(
+                    self.style.ERROR(f"Failed for user {user.username}: {e}")
+                )
 
-        self.stdout.write(self.style.SUCCESS(f'Successfully sent weekly reminders to {count} users.'))
+        self.stdout.write(
+            self.style.SUCCESS(f"Successfully sent weekly reminders to {count} users.")
+        )
