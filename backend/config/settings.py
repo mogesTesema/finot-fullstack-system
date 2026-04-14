@@ -38,6 +38,13 @@ INSTALLED_APPS = [
     "cloudinary",
     "corsheaders",
     "rest_framework",
+    "rest_framework.authtoken",
+    "dj_rest_auth",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     "djoser",
     "drf_spectacular",
     "core",
@@ -57,6 +64,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -110,9 +118,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SITE_ID = 1
+
+REST_USE_JWT = True
+REST_AUTH = {
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "finot-auth",
+    "JWT_AUTH_REFRESH_COOKIE": "finot-refresh-token",
+}
+
 AUTHENTICATION_BACKENDS = [
     "core.backends.EmailAuthenticationBackend",
     "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 # CORS — driven by environment, with dev fallbacks only in DEBUG mode
@@ -310,6 +328,19 @@ allowed_host_list.append("127.0.0.1")
 allowed_host_list.append("finot.vercel.app")
 ALLOWED_HOSTS = list(set(allowed_host_list))  # Remove duplicates
 
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "OAUTH_PKCE_ENABLED": True,  # Recommended for modern security
+    }
+}
 
 # =============================================================================
 # DJANGO UNFOLD — Admin Panel Configuration
