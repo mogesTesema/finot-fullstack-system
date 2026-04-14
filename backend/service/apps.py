@@ -6,3 +6,6 @@ class ServiceConfig(AppConfig):
 
     def ready(self):
         import service.signals
+        from core.dashboard_registry import register_stat_provider
+        from service.dashboard_stats import get_service_stats
+        register_stat_provider('service', get_service_stats)

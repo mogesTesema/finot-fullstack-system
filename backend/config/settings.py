@@ -117,20 +117,18 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:8000",
-    "https://finot.vercel.app",
-    "http://localhost:5176",
-    "https://finot.onrender.com"
-]
+# CORS — driven by environment, with dev fallbacks only in DEBUG mode
+cors_origins_from_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
+cors_origin_list = [origin.strip() for origin in cors_origins_from_env.split(",") if origin.strip()]
+if DEBUG:
+    cors_origin_list += ["http://localhost:5173", "http://localhost:5176", "http://localhost:8000"]
+CORS_ALLOWED_ORIGINS = list(set(cors_origin_list)) or ["https://finot.vercel.app", "https://finot.onrender.com"]
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:5176",
-    "http://localhost:8000",
-    "https://finot.vercel.app",
-]
+csrf_origins_from_env = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+csrf_origin_list = [origin.strip() for origin in csrf_origins_from_env.split(",") if origin.strip()]
+if DEBUG:
+    csrf_origin_list += ["http://localhost:5173", "http://localhost:5176", "http://localhost:8000"]
+CSRF_TRUSTED_ORIGINS = list(set(csrf_origin_list)) or ["https://finot.vercel.app"]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -182,6 +180,18 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.AllowAny",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # --- Throttling (Rate Limiting) ---
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/minute",
+        "user": "120/minute",
+    },
+    # --- Pagination ---
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
 }
 
 
@@ -273,17 +283,17 @@ RETURN_URL = f"{FRONTEND_URL}/donation/success"
 CALLBACK_URL = f"{PUBLIC_DOMAIN}/api/donations/verify/"
 
 # Derive ALLOWED_HOSTS from environment and PUBLIC_DOMAIN (include Render wildcard)
-raw_allowed = os.environ.get("ALLOWED_HOSTS", "")
-allowed_hosts = [h.strip() for h in raw_allowed.split(",") if h.strip()]
+allowed_hosts_from_env = os.environ.get("ALLOWED_HOSTS", "")
+allowed_host_list = [host.strip() for host in allowed_hosts_from_env.split(",") if host.strip()]
 if PUBLIC_DOMAIN:
-    clean_domain = PUBLIC_DOMAIN.replace("https://", "").replace("http://", "")
-    allowed_hosts.append(clean_domain)
+    domain_without_scheme = PUBLIC_DOMAIN.replace("https://", "").replace("http://", "")
+    allowed_host_list.append(domain_without_scheme)
 # include generic Render wildcard domain
-allowed_hosts.append(".onrender.com")
-allowed_hosts.append("localhost")
-allowed_hosts.append("127.0.0.1")
-allowed_hosts.append("finot.vercel.app")
-ALLOWED_HOSTS = list(set(allowed_hosts))  # Remove duplicates
+allowed_host_list.append(".onrender.com")
+allowed_host_list.append("localhost")
+allowed_host_list.append("127.0.0.1")
+allowed_host_list.append("finot.vercel.app")
+ALLOWED_HOSTS = list(set(allowed_host_list))  # Remove duplicates
 
 
 # =============================================================================

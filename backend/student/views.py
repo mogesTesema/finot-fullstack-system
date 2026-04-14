@@ -5,30 +5,35 @@ from rest_framework.decorators import action
 from .models import StudentProfile
 from .serializers import StudentProfileSerializer
 
+
 class StudentProfileViewSet(viewsets.ModelViewSet):
     """
     ViewSet for viewing and editing student profiles.
     """
+
     queryset = StudentProfile.objects.all()
     serializer_class = StudentProfileSerializer
     # permission_classes = [permissions.IsAuthenticatedOrReadOnly] # Uncomment when ready
 
     def get_queryset(self):
-         # Students can only see their own profile in the list view, or Admins see all
-         if self.request.user.is_staff: 
-             return StudentProfile.objects.all()
-         if self.request.user.is_authenticated:
+        # Students can only see their own profile in the list view, or Admins see all
+        if self.request.user.is_staff:
+            return StudentProfile.objects.all()
+        if self.request.user.is_authenticated:
             return StudentProfile.objects.filter(user=self.request.user)
-         return StudentProfile.objects.none()
+        return StudentProfile.objects.none()
 
     def destroy(self, request, *args, **kwargs):
         if not request.user.is_staff:
-             return Response({"detail": "You cannot delete your profile."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": "You cannot delete your profile."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         return super().destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         # Automatically assign the current user if they don't have a profile yet
-        # Note: This logic assumes the user is logged in. 
+        # Note: This logic assumes the user is logged in.
         # Since we are in AllowAny mode, we might need to handle the case where request.user is anonymous.
         if self.request.user.is_authenticated:
             serializer.save(user=self.request.user)
@@ -36,7 +41,7 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
             # For testing without auth, we might need to pass user ID manually or handle error
             serializer.save()
 
-    @action(detail=False, methods=['GET', 'PUT', 'PATCH']) 
+    @action(detail=False, methods=["GET", "PUT", "PATCH"])
     # permission_classes=[permissions.IsAuthenticated] # Uncomment when ready
     def me(self, request):
         """
@@ -44,24 +49,27 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         Path: /api/student/profiles/me/
         """
         if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        try:
-            # Get or create ensures we don't crash if signal failed
-            profile, created = StudentProfile.objects.get_or_create(user=request.user)
-        except Exception as e:
-            return Response({"detail": "Could not fetch profile."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Authentication credentials were not provided."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
-        if request.method == 'GET':
+        try:
+            profile = StudentProfile.objects.get(user=request.user)
+        except StudentProfile.DoesNotExist:
+            return Response(
+                {"detail": "Profile not found. Please create your profile first."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if request.method == "GET":
             serializer = self.get_serializer(profile)
             return Response(serializer.data)
-        
-        elif request.method in ['PUT', 'PATCH']:
+
+        elif request.method in ["PUT", "PATCH"]:
             # partial=True allows sending only fields to be updated
             serializer = self.get_serializer(profile, data=request.data, partial=True)
             if not serializer.is_valid():
-                print(serializer.errors)
-                return Response(serializer.errors, status=400)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
             return Response(serializer.data)
-
