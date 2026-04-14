@@ -5,6 +5,11 @@ from rest_framework.response import Response
 from .models import Notification, FCMDeviceToken
 from .serializers import NotificationSerializer, FCMDeviceTokenSerializer
 
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView
+from django.conf import settings
+
 def home_page(request):
     return render(request, 'core/index.html')
 
@@ -51,3 +56,8 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     def mark_all_read(self, request):
         self.get_queryset().update(is_read=True)
         return Response({"status": "All notifications marked as read"})
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    callback_url = settings.FRONTEND_URL
+    client_class = OAuth2Client
