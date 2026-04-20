@@ -10,9 +10,7 @@ class ServiceConfiguration(models.Model):
     def save(self, *args, **kwargs):
         # Ensure only one instance exists
         if not self.pk and ServiceConfiguration.objects.exists():
-            # If an instance already exists, prevent creation of a new one unless updating the existing one
-            # Ideally we'd throw an error or handle it gracefully, but usually admin panel handles restriction via SingletonAdmin
-            pass 
+            self.pk = ServiceConfiguration.objects.first().pk
         return super(ServiceConfiguration, self).save(*args, **kwargs)
 
     def __str__(self):
