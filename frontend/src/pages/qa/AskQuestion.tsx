@@ -6,6 +6,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
+import { Question } from "../../types";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -26,7 +27,7 @@ const AskQuestion = () => {
   ];
   const { user } = useAuth();
   const [nickname, setNickname] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState<Question["category"] | "">("");
   const [question, setQuestion] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,9 +49,9 @@ const AskQuestion = () => {
     setIsSubmitting(true);
     try {
       await api.postQuestion({
-        user_id: (user as any)?.userId || null,
+        user: user?.id || null, // API payload usually takes `user` not `user_id` based on types/index.ts, wait, the TS definition says `user: number | null`
         display_name: nickname.trim() || "Anonymous",
-        category,
+        category: category as Question["category"],
         question_body: question,
       });
       Swal.fire({
@@ -92,7 +93,7 @@ const AskQuestion = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">{t("category")} *</label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} className="input">
+              <select value={category} onChange={(e) => setCategory(e.target.value as Question["category"] | "")} className="input">
                 <option value="">{t("select_category")}</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
