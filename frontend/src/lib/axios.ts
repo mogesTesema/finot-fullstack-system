@@ -1,5 +1,6 @@
 
 import axios, { InternalAxiosRequestConfig, AxiosHeaders, AxiosResponse } from 'axios';
+import toast from 'react-hot-toast';
 
 // Extend the InternalAxiosRequestConfig interface to include the _retry property
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -31,11 +32,20 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for 401s (Refresh Logic)
+// Response interceptor for 401s (Refresh Logic) and 429s (Rate Limiting)
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
     const originalRequest = error.config as CustomAxiosRequestConfig;
+
+    // --- Rate Limiting: 429 Too Many Requests ---
+    if (error.response?.status === 429) {
+      toast.error('You are making too many requests. Please slow down.', {
+        id: 'rate-limit', // Prevent duplicate toasts
+        duration: 4000,
+      });
+      return Promise.reject(error);
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
