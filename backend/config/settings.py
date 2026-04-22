@@ -217,8 +217,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "5/minute",
-        "user": "12/minute",
+        "anon": "30/minute",
+        "user": "42/minute",
     },
     # --- Pagination ---
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
@@ -625,13 +625,17 @@ UNFOLD = {
                     {
                         "title": _("Social Applications"),
                         "icon": "apps",
-                        "link": reverse_lazy("admin:socialaccount_socialapp_changelist"),
+                        "link": reverse_lazy(
+                            "admin:socialaccount_socialapp_changelist"
+                        ),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
                         "title": _("Social Accounts"),
                         "icon": "link",
-                        "link": reverse_lazy("admin:socialaccount_socialaccount_changelist"),
+                        "link": reverse_lazy(
+                            "admin:socialaccount_socialaccount_changelist"
+                        ),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     {
@@ -767,7 +771,9 @@ UNFOLD = {
                 },
                 {
                     "title": _("Social Accounts"),
-                    "link": reverse_lazy("admin:socialaccount_socialaccount_changelist"),
+                    "link": reverse_lazy(
+                        "admin:socialaccount_socialaccount_changelist"
+                    ),
                     "permission": lambda request: request.user.is_superuser,
                 },
                 {
