@@ -2,19 +2,26 @@
 import axiosInstance from './axios';
 import { AuthUser, AttendanceRecord, Donation, Event, Question, PaginatedResponse, ServiceGroup, ServiceSelection } from '../types';
 
+export const BACKEND_PAGE_SIZE = 20;
+
 /**
  * Safely extract the results array from a DRF paginated response.
  * If the response is already a plain array (e.g. from a custom @action),
  * it returns the data as-is. This makes the helper safe for both shapes.
  */
-function unwrapResults<T>(data: PaginatedResponse<T> | T[]): T[] {
+function unwrapResults<T>(data: any): T[] {
   if (Array.isArray(data)) return data;
-  if (data && typeof data === 'object' && 'results' in data) return data.results;
+  if (data && typeof data === 'object') {
+    if ('detail' in data && typeof data.detail === 'string') {
+      throw new Error(data.detail);
+    }
+    if ('results' in data) return data.results;
+  }
   return [];
 }
 
 // Helper to combine user and profile
-const combineUserWithProfile = (userData: any, profileData: any, membershipData: any): AuthUser => {
+const combineUserWithProfile = (userData: Record<string, any>, profileData: Record<string, any>, membershipData: Record<string, any> | null): AuthUser => {
   const full_name = `${userData.first_name || ''} ${userData.middle_name || ''} ${userData.last_name || ''}`.trim();
 
   const status: 'graduated' | 'active' = profileData?.status === 'GRADUATED' ? 'graduated' : 'active';
@@ -121,7 +128,7 @@ export const api = {
     }
   },
 
-  register: async (userData: any): Promise<{ success: boolean; user: AuthUser }> => {
+  register: async (userData: Record<string, any>): Promise<{ success: boolean; user: AuthUser }> => {
     const payload = {
       username: userData.email,
       first_name: userData.first_name,
@@ -202,7 +209,7 @@ export const api = {
     return unwrapResults<ServiceSelection>(response.data);
   },
 
-  updateProfile: async (profileData: any) => {
+  updateProfile: async (profileData: Record<string, any>) => {
     // Sending PATCH to /me/ endpoint since that's what we mapped in the backend
     const response = await axiosInstance.patch('/api/student/profiles/me/', profileData);
     return response.data;
@@ -275,7 +282,7 @@ export const api = {
     return unwrapResults(response.data);
   },
 
-  createDonation: async (donationData: any) => {
+  createDonation: async (donationData: Record<string, any>) => {
     const response = await axiosInstance.post('/api/donations/initiate/', donationData);
     return response.data;
   },
@@ -311,17 +318,17 @@ export const api = {
     return response.data;
   },
 
-  postQuestion: async (question: any) => {
+  postQuestion: async (question: Partial<Question>) => {
     const response = await axiosInstance.post('/api/qa/questions/', question);
     return response.data;
   },
 
-  postAnswer: async (answer: any) => {
+  postAnswer: async (answer: Record<string, any>) => {
     const response = await axiosInstance.post('/api/qa/answers/', answer);
     return response.data;
   },
 
-  updateQuestion: async (questionId: string | number, updatedData: any) => {
+  updateQuestion: async (questionId: string | number, updatedData: Partial<Question>) => {
     const response = await axiosInstance.patch(`/api/qa/questions/${questionId}/`, updatedData);
     return response.data;
   },
@@ -331,7 +338,7 @@ export const api = {
     return { success: true };
   },
 
-  updateAnswer: async (answerId: string | number, updatedData: any) => {
+  updateAnswer: async (answerId: string | number, updatedData: Record<string, any>) => {
     const response = await axiosInstance.patch(`/api/qa/answers/${answerId}/`, updatedData);
     return response.data;
   },

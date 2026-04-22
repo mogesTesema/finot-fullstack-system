@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -17,12 +18,11 @@ import SearchBar from "../../components/ui/SearchBar";
 import FilterBar from "../../components/ui/FilterBar";
 
 import { api } from "../../lib/api";
+import { BACKEND_PAGE_SIZE } from "../../lib/api.real";
 import { useAuth } from "../../context/AuthContext";
 import { Question, Answer } from "../../types";
 
 const LONG_ANSWER_LIMIT = 230;
-// Backend PAGE_SIZE (must match REST_FRAMEWORK.PAGE_SIZE in settings.py)
-const BACKEND_PAGE_SIZE = 20;
 
 // Fixed category list — matches the backend model's category choices
 const ALL_CATEGORIES = ["Spiritual", "Academic", "Family", "Personal", "Other"];
@@ -56,8 +56,14 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const isAdmin = user?.role === "service_admin";
   const isLoggedIn = !!user;
 
+  const isInitialMount = useRef(true);
+
   // Debounce search input to avoid excessive API calls (rate limit: 12/min)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
       setCurrentPage(1); // Reset to page 1 on new search
@@ -71,12 +77,8 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   }, [categoryFilter]);
 
   // Fetch questions from server whenever page, search, or category changes
-  useEffect(() => {
-    fetchQuestions();
-  }, [currentPage, debouncedSearch, categoryFilter]);
-
-  const fetchQuestions = async () => {
-    setLoading(true);
+  const fetchQuestions = useCallback(async (showSpinner: boolean = true) => {
+    if (showSpinner) setLoading(true);
     try {
       const data = await api.getQuestionsPaginated(
         currentPage,
@@ -85,18 +87,22 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
       );
       setQuestions(data.results);
       setTotalCount(data.count);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If the requested page is out of range (e.g. after a delete), go back to page 1
-      if (error?.response?.status === 404 && currentPage > 1) {
+      if (axios.isAxiosError(error) && error.response?.status === 404 && currentPage > 1) {
         setCurrentPage(1);
         return; // The useEffect will re-trigger with page 1
       }
       console.error("Failed to fetch questions", error);
       toast.error(t("failed_load_questions"));
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearch, categoryFilter, t]);
+
+  useEffect(() => {
+    fetchQuestions(true);
+  }, [fetchQuestions]);
 
   const submitAnswer = async (questionId: string) => {
     const answer = answerText[questionId];
@@ -104,20 +110,20 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
     try {
       await api.postAnswer({ question: questionId, display_name: user?.full_name || "Anonymous", answer_body: answer });
       toast.success(t("answer_posted_success"));
-      await fetchQuestions();
+      await fetchQuestions(false);
       setAnswerText((prev) => ({ ...prev, [questionId]: "" }));
     } catch (error) { console.error("Failed to post answer", error); toast.error(t("failed_post_answer")); }
   };
 
   const deleteQuestion = async (questionId: string) => {
     if (!window.confirm(t("delete_question_confirm"))) return;
-    try { await api.deleteQuestion(questionId); toast.success(t("question_deleted")); await fetchQuestions(); }
+    try { await api.deleteQuestion(questionId); toast.success(t("question_deleted")); await fetchQuestions(false); }
     catch (error) { console.error("Failed to delete question", error); toast.error(t("failed_delete_question")); }
   };
 
   const deleteAnswer = async (answerId: number) => {
     if (!window.confirm(t("delete_answer_confirm"))) return;
-    try { await api.deleteAnswer(answerId); toast.success(t("answer_deleted")); await fetchQuestions(); }
+    try { await api.deleteAnswer(answerId); toast.success(t("answer_deleted")); await fetchQuestions(false); }
     catch (error) { console.error("Failed to delete answer", error); toast.error(t("failed_delete_answer")); }
   };
 
@@ -207,7 +213,7 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                           try {
                             await api.updateQuestion(q.id, { question_body: editedQuestionBody });
                             toast.success(t("question_updated"));
-                            await fetchQuestions();
+                            await fetchQuestions(false);
                             setEditingQuestion(null);
                           } catch { toast.error(t("failed_update_question")); }
                         }} className="btn-primary text-sm px-3 py-1.5">{t("save")}</button>
