@@ -177,14 +177,14 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
               const answers = getApprovedAnswers(q);
               return (
                 <div key={q.id} className="card">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-accent/10 text-accent-foreground">
                         {t(`cat_${q.category.toLowerCase()}`) || q.category}
                       </span>
                       <span className="text-xs text-muted-foreground">{q.display_name} • {formatDate(q.created_at)}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 self-start">
                       <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-lg">{t("answers_count", { count: answers.length })}</span>
                       {canModify(q.user) && (
                         <>
