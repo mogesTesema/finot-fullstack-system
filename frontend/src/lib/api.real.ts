@@ -1,11 +1,22 @@
 // src/services/api.real.js
 import axiosInstance from './axios';
-import { AuthUser, Donation, ServiceSelection } from '../types';
+import { AuthUser, AttendanceRecord, Donation, Event, Question, PaginatedResponse, ServiceGroup, ServiceSelection } from '../types';
+
+/**
+ * Safely extract the results array from a DRF paginated response.
+ * If the response is already a plain array (e.g. from a custom @action),
+ * it returns the data as-is. This makes the helper safe for both shapes.
+ */
+function unwrapResults<T>(data: PaginatedResponse<T> | T[]): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === 'object' && 'results' in data) return data.results;
+  return [];
+}
 
 // Helper to combine user and profile
 const combineUserWithProfile = (userData: any, profileData: any, membershipData: any): AuthUser => {
   const full_name = `${userData.first_name || ''} ${userData.middle_name || ''} ${userData.last_name || ''}`.trim();
-  
+
   const status: 'graduated' | 'active' = profileData?.status === 'GRADUATED' ? 'graduated' : 'active';
 
   // Derive role from backend roles array (e.g. ["Student"], ["ServiceAdmin"])
@@ -93,7 +104,7 @@ export const api = {
     }
 
     const { access, refresh } = response.data;
-    
+
     // 3. Persist tokens
     localStorage.setItem('access_token', access);
     localStorage.setItem('refresh_token', refresh);
@@ -105,8 +116,8 @@ export const api = {
       const combinedUser = await api.getUser();
       return { success: true, user: combinedUser };
     } catch (error) {
-       console.error("Critical: Auth succeeded but profile fetch failed.", error);
-       throw new Error("Login successful, but failed to load user profile. Please try refreshing.");
+      console.error("Critical: Auth succeeded but profile fetch failed.", error);
+      throw new Error("Login successful, but failed to load user profile. Please try refreshing.");
     }
   },
 
@@ -156,13 +167,13 @@ export const api = {
   // ========== USERS ==========
   getAllUsers: async () => {
     const response = await axiosInstance.get('/auth/users/');
-    return response.data;
+    return unwrapResults(response.data);
   },
 
   // ========== SERVICE GROUPS ==========
-  getServiceGroups: async () => {
+  getServiceGroups: async (): Promise<ServiceGroup[]> => {
     const response = await axiosInstance.get('/api/service/groups/');
-    return response.data;
+    return unwrapResults<ServiceGroup>(response.data);
   },
 
   getServiceGroupById: async (groupId: string | number) => {
@@ -185,10 +196,10 @@ export const api = {
     }
   },
 
-  getUserSelection: async () => {
+  getUserSelection: async (): Promise<ServiceSelection[]> => {
     // Backend returns current user's selections when called without params
     const response = await axiosInstance.get('/api/service/selections/');
-    return response.data;
+    return unwrapResults<ServiceSelection>(response.data);
   },
 
   updateProfile: async (profileData: any) => {
@@ -199,7 +210,7 @@ export const api = {
 
   getUserNotifications: async () => {
     const response = await axiosInstance.get('/api/notifications/');
-    return response.data;
+    return unwrapResults(response.data);
   },
 
   markNotificationRead: async (notificationId: string | number) => {
@@ -231,7 +242,7 @@ export const api = {
   // ========== FAMILIES ==========
   getFamilies: async () => {
     const response = await axiosInstance.get('/api/service/families/');
-    return response.data;
+    return unwrapResults(response.data);
   },
 
   getMyFamily: async () => {
@@ -245,23 +256,23 @@ export const api = {
   },
 
   // ========== EVENTS ==========
-  getEvents: async () => {
+  getEvents: async (): Promise<Event[]> => {
     const response = await axiosInstance.get('/api/service/events/');
-    return response.data;
+    return unwrapResults<Event>(response.data);
   },
 
   // ========== ATTENDANCE ==========
-  getAttendance: async () => {
+  getAttendance: async (): Promise<AttendanceRecord[]> => {
     const response = await axiosInstance.get('/api/service/attendance/');
-    return response.data;
+    return unwrapResults<AttendanceRecord>(response.data);
   },
 
   // ========== DONATIONS ==========
   getDonations: async (userId: string | number | null = null): Promise<Donation[]> => {
     // If we wanted to filter by user on admin, we'd do it.
     // However the MyDonationHistoryViewSet handles its own filtering via the logged in token.
-    const response = await axiosInstance.get<Donation[]>('/api/donations/my-history/');
-    return response.data;
+    const response = await axiosInstance.get('/api/donations/my-history/');
+    return unwrapResults(response.data);
   },
 
   createDonation: async (donationData: any) => {
@@ -275,9 +286,24 @@ export const api = {
   },
 
   // ========== QUESTIONS & ANSWERS ==========
+  // Returns a flat array (first page) — used by components that don't need pagination controls
   getQuestions: async () => {
     const response = await axiosInstance.get('/api/qa/questions/');
-    return response.data;
+    return unwrapResults(response.data);
+  },
+
+  // Returns the full paginated envelope — used by QuestionList for server-side pagination
+  getQuestionsPaginated: async (page: number = 1, search?: string, category?: string): Promise<PaginatedResponse<Question>> => {
+    const params: Record<string, string | number> = { page };
+    if (search) params.search = search;
+    if (category && category !== 'all') params.category = category;
+    const response = await axiosInstance.get<PaginatedResponse<Question>>('/api/qa/questions/', { params });
+    // Ensure we always return a valid envelope shape
+    const data = response.data;
+    if (Array.isArray(data)) {
+      return { count: data.length, next: null, previous: null, results: data };
+    }
+    return data;
   },
 
   getQuestionById: async (questionId: string | number) => {
@@ -318,7 +344,8 @@ export const api = {
   // ========== ADMIN SPECIFIC ==========
   getGroupByAdminId: async (adminId: string | number) => {
     const response = await axiosInstance.get(`/api/service/groups/?admin=${adminId}`);
-    return response.data[0] || null;
+    const groups = unwrapResults(response.data);
+    return groups[0] || null;
   },
 
   getMyManagedGroup: async () => {
@@ -331,9 +358,9 @@ export const api = {
     return response.data;
   },
 
-  getAllSelections: async () => {
+  getAllSelections: async (): Promise<ServiceSelection[]> => {
     const response = await axiosInstance.get('/api/service/selections/');
-    return response.data;
+    return unwrapResults<ServiceSelection>(response.data);
   },
 
   getUsersByGroup: async (groupId: string | number) => {

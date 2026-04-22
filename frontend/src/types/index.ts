@@ -188,3 +188,11 @@ export interface AuthUser {
   role: string;
   profile: AuthUserProfile;
 }
+
+// DRF PageNumberPagination response envelope
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
