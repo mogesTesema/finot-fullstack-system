@@ -13,7 +13,13 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
 
     queryset = StudentProfile.objects.all()
     serializer_class = StudentProfileSerializer
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly] # Uncomment when ready
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "Profiles are created automatically upon registration."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
     def get_queryset(self):
         # Students can only see their own profile in the list view, or Admins see all
@@ -31,18 +37,8 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
             )
         return super().destroy(request, *args, **kwargs)
 
-    def perform_create(self, serializer):
-        # Automatically assign the current user if they don't have a profile yet
-        # Note: This logic assumes the user is logged in.
-        # Since we are in AllowAny mode, we might need to handle the case where request.user is anonymous.
-        if self.request.user.is_authenticated:
-            serializer.save(user=self.request.user)
-        else:
-            # For testing without auth, we might need to pass user ID manually or handle error
-            serializer.save()
-
     @action(detail=False, methods=["GET", "PUT", "PATCH"])
-    # permission_classes=[permissions.IsAuthenticated] # Uncomment when ready
+    # The action inherits permission_classes from the viewset, so no need to explicitly add IsAuthenticated
     def me(self, request):
         """
         Custom endpoint to get/update the current user's profile.

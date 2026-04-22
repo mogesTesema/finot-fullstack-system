@@ -23,7 +23,7 @@ class ServiceGroupViewSet(viewsets.ReadOnlyModelViewSet):
     Supports ?admin=<user_id> filtering.
     """
     serializer_class = ServiceGroupSerializer
-    # permission_classes = [permissions.AllowAny] # Or IsAuthenticated
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         qs = ServiceGroup.objects.all().select_related('admin')
@@ -104,7 +104,7 @@ class AgeglotSelectionViewSet(viewsets.ModelViewSet):
     Endpoint for students to submit their top 3 service choices.
     """
     # serializer_class = AgeglotSelectionSerializer # Removed in favor of get_serializer_class
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -166,7 +166,7 @@ class FamilyViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Family.objects.all().select_related('father__student_profile', 'mother__student_profile')
     serializer_class = FamilySerializer
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     @action(detail=False, methods=['GET'], url_path='my-family')
     def my_family(self, request):
@@ -272,7 +272,7 @@ class ServiceAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
     Endpoint for students to see their attendance history.
     """
     serializer_class = ServiceAttendanceSerializer
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
@@ -286,8 +286,7 @@ class ServiceAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
         Endpoint: /api/service/attendance/mark/
         Uses efficient bulk DB operations instead of per-item queries.
         """
-        # Ideally check permission here (IsAdminUser or specific role)
-
+        user = request.user
         serializer = BulkAttendanceSerializer(data=request.data)
         if serializer.is_valid():
             event_id = serializer.validated_data['event_id']
@@ -297,6 +296,16 @@ class ServiceAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
                 event = Event.objects.get(id=event_id)
             except Event.DoesNotExist:
                 return Response({"detail": "Event not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Security: Verify if the user is authorized to mark attendance for this event
+            if not user.is_staff and not user.roles.filter(name='SuperAdmin').exists():
+                if not user.roles.filter(name='ServiceAdmin').exists():
+                    return Response({"detail": "Not authorized to mark attendance for this event."}, status=status.HTTP_403_FORBIDDEN)
+                    
+                # If they are just a ServiceAdmin, the event's group must be one they manage.
+                # (For global events (service_group=None), you could decide if ServiceAdmins can mark attendance. Assuming no.)
+                if not event.service_group or event.service_group not in user.managed_service_groups.all():
+                    return Response({"detail": "Not authorized to mark attendance for this event."}, status=status.HTTP_403_FORBIDDEN)
 
             # Collect student IDs from the request payload
             student_ids = [item['student'].id for item in attendances_data]

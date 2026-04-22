@@ -6,17 +6,32 @@ from .models import Question, Answer
 from .serializers import QuestionSerializer, AnswerSerializer
 from django.db.models import Q
 
+class IsAdminOrOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.user and request.user.is_authenticated:
+            if request.user.is_staff or request.user.roles.filter(name='SuperAdmin').exists():
+                return True
+            if hasattr(obj, 'user') and obj.user == request.user:
+                return True
+            if hasattr(obj, 'responder') and obj.responder == request.user:
+                return True
+        return False
+
 class QuestionViewSet(viewsets.ModelViewSet):
     """
     Public Endpoint for Anonymous Questions.
     """
     queryset = Question.objects.all() # Default queryset required by router, but overridden below
     serializer_class = QuestionSerializer
-    permission_classes = [permissions.AllowAny] # Public Access
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['question_body', 'category', 'display_name']
     ordering_fields = ['created_at', 'category', 'user']
     ordering = ['-created_at'] # Default: Recent first
+
+    def get_permissions(self):
+        if self.action in ['create', 'list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated(), IsAdminOrOwner()]
 
     def get_queryset(self):
         """
@@ -67,10 +82,14 @@ class AnswerViewSet(viewsets.ModelViewSet):
     """
     queryset = Answer.objects.all()
     serializer_class = AnswerSerializer
-    permission_classes = [permissions.AllowAny]
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['created_at', 'question__category', 'responder']
     ordering = ['-created_at'] # Recent answers first
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated(), IsAdminOrOwner()]
 
     def get_queryset(self):
         """

@@ -217,8 +217,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "5/minute",
-        "user": "12/minute",
+        "anon": "30/minute",
+        "user": "42/minute",
     },
     # --- Pagination ---
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
@@ -617,6 +617,41 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": _("Auth & Security"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Social Applications"),
+                        "icon": "apps",
+                        "link": reverse_lazy(
+                            "admin:socialaccount_socialapp_changelist"
+                        ),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Social Accounts"),
+                        "icon": "link",
+                        "link": reverse_lazy(
+                            "admin:socialaccount_socialaccount_changelist"
+                        ),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Sites"),
+                        "icon": "language",
+                        "link": reverse_lazy("admin:sites_site_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Tokens"),
+                        "icon": "key",
+                        "link": reverse_lazy("admin:authtoken_tokenproxy_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
         ],
     },
     # Tabs — group related models
@@ -718,6 +753,38 @@ UNFOLD = {
                     "permission": lambda request: request.user.has_perm(
                         "service.view_servicegroupmembership"
                     ),
+                },
+            ],
+        },
+        {
+            "models": [
+                "socialaccount.socialapp",
+                "socialaccount.socialaccount",
+                "sites.site",
+                "authtoken.tokenproxy",
+            ],
+            "items": [
+                {
+                    "title": _("Social Applications"),
+                    "link": reverse_lazy("admin:socialaccount_socialapp_changelist"),
+                    "permission": lambda request: request.user.is_superuser,
+                },
+                {
+                    "title": _("Social Accounts"),
+                    "link": reverse_lazy(
+                        "admin:socialaccount_socialaccount_changelist"
+                    ),
+                    "permission": lambda request: request.user.is_superuser,
+                },
+                {
+                    "title": _("Sites"),
+                    "link": reverse_lazy("admin:sites_site_changelist"),
+                    "permission": lambda request: request.user.is_superuser,
+                },
+                {
+                    "title": _("Tokens"),
+                    "link": reverse_lazy("admin:authtoken_tokenproxy_changelist"),
+                    "permission": lambda request: request.user.is_superuser,
                 },
             ],
         },
