@@ -46,3 +46,4 @@ finot_decoded.env
 # Test and debug files
 debug_test.txt
 test_upload.txt
+finot_database_schemma.sql

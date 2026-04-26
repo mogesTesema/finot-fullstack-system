@@ -27,7 +27,10 @@ class QuestionSerializer(serializers.ModelSerializer):
     """
     Serializer for questions.
     """
-    answer_count = serializers.IntegerField(source='answers.count', read_only=True)
+    # Uses the annotated count from the view queryset to avoid an extra DB hit.
+    # Falls back to a live .count() call if the annotation isn't present
+    # (e.g. when accessing a single object via the detail endpoint).
+    answer_count = serializers.SerializerMethodField()
     answers = serializers.SerializerMethodField()
 
     class Meta:
@@ -35,8 +38,18 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'display_name', 'category', 'question_body', 'answer_count', 'created_at', 'is_approved', 'answers']
         read_only_fields = ['id', 'user', 'created_at', 'is_approved']
 
+    def get_answer_count(self, obj):
+        # Prefer the pre-computed annotation injected by the view queryset.
+        if hasattr(obj, 'answer_count_db'):
+            return obj.answer_count_db
+        # Safe fallback for detail/admin views where annotation is absent.
+        return obj.answers.filter(is_approved=True).count()
+
     def get_answers(self, obj):
-        # Return only approved answers, ordered by creation date
+        # Read from the prefetched list to avoid per-question DB queries.
+        if hasattr(obj, 'approved_answers_list'):
+            return AnswerSerializer(obj.approved_answers_list, many=True).data
+        # Safe fallback for detail/admin views where prefetch is absent.
         approved_answers = obj.answers.filter(is_approved=True).order_by('created_at')
         return AnswerSerializer(approved_answers, many=True).data
 

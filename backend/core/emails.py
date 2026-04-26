@@ -97,10 +97,12 @@ def get_donation_details(payment_obj):
         email = payment_obj.student_donation.student.email
         name = payment_obj.student_donation.student.first_name
         category = payment_obj.student_donation.get_fund_category_display()
-    elif hasattr(payment_obj, "nonstudentdonation"):
-        email = payment_obj.nonstudentdonation.email
-        name = payment_obj.nonstudentdonation.first_name
-        category = payment_obj.nonstudentdonation.get_fund_category_display()
+    elif hasattr(payment_obj, "guest_donation"):
+        # NOTE: The reverse accessor is "guest_donation" because NonStudentDonation
+        # defines related_name="guest_donation" on its OneToOneField to Payment.
+        email = payment_obj.guest_donation.email
+        name = payment_obj.guest_donation.first_name
+        category = payment_obj.guest_donation.get_fund_category_display()
 
     return email, name, category
 

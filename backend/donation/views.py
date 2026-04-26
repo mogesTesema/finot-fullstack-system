@@ -1,4 +1,5 @@
 import uuid
+import logging
 from rest_framework import viewsets, mixins, status, permissions, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,6 +17,7 @@ import hmac
 import hashlib
 import json
 
+logger = logging.getLogger(__name__)
 
 RETURN_URL = settings.RETURN_URL
 CALLBACK_URL = settings.CALLBACK_URL
@@ -106,9 +108,7 @@ class InitiateDonationView(generics.GenericAPIView):
                 )
 
             except Exception as e:
-                # If payment gateway fails, we might want to mark the payment as failed
-                # or just leave it pending to be cleaned up later.
-                print("CHAPA ERROR:", e)  # 👈 ADD THIS
+                logger.error("Chapa payment initiation failed for tx_ref=%s", tx_ref, exc_info=True)
                 payment.status = Payment.STATUS_FAILED
                 payment.save()
 
@@ -125,11 +125,13 @@ class InitiateDonationView(generics.GenericAPIView):
                     )
 
                 return Response(
-                    {"error": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE
+                    {
+                        "error": "Payment gateway is currently unavailable. Please try again."
+                    },
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
-        print(serializer.errors)
+        logger.warning("Donation serializer validation failed: %s", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VerifyDonationView(APIView):
@@ -140,13 +142,6 @@ class VerifyDonationView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, tx_ref):
-        try:
-            payment = Payment.objects.get(transaction_reference=tx_ref)
-        except Payment.DoesNotExist:
-            return Response(
-                {"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
         # Helper to construct full receipt response
         def get_receipt_response(payment, status_msg):
             donor_name = "Guest Visitor"
@@ -169,37 +164,68 @@ class VerifyDonationView(APIView):
                 }
             )
 
-        # If already completed, return full receipt
+        # Step 1: Fast path — read payment WITHOUT a lock.
+        # This avoids holding a DB lock during the slow Chapa network call below.
+        try:
+            payment = Payment.objects.get(transaction_reference=tx_ref)
+        except Payment.DoesNotExist:
+            return Response(
+                {"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # If already completed, return the receipt immediately (idempotent, no lock needed).
         if payment.status == Payment.STATUS_COMPLETED:
             return get_receipt_response(payment, "Payment already verified")
 
+        # Step 2: Call Chapa API with NO database lock held.
+        # Network I/O must never be performed while holding a select_for_update() lock,
+        # as it blocks other requests from the same payment row for the entire round-trip.
         chapa = ChapaPayment()
         is_paid = chapa.verify_payment(tx_ref)
 
-        if is_paid:
-            payment.status = Payment.STATUS_COMPLETED
-            payment.save()
-
-            # Send success notification
-            notify_donation_success(payment)
-
-            if hasattr(payment, "student_donation") and payment.student_donation:
-                send_push_notification(
-                    user_id=payment.student_donation.student.id,
-                    title="Donation Successful",
-                    body=f"We received your donation of {payment.amount} ETB. Thank you!",
-                    notification_type=Notification.TYPE_DONATION,
+        # Step 3: Re-acquire a row-level lock and update status atomically.
+        # Using a flag to track whether we actually changed the status,
+        # so that notifications are only sent on the first status transition.
+        status_changed = False
+        with transaction.atomic():
+            try:
+                payment = Payment.objects.select_for_update().get(
+                    transaction_reference=tx_ref
+                )
+            except Payment.DoesNotExist:
+                return Response(
+                    {"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND
                 )
 
+            if is_paid:
+                # Only update if not already completed (idempotency guard)
+                if payment.status != Payment.STATUS_COMPLETED:
+                    payment.status = Payment.STATUS_COMPLETED
+                    payment.save()
+                    status_changed = True
+            else:
+                # Only mark as failed once — do not override a final state
+                if payment.status == Payment.STATUS_PENDING:
+                    payment.status = Payment.STATUS_FAILED
+                    payment.save()
+                    status_changed = True
+
+        # Step 4: Send notifications AFTER the transaction is committed.
+        # Only fires on the first status transition, never on repeat polls.
+        if is_paid:
+            if status_changed:
+                notify_donation_success(payment)
+                if hasattr(payment, "student_donation") and payment.student_donation:
+                    send_push_notification(
+                        user_id=payment.student_donation.student.id,
+                        title="Donation Successful",
+                        body=f"We received your donation of {payment.amount} ETB. Thank you!",
+                        notification_type=Notification.TYPE_DONATION,
+                    )
             return get_receipt_response(payment, "Payment Successful")
         else:
-            # We assume it is failed or cancelled if not paid by the time they are verified here
-            if payment.status != Payment.STATUS_FAILED:
-                payment.status = Payment.STATUS_FAILED
-                payment.save()
-                # Send failure notification
+            if status_changed:
                 notify_donation_failure(payment)
-
                 if hasattr(payment, "student_donation") and payment.student_donation:
                     send_push_notification(
                         user_id=payment.student_donation.student.id,
@@ -207,7 +233,6 @@ class VerifyDonationView(APIView):
                         body=f"Your donation of {payment.amount} ETB could not be verified.",
                         notification_type=Notification.TYPE_DONATION,
                     )
-
             return Response(
                 {
                     "status": "Payment Verification Failed",
@@ -234,11 +259,14 @@ class ChapaWebhookView(APIView):
             "CHAPA_WEBHOOK_SECRET", default=config("CHAPA_SECRET_KEY", default="")
         )
 
-        # We need the raw body
+        # We need the raw body to compute the HMAC
         body = request.body
         hash_val = hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
 
-        if hash_val != chapa_signature:
+        # Use hmac.compare_digest() for timing-safe comparison.
+        # A plain != comparison is vulnerable to timing attacks.
+        if not hmac.compare_digest(hash_val, chapa_signature):
+            logger.warning("Chapa webhook received with invalid signature.")
             return Response(
                 {"error": "Invalid signature"}, status=status.HTTP_400_BAD_REQUEST
             )
@@ -255,27 +283,41 @@ class ChapaWebhookView(APIView):
         ):
             tx_ref = payload.get("tx_ref")
             if tx_ref:
+                # Track whether notifications need to fire (outside the lock)
+                should_notify = False
+                notified_payment = None
+
                 try:
-                    payment = Payment.objects.get(transaction_reference=tx_ref)
-                    if payment.status != Payment.STATUS_COMPLETED:
-                        payment.status = Payment.STATUS_COMPLETED
-                        payment.save()
-
-                        # Send notifications
-                        notify_donation_success(payment)
-
-                        if (
-                            hasattr(payment, "student_donation")
-                            and payment.student_donation
-                        ):
-                            send_push_notification(
-                                user_id=payment.student_donation.student.id,
-                                title="Donation Successful",
-                                body=f"We received your donation of {payment.amount} ETB. Thank you!",
-                                notification_type=Notification.TYPE_DONATION,
-                            )
+                    # Row-level lock prevents a simultaneous VerifyDonationView
+                    # call from processing the same payment concurrently.
+                    with transaction.atomic():
+                        payment = Payment.objects.select_for_update().get(
+                            transaction_reference=tx_ref
+                        )
+                        if payment.status != Payment.STATUS_COMPLETED:
+                            payment.status = Payment.STATUS_COMPLETED
+                            payment.save()
+                            should_notify = True
+                            notified_payment = payment
                 except Payment.DoesNotExist:
-                    pass
+                    logger.warning(
+                        "Chapa webhook: tx_ref=%s not found in database.", tx_ref
+                    )
+
+                # Send notifications after the transaction is committed
+                if should_notify and notified_payment:
+                    notify_donation_success(notified_payment)
+
+                    if (
+                        hasattr(notified_payment, "student_donation")
+                        and notified_payment.student_donation
+                    ):
+                        send_push_notification(
+                            user_id=notified_payment.student_donation.student.id,
+                            title="Donation Successful",
+                            body=f"We received your donation of {notified_payment.amount} ETB. Thank you!",
+                            notification_type=Notification.TYPE_DONATION,
+                        )
 
         return Response(status=status.HTTP_200_OK)
 
@@ -289,6 +331,10 @@ class MyDonationHistoryViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     serializer_class = DonationHistorySerializer
 
     def get_queryset(self):
-        return StudentDonation.objects.filter(student=self.request.user).order_by(
-            "-donated_at"
+        # select_related('payment') fetches the related Payment row in the same
+        # SQL JOIN, eliminating the N+1 query that DonationHistorySerializer causes.
+        return (
+            StudentDonation.objects.filter(student=self.request.user)
+            .select_related("payment")
+            .order_by("-donated_at")
         )

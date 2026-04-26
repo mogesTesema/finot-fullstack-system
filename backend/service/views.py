@@ -113,7 +113,13 @@ class AgeglotSelectionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return AgeglotSelection.objects.filter(student=self.request.user).order_by('priority')
+            # select_related('service_group') eliminates the N+1 hit caused by
+            # AgeglotSelectionSerializer reading service_group.name per row.
+            return (
+                AgeglotSelection.objects.filter(student=self.request.user)
+                .select_related("service_group")
+                .order_by("priority")
+            )
         return AgeglotSelection.objects.none()
 
     def create(self, request, *args, **kwargs):
@@ -276,7 +282,13 @@ class ServiceAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return ServiceAttendance.objects.filter(student=self.request.user).order_by('-event__start_date')
+            # select_related('event') eliminates the N+1 hit caused by
+            # ServiceAttendanceSerializer reading event.title and event.start_date per row.
+            return (
+                ServiceAttendance.objects.filter(student=self.request.user)
+                .select_related("event")
+                .order_by("-event__start_date")
+            )
         return ServiceAttendance.objects.none()
 
     @action(detail=False, methods=['POST'], url_path='mark')

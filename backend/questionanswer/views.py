@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Question, Answer
 from .serializers import QuestionSerializer, AnswerSerializer
-from django.db.models import Q
+from django.db.models import Q, Count, Prefetch
 
 class IsAdminOrOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -36,17 +36,23 @@ class QuestionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Public sees only APPROVED questions.
-        Admin/Author sees their own pending questions in a separate view?
-        For the main list, we return APPROVED only to keep the feed clean.
+        Uses Prefetch and annotate to eliminate N+1 queries:
+          - approved_answers prefetch avoids per-question answer filter calls.
+          - answer_count_db annotation avoids per-question .count() calls.
         """
-        # Base query: Approved questions
-        qs = Question.objects.filter(is_approved=True)
+        approved_answers_qs = Answer.objects.filter(is_approved=True).order_by("created_at")
+
+        qs = (
+            Question.objects.filter(is_approved=True)
+            .prefetch_related(Prefetch("answers", queryset=approved_answers_qs, to_attr="approved_answers_list"))
+            .annotate(answer_count_db=Count("answers", filter=Q(answers__is_approved=True)))
+        )
 
         # Filter by Category
         category = self.request.query_params.get('category')
         if category:
             qs = qs.filter(category__iexact=category)
-            
+
         # Filter by specific User (if searching by author ID)
         user_id = self.request.query_params.get('user')
         if user_id:
@@ -62,7 +68,18 @@ class QuestionViewSet(viewsets.ModelViewSet):
         Allows students to track their status.
         """
         # 1. My Questions (All status)
-        my_questions = Question.objects.filter(user=request.user).order_by('-created_at')
+        my_questions = (
+            Question.objects.filter(user=request.user)
+            .prefetch_related(
+                Prefetch(
+                    "answers",
+                    queryset=Answer.objects.filter(is_approved=True).order_by("created_at"),
+                    to_attr="approved_answers_list",
+                )
+            )
+            .annotate(answer_count_db=Count("answers", filter=Q(answers__is_approved=True)))
+            .order_by("-created_at")
+        )
         q_serializer = self.get_serializer(my_questions, many=True)
         
         # 2. My Answers (All status)
@@ -97,13 +114,14 @@ class AnswerViewSet(viewsets.ModelViewSet):
         Filter by specific question if ?question=ID is provided.
         Can also filter by responder (User ID) or Category (via Question).
         """
-        queryset = Answer.objects.filter(is_approved=True)
-        
+        # select_related('question') avoids a per-answer query when filtering by category.
+        queryset = Answer.objects.filter(is_approved=True).select_related("question")
+
         # Filter by Question ID
         question_id = self.request.query_params.get('question')
         if question_id:
             queryset = queryset.filter(question_id=question_id)
-            
+
         # Filter by Responder (User ID)
         responder_id = self.request.query_params.get('responder')
         if responder_id:
