@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "service",
     "donation",
     "questionanswer",
+    "notifications",
 ]
 
 MIDDLEWARE = [
@@ -604,15 +605,15 @@ UNFOLD = {
                     {
                         "title": _("Notifications"),
                         "icon": "notifications",
-                        "link": reverse_lazy("admin:core_notification_changelist"),
+                        "link": reverse_lazy("admin:notifications_notification_changelist"),
                         "permission": lambda request: request.user.has_perm(
-                            "core.view_notification"
+                            "notifications.view_notification"
                         ),
                     },
                     {
                         "title": _("Device Tokens"),
                         "icon": "smartphone",
-                        "link": reverse_lazy("admin:core_fcmdevicetoken_changelist"),
+                        "link": reverse_lazy("admin:notifications_fcmdevicetoken_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                 ],

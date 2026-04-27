@@ -23,7 +23,8 @@ def dashboard_callback(request: HttpRequest, context: Dict[str, Any]) -> Dict[st
     Uses the dashboard registry to collect stats from feature apps,
     keeping core decoupled from child apps.
     """
-    from core.models import User, Notification
+    from core.models import User
+    from notifications.models import Notification
 
     # Core-owned stats (User and Notification belong to this app)
     try:

@@ -5,12 +5,14 @@ import logging
 import firebase_admin
 from firebase_admin import credentials, messaging
 from django.conf import settings
-from .models import FCMDeviceToken, Notification
+
+from notifications.models import FCMDeviceToken, Notification
+from .base import NotificationChannel
 
 logger = logging.getLogger(__name__)
 
-# Initialize Firebase Admin SDK
-def initialize_firebase():
+
+def _initialize_firebase():
     """Initialize the Firebase Admin SDK using available credentials."""
     if firebase_admin._apps:
         return  # Already initialized
@@ -25,7 +27,7 @@ def initialize_firebase():
             firebase_credential = credentials.Certificate(credentials_dict)
             logger.info("Firebase Admin: using FIREBASE_CREDENTIALS_B64 env var.")
         except Exception as error:
-            logger.error(f"Firebase Admin: failed to parse FIREBASE_CREDENTIALS_B64: {error}")
+            logger.error("Firebase Admin: failed to parse FIREBASE_CREDENTIALS_B64: %s", error)
 
     # Priority 2: GOOGLE_APPLICATION_CREDENTIALS file path (standard GCP convention)
     if firebase_credential is None:
@@ -35,7 +37,7 @@ def initialize_firebase():
                 firebase_credential = credentials.Certificate(gcp_credentials_path)
                 logger.info("Firebase Admin: using GOOGLE_APPLICATION_CREDENTIALS file.")
             except Exception as error:
-                logger.error(f"Firebase Admin: failed to load GOOGLE_APPLICATION_CREDENTIALS: {error}")
+                logger.error("Firebase Admin: failed to load GOOGLE_APPLICATION_CREDENTIALS: %s", error)
 
     # Priority 3: Legacy hardcoded path (deprecated — remove after migration)
     if firebase_credential is None:
@@ -50,75 +52,44 @@ def initialize_firebase():
             try:
                 firebase_credential = credentials.Certificate(legacy_credentials_path)
             except Exception as error:
-                logger.error(f"Firebase Admin: failed to load legacy file: {error}")
+                logger.error("Firebase Admin: failed to load legacy file: %s", error)
 
     if firebase_credential:
         try:
             firebase_admin.initialize_app(firebase_credential)
             logger.info("Firebase Admin initialized successfully.")
         except Exception as error:
-            logger.error(f"Failed to initialize Firebase Admin: {error}")
+            logger.error("Failed to initialize Firebase Admin: %s", error)
     else:
         logger.warning("Firebase Admin: no credentials found. Push notifications disabled.")
 
-# Call it when module loads
-initialize_firebase()
 
-def send_push_notification(user=None, user_id=None, title="", message="", body="", notification_type=Notification.TYPE_SYSTEM):
+def _send_fcm_to_user(user, title, body, notification_type):
     """
-    Saves a Notification to the DB and pushes it to all the user's registered FCM devices.
-    Accepts either a User object (user=) or an integer user ID (user_id=).
-    Accepts message= or body= for the notification body text.
+    Sends an FCM push notification to all devices registered by the user.
+    Automatically cleans up invalid device tokens.
+    Returns True if successful (or no devices to push to), False on error.
     """
-    from django.contrib.auth import get_user_model
-    UserModel = get_user_model()
-
-    # Resolve the user object
-    if user is None and user_id is not None:
-        try:
-            user = UserModel.objects.get(id=user_id)
-        except UserModel.DoesNotExist:
-            logger.warning(f"send_push_notification: User with id {user_id} not found.")
-            return False
-
-    if not user:
-        return False
-
-    # Allow body= as an alias for message=
-    notification_body = message or body
-    if not notification_body:
-        notification_body = title  # fallback
-
-    # 1. Save to Database
-    saved_notification = Notification.objects.create(
-        user=user,
-        title=title,
-        message=notification_body,
-        notification_type=notification_type,
+    device_tokens = list(
+        FCMDeviceToken.objects.filter(user=user).values_list('device_token', flat=True)
     )
 
-    # 2. Push to FCM
-    device_tokens = FCMDeviceToken.objects.filter(user=user).values_list('device_token', flat=True)
-
     if not device_tokens:
-        return True  # Handled successfully (saved to DB, just no devices to ping)
+        return True  # No devices, but not an error
 
-    # Prepare FCM multicast message for all devices owned by the same user
     fcm_multicast_message = messaging.MulticastMessage(
         notification=messaging.Notification(
             title=title,
-            body=notification_body,
+            body=body,
         ),
         data={
             'type': notification_type,
-            'id': str(saved_notification.id),
         },
-        tokens=list(device_tokens),
+        tokens=device_tokens,
     )
 
     try:
         send_response = messaging.send_multicast(fcm_multicast_message)
-        # Check for invalid tokens and clean them up
         if send_response.failure_count > 0:
             invalid_device_tokens = []
             for token_index, individual_response in enumerate(send_response.responses):
@@ -135,5 +106,54 @@ def send_push_notification(user=None, user_id=None, title="", message="", body="
 
         return True
     except Exception as error:
-        logger.error(f"Error sending FCM message: {error}")
+        logger.error("Error sending FCM message: %s", error, exc_info=True)
         return False
+
+
+class PushChannel(NotificationChannel):
+    """
+    Sends Firebase Cloud Messaging push notifications.
+    Logic extracted from core/notifications.py.
+
+    Firebase is initialized once when the channel is first instantiated.
+    """
+
+    def __init__(self):
+        _initialize_firebase()
+
+    def on_payment_completed(self, payment):
+        if not (hasattr(payment, "student_donation") and payment.student_donation):
+            return  # Guest donations have no user to push to
+
+        user = payment.student_donation.student
+        _send_fcm_to_user(
+            user=user,
+            title="Donation Successful",
+            body=f"We received your donation of {payment.amount} ETB. Thank you!",
+            notification_type=Notification.TYPE_DONATION,
+        )
+
+    def on_payment_failed(self, payment):
+        if not (hasattr(payment, "student_donation") and payment.student_donation):
+            return
+
+        user = payment.student_donation.student
+        _send_fcm_to_user(
+            user=user,
+            title="Donation Failed",
+            body=f"Your donation of {payment.amount} ETB could not be verified.",
+            notification_type=Notification.TYPE_DONATION,
+        )
+
+    def on_event_published(self, event):
+        """Push notification to all active users about a new event."""
+        from core.models import User
+
+        active_users = User.objects.filter(is_active=True)
+        for user in active_users:
+            _send_fcm_to_user(
+                user=user,
+                title=f"New Event: {event.title}",
+                body=f"{event.title} is scheduled for {event.start_date.strftime('%B %d, %Y at %I:%M %p')}.",
+                notification_type=Notification.TYPE_EVENT,
+            )

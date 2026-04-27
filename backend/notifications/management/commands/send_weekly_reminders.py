@@ -1,8 +1,8 @@
 import datetime
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from core.notifications import send_push_notification
-from core.models import Notification
+from notifications.models import Notification, FCMDeviceToken
+from notifications.channels.push import _send_fcm_to_user
 
 User = get_user_model()
 
@@ -22,14 +22,23 @@ class Command(BaseCommand):
         for user in users:
             # We don't want this to crash the loop if one fails
             try:
-                success = send_push_notification(
+                # 1. Create in-app notification record
+                Notification.objects.create(
                     user=user,
                     title=title,
                     message=message,
                     notification_type=Notification.TYPE_REMINDER,
                 )
-                if success:
-                    count += 1
+
+                # 2. Send FCM push to all user devices
+                _send_fcm_to_user(
+                    user=user,
+                    title=title,
+                    body=message,
+                    notification_type=Notification.TYPE_REMINDER,
+                )
+
+                count += 1
             except Exception as e:
                 self.stderr.write(
                     self.style.ERROR(f"Failed for user {user.username}: {e}")
