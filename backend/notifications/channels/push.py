@@ -64,50 +64,61 @@ def _initialize_firebase():
         logger.warning("Firebase Admin: no credentials found. Push notifications disabled.")
 
 
+def _send_fcm_multicast(title, body, notification_type, device_tokens):
+    """
+    Sends an FCM push notification to a list of device tokens in batches of 500.
+    Automatically cleans up invalid device tokens.
+    Returns True if fully successful (or no devices), False on error.
+    """
+    if not device_tokens:
+        return True
+
+    chunk_size = 500
+    success_overall = True
+
+    for i in range(0, len(device_tokens), chunk_size):
+        chunk = device_tokens[i:i + chunk_size]
+        fcm_multicast_message = messaging.MulticastMessage(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            data={
+                'type': notification_type,
+            },
+            tokens=chunk,
+        )
+
+        try:
+            send_response = messaging.send_multicast(fcm_multicast_message)
+            if send_response.failure_count > 0:
+                invalid_device_tokens = []
+                for token_index, individual_response in enumerate(send_response.responses):
+                    if not individual_response.success:
+                        error_code = individual_response.exception.code
+                        if error_code in [
+                            'messaging/invalid-registration-token',
+                            'messaging/registration-token-not-registered',
+                        ]:
+                            invalid_device_tokens.append(chunk[token_index])
+
+                if invalid_device_tokens:
+                    FCMDeviceToken.objects.filter(device_token__in=invalid_device_tokens).delete()
+        except Exception as error:
+            logger.error("Error sending FCM message chunk: %s", error, exc_info=True)
+            success_overall = False
+
+    return success_overall
+
+
 def _send_fcm_to_user(user, title, body, notification_type):
     """
-    Sends an FCM push notification to all devices registered by the user.
-    Automatically cleans up invalid device tokens.
-    Returns True if successful (or no devices to push to), False on error.
+    Sends an FCM push notification to all devices registered by a single user.
     """
     device_tokens = list(
         FCMDeviceToken.objects.filter(user=user).values_list('device_token', flat=True)
     )
-
-    if not device_tokens:
-        return True  # No devices, but not an error
-
-    fcm_multicast_message = messaging.MulticastMessage(
-        notification=messaging.Notification(
-            title=title,
-            body=body,
-        ),
-        data={
-            'type': notification_type,
-        },
-        tokens=device_tokens,
-    )
-
-    try:
-        send_response = messaging.send_multicast(fcm_multicast_message)
-        if send_response.failure_count > 0:
-            invalid_device_tokens = []
-            for token_index, individual_response in enumerate(send_response.responses):
-                if not individual_response.success:
-                    error_code = individual_response.exception.code
-                    if error_code in [
-                        'messaging/invalid-registration-token',
-                        'messaging/registration-token-not-registered',
-                    ]:
-                        invalid_device_tokens.append(device_tokens[token_index])
-
-            if invalid_device_tokens:
-                FCMDeviceToken.objects.filter(device_token__in=invalid_device_tokens).delete()
-
-        return True
-    except Exception as error:
-        logger.error("Error sending FCM message: %s", error, exc_info=True)
-        return False
+    return _send_fcm_multicast(title, body, notification_type, device_tokens)
 
 
 class PushChannel(NotificationChannel):
@@ -146,14 +157,22 @@ class PushChannel(NotificationChannel):
         )
 
     def on_event_published(self, event):
-        """Push notification to all active users about a new event."""
-        from core.models import User
+        """Push notification to all active users about a new event efficiently."""
+        # Query ALL device tokens for active users in a single query
+        device_tokens = list(
+            FCMDeviceToken.objects.filter(user__is_active=True)
+            .values_list('device_token', flat=True)
+        )
 
-        active_users = User.objects.filter(is_active=True)
-        for user in active_users:
-            _send_fcm_to_user(
-                user=user,
-                title=f"New Event: {event.title}",
-                body=f"{event.title} is scheduled for {event.start_date.strftime('%B %d, %Y at %I:%M %p')}.",
-                notification_type=Notification.TYPE_EVENT,
-            )
+        if not device_tokens:
+            return
+
+        title = f"New Event: {event.title}"
+        body = f"{event.title} is scheduled for {event.start_date.strftime('%B %d, %Y at %I:%M %p')}."
+
+        _send_fcm_multicast(
+            title=title,
+            body=body,
+            notification_type=Notification.TYPE_EVENT,
+            device_tokens=device_tokens
+        )

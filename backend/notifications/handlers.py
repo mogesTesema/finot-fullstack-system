@@ -14,11 +14,25 @@ logger = logging.getLogger(__name__)
 def handle_payment_completed(sender, payment, **kwargs):
     """
     Receives the payment_completed signal from donation views.
-    Defers notification dispatch until after the DB transaction commits,
-    so we never notify about a payment that rolled back.
+    Defers notification dispatch until after the DB transaction commits.
+    Runs in a background thread to prevent blocking the API response.
     """
+    # Grab the ID to fetch freshly inside the thread
+    payment_id = payment.id
+
+    def _dispatch_in_thread():
+        from donation.models import Payment
+        from django.db import close_old_connections
+        try:
+            p = Payment.objects.get(id=payment_id)
+            NotificationDispatcher.payment_completed(p)
+        except Payment.DoesNotExist:
+            logger.warning("handle_payment_completed: Payment id=%s not found.", payment_id)
+        finally:
+            close_old_connections()
+
     transaction.on_commit(
-        lambda: NotificationDispatcher.payment_completed(payment)
+        lambda: threading.Thread(target=_dispatch_in_thread, daemon=True).start()
     )
 
 
@@ -26,10 +40,23 @@ def handle_payment_completed(sender, payment, **kwargs):
 def handle_payment_failed(sender, payment, **kwargs):
     """
     Receives the payment_failed signal from donation views.
-    Same on_commit deferral as above.
+    Runs in a background thread.
     """
+    payment_id = payment.id
+
+    def _dispatch_in_thread():
+        from donation.models import Payment
+        from django.db import close_old_connections
+        try:
+            p = Payment.objects.get(id=payment_id)
+            NotificationDispatcher.payment_failed(p)
+        except Payment.DoesNotExist:
+            logger.warning("handle_payment_failed: Payment id=%s not found.", payment_id)
+        finally:
+            close_old_connections()
+
     transaction.on_commit(
-        lambda: NotificationDispatcher.payment_failed(payment)
+        lambda: threading.Thread(target=_dispatch_in_thread, daemon=True).start()
     )
 
 
@@ -37,28 +64,22 @@ def handle_payment_failed(sender, payment, **kwargs):
 def handle_event_published(sender, instance, created, **kwargs):
     """
     Listens to Event post_save. When a new UPCOMING event is created,
-    dispatches notifications via all channels in a background thread
-    (since event frequency is low: ~3x per week).
-
-    This replaces the handler in service/signals.py.
+    dispatches notifications via all channels in a background thread.
     """
     if created and instance.status == instance.UPCOMING:
         event_id = instance.id
 
         def _dispatch_in_thread():
             from service.models import Event
+            from django.db import close_old_connections
             try:
                 event = Event.objects.get(id=event_id)
+                NotificationDispatcher.event_published(event)
             except Event.DoesNotExist:
                 logger.warning("handle_event_published: Event id=%s not found.", event_id)
-                return
-            NotificationDispatcher.event_published(event)
+            finally:
+                close_old_connections()
 
-        def start_thread():
-            thread = threading.Thread(
-                target=_dispatch_in_thread,
-                daemon=True,
-            )
-            thread.start()
-
-        transaction.on_commit(start_thread)
+        transaction.on_commit(
+            lambda: threading.Thread(target=_dispatch_in_thread, daemon=True).start()
+        )
