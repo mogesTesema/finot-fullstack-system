@@ -32,8 +32,8 @@ class AnswerAdmin(ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(ModelAdmin):
-    list_display = ('display_name', 'category', 'display_approved', 'created_at', 'user', 'answer_count_display')
-    list_filter = ('is_approved', 'category', 'created_at')
+    list_display = ('display_name', 'category', 'display_visibility', 'display_approved', 'created_at', 'user', 'answer_count_display')
+    list_filter = ('is_approved', 'visibility', 'category', 'created_at')
     search_fields = ('question_body', 'display_name', 'user__username')
     ordering = ('-created_at',)
     inlines = [AnswerInline]
@@ -44,6 +44,10 @@ class QuestionAdmin(ModelAdmin):
     def answer_count_display(self, obj):
         return obj.answers.count()
     answer_count_display.short_description = 'Answers'
+
+    @display(description="Visibility", label={"Public": "info", "Private": "warning"})
+    def display_visibility(self, obj):
+        return obj.get_visibility_display()
 
     @display(description="Approved", label={"Yes": "success", "No": "warning"})
     def display_approved(self, obj):

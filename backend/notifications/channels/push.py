@@ -176,3 +176,20 @@ class PushChannel(NotificationChannel):
             notification_type=Notification.TYPE_EVENT,
             device_tokens=device_tokens
         )
+
+    def on_question_answered(self, answer):
+        """Push notification to the asker when their private question is answered."""
+        question = answer.question
+        if question.user is None:
+            return  # Shouldn't happen (private questions require auth), but safety check
+
+        _send_fcm_to_user(
+            user=question.user,
+            title="Your Question Has Been Answered",
+            body=(
+                f"A counselor has answered your private question "
+                f"in the \"{question.category}\" category."
+            ),
+            notification_type=Notification.TYPE_QA,
+        )
+

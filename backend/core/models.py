@@ -13,12 +13,16 @@ class Role(models.Model):
     SERVICE_ADMIN = "ServiceAdmin"
     SUPER_ADMIN = "SuperAdmin"
     FAMILY_ADMIN = "FamilyAdmin"
+    QA_COUNSELOR = "QACounselor"
+    QA_MODERATOR = "QAModerator"
     
     ROLE_CHOICES = [
         (STUDENT, "Student"),
         (FAMILY_ADMIN, "Family Admin"),
         (SERVICE_ADMIN, "Service Admin"),
         (SUPER_ADMIN, "Super Admin"),
+        (QA_COUNSELOR, "QA Counselor"),
+        (QA_MODERATOR, "QA Moderator"),
     ]
 
     id = models.AutoField(primary_key=True)

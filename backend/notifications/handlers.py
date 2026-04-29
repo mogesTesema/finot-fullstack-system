@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models.signals import post_save
 
 from donation.signals import payment_completed, payment_failed
+from questionanswer.signals import question_answered
 from .dispatch import NotificationDispatcher
 
 logger = logging.getLogger(__name__)
@@ -83,3 +84,29 @@ def handle_event_published(sender, instance, created, **kwargs):
         transaction.on_commit(
             lambda: threading.Thread(target=_dispatch_in_thread, daemon=True).start()
         )
+
+
+@receiver(question_answered)
+def handle_question_answered(sender, answer, **kwargs):
+    """
+    Receives the question_answered signal from questionanswer views.
+    Defers notification dispatch until after the DB transaction commits.
+    Runs in a background thread to prevent blocking the API response.
+    """
+    answer_id = answer.id
+
+    def _dispatch_in_thread():
+        from questionanswer.models import Answer
+        from django.db import close_old_connections
+        try:
+            a = Answer.objects.select_related("question__user").get(id=answer_id)
+            NotificationDispatcher.question_answered(a)
+        except Answer.DoesNotExist:
+            logger.warning("handle_question_answered: Answer id=%s not found.", answer_id)
+        finally:
+            close_old_connections()
+
+    transaction.on_commit(
+        lambda: threading.Thread(target=_dispatch_in_thread, daemon=True).start()
+    )
+

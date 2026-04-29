@@ -40,6 +40,11 @@ class NotificationDispatcher:
         cls._dispatch("on_event_published", event=event)
 
     @classmethod
+    def question_answered(cls, answer):
+        """Dispatch private question answer notification to all channels."""
+        cls._dispatch("on_question_answered", answer=answer)
+
+    @classmethod
     def _dispatch(cls, method_name, **kwargs):
         """
         Call the named method on every registered channel.

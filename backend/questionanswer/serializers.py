@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Question, Answer
 
+
 class AnswerSerializer(serializers.ModelSerializer):
     """
     Serializer for publicly viewing approved answers.
@@ -35,7 +36,10 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ['id', 'user', 'display_name', 'category', 'question_body', 'answer_count', 'created_at', 'is_approved', 'answers']
+        fields = [
+            'id', 'user', 'display_name', 'category', 'question_body',
+            'visibility', 'answer_count', 'created_at', 'is_approved', 'answers',
+        ]
         read_only_fields = ['id', 'user', 'created_at', 'is_approved']
 
     def get_answer_count(self, obj):
@@ -56,10 +60,42 @@ class QuestionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """
         Handle question creation with or without user.
+        Private questions require authentication and skip moderation.
         """
         request = self.context.get('request')
         user = None
         if request and request.user.is_authenticated:
             user = request.user
-            
+
+        visibility = validated_data.get('visibility', Question.VISIBILITY_PUBLIC)
+
+        # Private questions require an authenticated user.
+        if visibility == Question.VISIBILITY_PRIVATE and user is None:
+            raise serializers.ValidationError(
+                {"visibility": "Private questions require authentication."}
+            )
+
+        # Private questions bypass moderation — they go straight to counselors.
+        if visibility == Question.VISIBILITY_PRIVATE:
+            validated_data['is_approved'] = True
+
         return Question.objects.create(user=user, **validated_data)
+
+
+class PrivateQuestionSerializer(QuestionSerializer):
+    """
+    Extended serializer for the counselor queue.
+    Includes the asker's real name so the counselor knows who they're helping.
+    Only used in counselor-restricted views — never exposed to the public API.
+    """
+    asker_name = serializers.SerializerMethodField()
+
+    class Meta(QuestionSerializer.Meta):
+        fields = QuestionSerializer.Meta.fields + ['asker_name']
+
+    def get_asker_name(self, obj):
+        if obj.user is None:
+            return None
+        parts = [obj.user.first_name, obj.user.middle_name, obj.user.last_name]
+        full_name = " ".join(p for p in parts if p)
+        return full_name or obj.user.username
