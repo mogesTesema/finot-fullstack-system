@@ -10,6 +10,7 @@ import {
   ArrowLeftOnRectangleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  AcademicCapIcon,
 } from "@heroicons/react/24/outline";
 
 type SidebarProps = {
@@ -48,6 +49,16 @@ const Sidebar = ({ notifCount = 0, onLogout }: SidebarProps) => {
   if (role === "ServiceAdmin" || role === "service_admin") {
     navItems.push({ to: "/dashboard/manage-ageglot", label: t("manage_ageglot"), icon: UserIcon });
   }
+
+  // ADD TEACHER DASHBOARD BUTTON - For teacher roles
+  if (role === "teacher" || role === "soul_teacher" || role === "psychotherapist" || role === "Teacher" || role === "SoulTeacher" || role === "Psychotherapist") {
+    navItems.push({ 
+      to: "/dashboard/teacher/qa", 
+      label: t("private_qa_inbox"), 
+      icon: AcademicCapIcon 
+    });
+  }
+
   // Super admin is handled entirely via Django admin panel — no frontend route needed.
 
   return (

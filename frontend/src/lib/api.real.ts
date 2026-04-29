@@ -1,7 +1,7 @@
 // src/services/api.real.js
 import axiosInstance from './axios';
 import { AuthUser, AttendanceRecord, Donation, Event, Question, PaginatedResponse, ServiceGroup, ServiceSelection } from '../types';
-
+import { privateQaMockApi, MockPrivateQuestion, MockPrivateAnswer } from './privateQaMockApi';
 export const BACKEND_PAGE_SIZE = 20;
 
 /**
@@ -384,4 +384,22 @@ export const api = {
     await axiosInstance.delete(`/auth/users/${userId}/`);
     return { success: true };
   },
+
+  // Get user's private questions from mock server
+getMyPrivateQuestions: async (): Promise<MockPrivateQuestion[]> => {
+  const user = await api.getUser(); // Get current user to get student_id
+  return privateQaMockApi.getMyPrivateQuestions(user.id);
+},
+
+// Post a new private question to mock server
+postPrivateQuestion: async (data: { question_body: string; category: string }): Promise<MockPrivateQuestion> => {
+  const user = await api.getUser();
+  return privateQaMockApi.postPrivateQuestion(user.id, data.question_body, data.category);
+},
+
+// Get answers for a private question from mock server
+getPrivateAnswers: async (questionId: string): Promise<MockPrivateAnswer[]> => {
+  return privateQaMockApi.getPrivateAnswers(questionId);
+},
+  
 };

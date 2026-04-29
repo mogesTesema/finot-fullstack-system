@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "../layouts/MainLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
+import TeacherQaDashboard from "../pages/admin/TeacherQaDashboard";
 import HomePage from "../pages/home/HomePage";
 import AboutPage from "../pages/about/AboutPage";
 import ContactPage from "../pages/contact/ContactPage";
@@ -51,6 +52,7 @@ export default function AppRoutes() {
             element={<ResetPasswordConfirmPage />}
           />
           <Route path="anonymous" element={<AnonymousIntro />} />
+          <Route path="admin/teacher" element={<TeacherQaDashboard />}/>
           <Route path="anonymous/questions" element={<QuestionList />} />
           <Route path="anonymous/ask" element={<AskQuestion />} />
           <Route path="donate" element={<DonationOutside />} />
