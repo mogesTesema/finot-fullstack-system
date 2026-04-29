@@ -24,3 +24,11 @@ class NotificationChannel(ABC):
     def on_event_published(self, event):
         """Called when a new service event is created and published."""
         ...
+
+    def on_question_answered(self, answer):
+        """Called when a counselor answers a private question.
+
+        Default: no-op. Only in-app and push channels implement this,
+        since email and SMS are not used for private Q&A (cost savings).
+        """
+        pass

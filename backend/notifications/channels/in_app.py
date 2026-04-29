@@ -57,3 +57,21 @@ class InAppChannel(NotificationChannel):
         if notifications:
             Notification.objects.bulk_create(notifications)
             logger.info("InAppChannel: Created %d event notifications.", len(notifications))
+
+    def on_question_answered(self, answer):
+        """Create an in-app notification for the asker of a private question."""
+        question = answer.question
+        if question.user is None:
+            return  # Shouldn't happen (private questions require auth), but safety check
+
+        Notification.objects.create(
+            user=question.user,
+            title="Your Question Has Been Answered",
+            message=(
+                f"A counselor has answered your private question "
+                f"in the \"{question.category}\" category. "
+                f"Check your private inbox to read the response."
+            ),
+            notification_type=Notification.TYPE_QA,
+        )
+

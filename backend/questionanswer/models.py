@@ -5,6 +5,7 @@ from django.conf import settings
 class Question(models.Model):
     """
     Stores anonymous questions for the counseling platform.
+    Supports both public (moderated) and private (direct to counselor) modes.
     """
     CAT_ACADEMIC = "Academic"
     CAT_SPIRITUAL = "Spiritual"
@@ -20,6 +21,13 @@ class Question(models.Model):
         (OTHER, "Other"),
     ]
 
+    VISIBILITY_PUBLIC = "PUBLIC"
+    VISIBILITY_PRIVATE = "PRIVATE"
+    VISIBILITY_CHOICES = [
+        (VISIBILITY_PUBLIC, "Public"),
+        (VISIBILITY_PRIVATE, "Private"),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
     user = models.ForeignKey(
@@ -33,6 +41,13 @@ class Question(models.Model):
     display_name = models.CharField(max_length=100, help_text="Nickname")
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     question_body = models.TextField()
+    visibility = models.CharField(
+        max_length=10,
+        choices=VISIBILITY_CHOICES,
+        default=VISIBILITY_PUBLIC,
+        db_index=True,
+        help_text="PUBLIC = visible after approval. PRIVATE = only asker + counselor.",
+    )
     
     is_approved = models.BooleanField(default=False, help_text="Moderation flag")
     created_at = models.DateTimeField(auto_now_add=True)

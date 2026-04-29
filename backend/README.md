@@ -15,6 +15,8 @@
 * **Family Structure & Ministry:** Automated grouping of students into "Families" with dedicated event tracking and bulk attendance features.
 * **Secure Payment Integration:** Webhook-driven donation processing utilizing the Chapa API with row-level database locks for concurrency safety.
 * **Q&A System:** An anonymous question-and-answer platform enabling direct communication between students and administrators.
+  * **Private Q&A:** Registered students can ask private questions direct to `QACounselor` roles, bypassing public moderation.
+  * **Public Q&A:** Anyone can ask/answer public questions, subject to approval by `QAModerator` roles.
 * **Multi-Channel Notifications:** An event-driven architecture delivering instantaneous push notifications (FCM), emails (SMTP), and in-app alerts.
 
 ---
@@ -86,7 +88,12 @@ graph TD
 
 ## 📚 API Documentation
 
-The system documentation is organized logically for both backend and frontend consumers.
+The backend exposes fully auto-generated interactive API documentation using OpenAPI 3.0 (drf-spectacular).
+
+**Interactive Endpoints:**
+- **[Swagger UI](/api/docs/swagger/)** — Best for interactive testing.
+- **[ReDoc](/api/docs/redoc/)** — Best for reading comprehensive schema details.
+- **[Raw OpenAPI Schema](/api/schema/)** — JSON/YAML schema download.
 
 **System Overview:**
 👉 **[System Architecture & Frontend Guide](documentation/SYSTEM_ARCHITECTURE_AND_FLOW.md)**  

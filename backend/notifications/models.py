@@ -22,12 +22,14 @@ class Notification(models.Model):
     TYPE_DONATION = "DONATION"
     TYPE_REMINDER = "REMINDER"
     TYPE_SYSTEM = "SYSTEM"
+    TYPE_QA = "QA"
 
     TYPE_CHOICES = [
         (TYPE_EVENT, "Event"),
         (TYPE_DONATION, "Donation"),
         (TYPE_REMINDER, "Reminder"),
         (TYPE_SYSTEM, "System"),
+        (TYPE_QA, "Q&A"),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
