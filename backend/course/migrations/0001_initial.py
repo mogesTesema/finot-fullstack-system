@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,94 +15,267 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Course',
+            name="Course",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('title', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('batch_year', models.PositiveIntegerField(help_text='1-5')),
-                ('is_active', models.BooleanField(default=True, help_text='Set to False if this curriculum is no longer used.')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True, null=True)),
+                ("batch_year", models.PositiveIntegerField(help_text="1-5")),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Set to False if this curriculum is no longer used.",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'indexes': [models.Index(fields=['batch_year', 'is_active'], name='course_cour_batch_y_283b75_idx')],
+                "indexes": [
+                    models.Index(
+                        fields=["batch_year", "is_active"],
+                        name="course_cour_batch_y_283b75_idx",
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='CourseOffering',
+            name="SemesterCourse",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('academic_year', models.PositiveIntegerField(help_text='Start year, e.g., 2026')),
-                ('semester', models.PositiveIntegerField(choices=[(1, 'First Semester'), (2, 'Second Semester')])),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='offerings', to='course.course')),
-                ('teachers', models.ManyToManyField(blank=True, related_name='teaching_offerings', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "academic_year",
+                    models.PositiveIntegerField(help_text="Start year, e.g., 2026"),
+                ),
+                (
+                    "semester",
+                    models.PositiveIntegerField(
+                        choices=[(1, "First Semester"), (2, "Second Semester")]
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "course",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="offerings",
+                        to="course.course",
+                    ),
+                ),
+                (
+                    "teachers",
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name="teaching_offerings",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CourseMaterial',
+            name="CourseMaterial",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('title', models.CharField(max_length=255)),
-                ('file', models.FileField(blank=True, null=True, upload_to='course_materials/')),
-                ('url', models.URLField(blank=True, help_text='Optional external link', null=True)),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True)),
-                ('offering', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='materials', to='course.courseoffering')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                (
+                    "file",
+                    models.FileField(
+                        blank=True, null=True, upload_to="course_materials/"
+                    ),
+                ),
+                (
+                    "url",
+                    models.URLField(
+                        blank=True, help_text="Optional external link", null=True
+                    ),
+                ),
+                ("uploaded_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "offering",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="materials",
+                        to="course.semestercourse",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CourseEnrollment',
+            name="CourseEnrollment",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('enrolled_at', models.DateTimeField(auto_now_add=True)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='course_enrollments', to=settings.AUTH_USER_MODEL)),
-                ('offering', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='enrollments', to='course.courseoffering')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("enrolled_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="course_enrollments",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "offering",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="enrollments",
+                        to="course.semestercourse",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CourseSession',
+            name="CourseSession",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('date', models.DateField()),
-                ('topic', models.CharField(blank=True, help_text='Optional topic for the day', max_length=255, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('offering', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sessions', to='course.courseoffering')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("date", models.DateField()),
+                (
+                    "topic",
+                    models.CharField(
+                        blank=True,
+                        help_text="Optional topic for the day",
+                        max_length=255,
+                        null=True,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "offering",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sessions",
+                        to="course.semestercourse",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='AttendanceRecord',
+            name="AttendanceRecord",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('status', models.CharField(choices=[('PRESENT', 'Present'), ('ABSENT', 'Absent'), ('EXCUSED', 'Excused')], max_length=10)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('marked_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='marked_attendances', to=settings.AUTH_USER_MODEL)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance_records', to=settings.AUTH_USER_MODEL)),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance_records', to='course.coursesession')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PRESENT", "Present"),
+                            ("ABSENT", "Absent"),
+                            ("EXCUSED", "Excused"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "marked_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="marked_attendances",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="attendance_records",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "session",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="attendance_records",
+                        to="course.coursesession",
+                    ),
+                ),
             ],
         ),
         migrations.AddIndex(
-            model_name='courseoffering',
-            index=models.Index(fields=['academic_year', 'semester'], name='course_cour_academi_5ccf5f_idx'),
+            model_name="semestercourse",
+            index=models.Index(
+                fields=["academic_year", "semester"],
+                name="course_cour_academi_5ccf5f_idx",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='courseoffering',
-            constraint=models.UniqueConstraint(fields=('course', 'academic_year', 'semester'), name='unique_course_offering'),
+            model_name="semestercourse",
+            constraint=models.UniqueConstraint(
+                fields=("course", "academic_year", "semester"),
+                name="unique_course_offering",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='courseenrollment',
-            constraint=models.UniqueConstraint(fields=('offering', 'student'), name='unique_course_enrollment'),
+            model_name="courseenrollment",
+            constraint=models.UniqueConstraint(
+                fields=("offering", "student"), name="unique_course_enrollment"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='coursesession',
-            constraint=models.UniqueConstraint(fields=('offering', 'date'), name='unique_course_session_date'),
+            model_name="coursesession",
+            constraint=models.UniqueConstraint(
+                fields=("offering", "date"), name="unique_course_session_date"
+            ),
         ),
         migrations.AddIndex(
-            model_name='attendancerecord',
-            index=models.Index(fields=['student', 'status'], name='course_atte_student_ed633c_idx'),
+            model_name="attendancerecord",
+            index=models.Index(
+                fields=["student", "status"], name="course_atte_student_ed633c_idx"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='attendancerecord',
-            constraint=models.UniqueConstraint(fields=('session', 'student'), name='unique_attendance_per_session'),
+            model_name="attendancerecord",
+            constraint=models.UniqueConstraint(
+                fields=("session", "student"), name="unique_attendance_per_session"
+            ),
         ),
     ]

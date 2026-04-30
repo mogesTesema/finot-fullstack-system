@@ -2,7 +2,7 @@ from django.contrib import admin
 from unfold.admin import ModelAdmin
 from .models import (
     Course, 
-    CourseOffering, 
+    SemesterCourse, 
     CourseEnrollment, 
     CourseSession, 
     AttendanceRecord, 
@@ -17,8 +17,8 @@ class CourseAdmin(ModelAdmin):
     search_fields = ('title',)
 
 
-@admin.register(CourseOffering)
-class CourseOfferingAdmin(ModelAdmin):
+@admin.register(SemesterCourse)
+class SemesterCourseAdmin(ModelAdmin):
     list_display = ('course', 'academic_year', 'semester', 'created_at')
     list_filter = ('academic_year', 'semester', 'course__title')
     search_fields = ('course__title',)
@@ -27,17 +27,17 @@ class CourseOfferingAdmin(ModelAdmin):
 
 @admin.register(CourseEnrollment)
 class CourseEnrollmentAdmin(ModelAdmin):
-    list_display = ('student', 'offering', 'enrolled_at')
-    list_filter = ('offering__academic_year', 'offering__semester')
-    search_fields = ('student__username', 'student__email', 'offering__course__title')
-    autocomplete_fields = ['student', 'offering']
+    list_display = ('student', 'semester_course', 'enrolled_at')
+    list_filter = ('semester_course__academic_year', 'semester_course__semester')
+    search_fields = ('student__username', 'student__email', 'semester_course__course__title')
+    autocomplete_fields = ['student', 'semester_course']
 
 
 @admin.register(CourseSession)
 class CourseSessionAdmin(ModelAdmin):
-    list_display = ('offering', 'date', 'topic')
-    list_filter = ('date', 'offering__academic_year')
-    search_fields = ('offering__course__title', 'topic')
+    list_display = ('semester_course', 'date', 'topic')
+    list_filter = ('date', 'semester_course__academic_year')
+    search_fields = ('semester_course__course__title', 'topic')
 
 
 @admin.register(AttendanceRecord)
@@ -49,5 +49,5 @@ class AttendanceRecordAdmin(ModelAdmin):
 
 @admin.register(CourseMaterial)
 class CourseMaterialAdmin(ModelAdmin):
-    list_display = ('title', 'offering', 'uploaded_at')
-    search_fields = ('title', 'offering__course__title')
+    list_display = ('title', 'semester_course', 'uploaded_at')
+    search_fields = ('title', 'semester_course__course__title')
