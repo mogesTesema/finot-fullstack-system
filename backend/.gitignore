@@ -47,3 +47,6 @@ finot_decoded.env
 debug_test.txt
 test_upload.txt
 finot_database_schemma*.sql
+database_optimization.md
+*_plan.md
+/zp_docs/

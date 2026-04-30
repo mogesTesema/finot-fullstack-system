@@ -157,12 +157,18 @@ class PushChannel(NotificationChannel):
         )
 
     def on_event_published(self, event):
-        """Push notification to all active users about a new event efficiently."""
-        # Query ALL device tokens for active users in a single query
-        device_tokens = list(
-            FCMDeviceToken.objects.filter(user__is_active=True)
-            .values_list('device_token', flat=True)
-        )
+        """Push notification to relevant active users about a new event efficiently."""
+        from service.models import ServiceGroupMembership
+
+        tokens_qs = FCMDeviceToken.objects.filter(user__is_active=True)
+
+        if event.service_group:
+            tokens_qs = tokens_qs.filter(
+                user__service_membership__service_group=event.service_group,
+                user__service_membership__status=ServiceGroupMembership.ACTIVE
+            )
+
+        device_tokens = list(tokens_qs.values_list('device_token', flat=True))
 
         if not device_tokens:
             return

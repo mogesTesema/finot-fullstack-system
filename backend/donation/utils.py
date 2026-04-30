@@ -36,7 +36,7 @@ class ChapaPayment:
             payload['callback_url'] = callback_url
 
         try:
-            response = requests.post(self.CHAPA_URL, json=payload, headers=self.headers)
+            response = requests.post(self.CHAPA_URL, json=payload, headers=self.headers, timeout=10)
             response.raise_for_status() # Raise error for 4xx/5xx
             
             data = response.json()
@@ -56,7 +56,7 @@ class ChapaPayment:
         url = f"{self.CHAPA_VERIFY_URL}{tx_ref}"
         
         try:
-            response = requests.get(url, headers=self.headers)
+            response = requests.get(url, headers=self.headers, timeout=10)
             response.raise_for_status()
             
             data = response.json()

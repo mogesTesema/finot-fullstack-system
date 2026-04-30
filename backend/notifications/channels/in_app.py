@@ -37,10 +37,19 @@ class InAppChannel(NotificationChannel):
         )
 
     def on_event_published(self, event):
-        """Create in-app notification records for all active users."""
+        """Create in-app notification records for relevant active users."""
         from core.models import User
+        from service.models import ServiceGroupMembership
 
-        active_users = User.objects.filter(is_active=True)
+        users_qs = User.objects.filter(is_active=True)
+
+        if event.service_group:
+            users_qs = users_qs.filter(
+                service_membership__service_group=event.service_group,
+                service_membership__status=ServiceGroupMembership.ACTIVE
+            )
+
+        active_users = users_qs.all()
         notifications = [
             Notification(
                 user=user,

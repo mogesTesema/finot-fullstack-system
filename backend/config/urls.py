@@ -28,6 +28,7 @@ urlpatterns = [
     path("api/qa/", include("questionanswer.urls")),
     path("api/donations/", include("donation.urls")),
     path("api/notifications/", include("notifications.urls")),
+    path("api/course/", include("course.urls")),
 ]
 
 

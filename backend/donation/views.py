@@ -76,7 +76,8 @@ class InitiateDonationView(generics.GenericAPIView):
                             fund_category=fund_category,
                             payment=payment,
                         )
-            except Exception as e:
+            except Exception:
+                logger.error("Failed to create donation record.", exc_info=True)
                 return Response(
                     {"error": "Failed to create donation record."},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -105,7 +106,7 @@ class InitiateDonationView(generics.GenericAPIView):
                     status=status.HTTP_201_CREATED,
                 )
 
-            except Exception as e:
+            except Exception:
                 logger.error(
                     "Chapa payment initiation failed for tx_ref=%s",
                     tx_ref,
