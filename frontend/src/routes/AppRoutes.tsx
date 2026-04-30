@@ -22,6 +22,8 @@ import EditProfile from "../pages/profile/EditProfile";
 import AnonymousIntro from "../pages/qa/AnonymousIntro";
 import QuestionList from "../pages/qa/QuestionList";
 import AskQuestion from "../pages/qa/AskQuestion";
+import ResourcesList from "../pages/resources/ResourcesList";
+import UploadResource from "../pages/resources/UploadResource";
 
 import {
   DonationOutside,
@@ -52,7 +54,6 @@ export default function AppRoutes() {
             element={<ResetPasswordConfirmPage />}
           />
           <Route path="anonymous" element={<AnonymousIntro />} />
-          <Route path="admin/teacher" element={<TeacherQaDashboard />}/>
           <Route path="anonymous/questions" element={<QuestionList />} />
           <Route path="anonymous/ask" element={<AskQuestion />} />
           <Route path="donate" element={<DonationOutside />} />
@@ -64,7 +65,7 @@ export default function AppRoutes() {
           <Route
             element={
               <ProtectedRoute
-                allowedRoles={["student", "service_admin"]}
+                allowedRoles={["student", "service_admin", "teacher", "family_admin"]}
               />
             }
           >
@@ -84,14 +85,18 @@ export default function AppRoutes() {
               <Route path="donations/profile" element={<DonationProfile />} />
               <Route path="questions" element={<DashboardQuestions />} />
               <Route path="questions/ask" element={<AskQuestion />} />
-              <Route path="notifications" element={<DashboardNotifications />} />
+              <Route path="notifications" element={<DashboardNotifications />}/>
+              <Route path="resources" element={<ResourcesList />} />
               {/* Admin‑only routes inside dashboard layout */}
               <Route
                 element={
-                  <ProtectedRoute allowedRoles={["service_admin"]} />
+                  <ProtectedRoute allowedRoles={["service_admin", "teacher", "resource_admin"]} />
+
                 }
               >
-                <Route path="manage-ageglot" element={<ManageAgeglotDashboard />} />
+              <Route path="manage-ageglot" element={<ManageAgeglotDashboard />} />
+              <Route path="teacher/qa" element={<TeacherQaDashboard />}/>
+              <Route path="resources/upload" element={<UploadResource/>}/>
               </Route>
             </Route>
           </Route>
