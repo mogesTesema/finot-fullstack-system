@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "donation",
     "questionanswer",
     "notifications",
+    "course",
 ]
 
 MIDDLEWARE = [
