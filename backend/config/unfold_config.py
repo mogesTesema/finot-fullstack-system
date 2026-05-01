@@ -307,48 +307,48 @@ UNFOLD = {
                         "title": _("Curriculums"),
                         "icon": "menu_book",
                         "link": reverse_lazy("admin:course_course_changelist"),
-                        "permission": lambda request: request.user.has_perm(
-                            "course.view_course"
+                        "permission": lambda request: request.user.is_superuser or (
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin"]).exists()
                         ),
                     },
                     {
                         "title": _("Semester Courses"),
                         "icon": "calendar_month",
                         "link": reverse_lazy("admin:course_semestercourse_changelist"),
-                        "permission": lambda request: request.user.has_perm(
-                            "course.view_semestercourse"
+                        "permission": lambda request: request.user.is_superuser or (
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                         ),
                     },
                     {
                         "title": _("Enrollments"),
                         "icon": "how_to_reg",
                         "link": reverse_lazy("admin:course_courseenrollment_changelist"),
-                        "permission": lambda request: request.user.has_perm(
-                            "course.view_courseenrollment"
+                        "permission": lambda request: request.user.is_superuser or (
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                         ),
                     },
                     {
                         "title": _("Sessions"),
                         "icon": "schedule",
                         "link": reverse_lazy("admin:course_coursesession_changelist"),
-                        "permission": lambda request: request.user.has_perm(
-                            "course.view_coursesession"
+                        "permission": lambda request: request.user.is_superuser or (
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                         ),
                     },
                     {
                         "title": _("Attendance"),
                         "icon": "checklist",
                         "link": reverse_lazy("admin:course_attendancerecord_changelist"),
-                        "permission": lambda request: request.user.has_perm(
-                            "course.view_attendancerecord"
+                        "permission": lambda request: request.user.is_superuser or (
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                         ),
                     },
                     {
                         "title": _("Materials"),
                         "icon": "attach_file",
                         "link": reverse_lazy("admin:course_coursematerial_changelist"),
-                        "permission": lambda request: request.user.has_perm(
-                            "course.view_coursematerial"
+                        "permission": lambda request: request.user.is_superuser or (
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                         ),
                     },
                 ],
@@ -508,47 +508,48 @@ UNFOLD = {
                 {
                     "title": _("Curriculums"),
                     "link": reverse_lazy("admin:course_course_changelist"),
-                    "permission": lambda request: request.user.has_perm(
-                        "course.view_course"
+                    "permission": lambda request: request.user.is_superuser or (
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin"]).exists()
                     ),
                 },
                 {
                     "title": _("Semester Courses"),
                     "link": reverse_lazy("admin:course_semestercourse_changelist"),
-                    "permission": lambda request: request.user.has_perm(
-                        "course.view_semestercourse"
+                    "permission": lambda request: request.user.is_superuser or (
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                     ),
                 },
                 {
                     "title": _("Enrollments"),
                     "link": reverse_lazy("admin:course_courseenrollment_changelist"),
-                    "permission": lambda request: request.user.has_perm(
-                        "course.view_courseenrollment"
+                    "permission": lambda request: request.user.is_superuser or (
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                     ),
                 },
                 {
                     "title": _("Sessions"),
                     "link": reverse_lazy("admin:course_coursesession_changelist"),
-                    "permission": lambda request: request.user.has_perm(
-                        "course.view_coursesession"
+                    "permission": lambda request: request.user.is_superuser or (
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                     ),
                 },
                 {
                     "title": _("Attendance"),
                     "link": reverse_lazy("admin:course_attendancerecord_changelist"),
-                    "permission": lambda request: request.user.has_perm(
-                        "course.view_attendancerecord"
+                    "permission": lambda request: request.user.is_superuser or (
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                     ),
                 },
                 {
                     "title": _("Materials"),
                     "link": reverse_lazy("admin:course_coursematerial_changelist"),
-                    "permission": lambda request: request.user.has_perm(
-                        "course.view_coursematerial"
+                    "permission": lambda request: request.user.is_superuser or (
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
                     ),
                 },
             ],
         },
+
         {
             "models": [
                 "socialaccount.socialapp",
