@@ -41,12 +41,12 @@ class SemesterCourse(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course = models.ForeignKey(
-        Course, on_delete=models.CASCADE, related_name="offerings"
+        Course, on_delete=models.CASCADE, related_name="semester_courses"
     )
     academic_year = models.PositiveIntegerField(help_text="Start year, e.g., 2026")
     semester = models.PositiveIntegerField(choices=SEMESTER_CHOICES)
     teachers = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="teaching_offerings", blank=True
+        settings.AUTH_USER_MODEL, related_name="teaching_semester_courses", blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -54,7 +54,7 @@ class SemesterCourse(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["course", "academic_year", "semester"],
-                name="unique_course_offering",
+                name="unique_semester_course",
             )
         ]
         indexes = [
@@ -67,7 +67,7 @@ class SemesterCourse(models.Model):
 
 class CourseEnrollment(models.Model):
     """
-    The junction table linking a student to a specific CourseOffering.
+    The junction table linking a student to a specific SemesterCourse.
     This preserves exact historical data as students progress.
     """
 
@@ -165,7 +165,7 @@ class AttendanceRecord(models.Model):
 
 class CourseMaterial(models.Model):
     """
-    Files, PDFs, or links provided by a teacher for a specific CourseOffering.
+    Files, PDFs, or links provided by a teacher for a specific SemesterCourse.
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
