@@ -1,6 +1,10 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.shortcuts import render, redirect
+from django import forms
 from unfold.admin import ModelAdmin
-from core.models import Role
+from unfold.decorators import action
+from core.models import Role, User
+from student.models import StudentProfile
 from .models import (
     Course, 
     SemesterCourse, 
@@ -9,6 +13,13 @@ from .models import (
     AttendanceRecord, 
     CourseMaterial
 )
+
+class BatchEnrollForm(forms.Form):
+    batch_year = forms.IntegerField(
+        min_value=1, 
+        max_value=5, 
+        help_text="Enter the batch year (1-5) of students to enroll."
+    )
 
 
 def is_superadmin(user):
@@ -71,6 +82,59 @@ class SemesterCourseAdmin(ModelAdmin):
         
     def has_delete_permission(self, request, obj=None):
         return is_superadmin(request.user)
+
+    actions_detail = ["enroll_batch_students"]
+
+    @action(description="Enroll Batch Students")
+    def enroll_batch_students(self, request, object_id):
+        if not is_superadmin(request.user):
+            self.message_user(request, "Permission denied. Only SuperAdmins can perform this action.", level=messages.ERROR)
+            return redirect("admin:course_semestercourse_change", object_id)
+            
+        course = self.get_object(request, object_id)
+        if not course:
+            return redirect("admin:course_semestercourse_changelist")
+
+        if request.method == "POST":
+            form = BatchEnrollForm(request.POST)
+            if form.is_valid():
+                batch_year = form.cleaned_data["batch_year"]
+                
+                # Filter active students in campus with the specified batch year
+                students = User.objects.filter(
+                    student_profile__batch_year=batch_year,
+                    student_profile__status=StudentProfile.IN_CAMPUS
+                )
+                
+                if not students.exists():
+                    self.message_user(request, f"No active students found for batch {batch_year}.", level=messages.WARNING)
+                else:
+                    enrollments = [
+                        CourseEnrollment(semester_course=course, student=student)
+                        for student in students
+                    ]
+                    
+                    created = CourseEnrollment.objects.bulk_create(enrollments, ignore_conflicts=True)
+                    
+                    self.message_user(
+                        request, 
+                        f"Successfully enrolled {len(created)} active students from batch {batch_year}.",
+                        level=messages.SUCCESS
+                    )
+                    
+                return redirect("admin:course_semestercourse_change", object_id)
+        else:
+            initial_batch = course.course.batch_year if hasattr(course, 'course') and hasattr(course.course, 'batch_year') else None
+            form = BatchEnrollForm(initial={'batch_year': initial_batch})
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": f"Enroll Batch Students in {course}",
+            "form": form,
+            "opts": self.model._meta,
+            "object": course,
+        }
+        return render(request, "admin/enroll_batch.html", context)
 
 
 @admin.register(CourseEnrollment)
