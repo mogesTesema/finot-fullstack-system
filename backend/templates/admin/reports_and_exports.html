@@ -1,0 +1,153 @@
+{% extends "unfold/layouts/base.html" %}
+{% load i18n unfold %}
+
+{% block content %}
+<div class="px-4 py-6 md:px-6 lg:px-8">
+    <div class="bg-white dark:bg-gray-800 rounded-md shadow-sm p-6 max-w-5xl border border-gray-200 dark:border-gray-700">
+        
+        <div class="mb-6 flex flex-wrap items-center gap-4 border-b border-gray-200 dark:border-gray-700 pb-4">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                <span class="material-symbols-outlined align-middle mr-2">download</span>
+                Reports & Exports
+            </h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Export student data to CSV or JSON formats.</p>
+        </div>
+
+        <form method="post" action="{% url 'reports_and_exports' %}">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                {# ── Left Column: Filters ────────────────────────────────────── #}
+                <div>
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 border-b border-gray-100 dark:border-gray-700 pb-2">1. Filtering Criteria</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Target Batch <span class="text-gray-400 font-normal text-xs">(Optional)</span>
+                            </label>
+                            <select name="batch" class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-primary-500 focus:ring-primary-500">
+                                <option value="">All Batches (1-5)</option>
+                                <option value="1">Batch 1 (Freshers)</option>
+                                <option value="2">Batch 2</option>
+                                <option value="3">Batch 3</option>
+                                <option value="4">Batch 4</option>
+                                <option value="5">Batch 5</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Historical Year <span class="text-gray-400 font-normal text-xs">(Optional)</span>
+                            </label>
+                            <input type="number" name="year" placeholder="e.g. 2024" min="2000" max="2100" class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-primary-500 focus:ring-primary-500">
+                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Leave empty to export current active students for the selected batch.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Department <span class="text-gray-400 font-normal text-xs">(Optional)</span>
+                            </label>
+                            <select name="department" class="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-primary-500 focus:ring-primary-500">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                    <option value="{{ dept }}">{{ dept }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {# ── Right Column: Fields & Format ───────────────────────────── #}
+                <div>
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 border-b border-gray-100 dark:border-gray-700 pb-2">2. Data & Format</h3>
+                    
+                    <div class="space-y-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Fields to Export</label>
+                        
+                        <div class="grid grid-cols-2 gap-2 mb-4 bg-gray-50 dark:bg-gray-900 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+                            <!-- Mandatory Fields -->
+                            <div class="flex items-center">
+                                <input type="checkbox" checked disabled class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 bg-gray-100 dark:bg-gray-800">
+                                <label class="ml-2 block text-sm text-gray-500 dark:text-gray-400">First Name</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" checked disabled class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 bg-gray-100 dark:bg-gray-800">
+                                <label class="ml-2 block text-sm text-gray-500 dark:text-gray-400">Last Name</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" checked disabled class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 bg-gray-100 dark:bg-gray-800">
+                                <label class="ml-2 block text-sm text-gray-500 dark:text-gray-400">Username</label>
+                            </div>
+                            
+                            <!-- Selectable Fields -->
+                            <div class="flex items-center">
+                                <input type="checkbox" name="fields" value="email" checked class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                <label class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Email</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" name="fields" value="gender" checked class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                <label class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Gender</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" name="fields" value="department" checked class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                <label class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Department</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" name="fields" value="dorm_block" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                <label class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Dorm Block</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" name="fields" value="dorm_room" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                <label class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Dorm Room</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" name="fields" value="section" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                <label class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Section</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" name="fields" value="personal_phone" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                <label class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Personal Phone</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" name="fields" value="telegram_username" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                <label class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Telegram</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" name="fields" value="status" class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                <label class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Status</label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Export Format
+                            </label>
+                            <div class="flex gap-4">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="format" value="csv" checked class="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">CSV (Excel Compatible)</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="format" value="json" class="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-500">
+                                    <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">JSON</span>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="mt-8 pt-5 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                <button type="submit" class="bg-primary-600 text-white px-6 py-2.5 rounded-md hover:bg-primary-700 text-sm font-medium transition-colors cursor-pointer border border-transparent shadow-sm flex items-center">
+                    <span class="material-symbols-outlined mr-2 text-[20px]">file_download</span>
+                    Generate Export
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -389,6 +389,22 @@ UNFOLD = {
                     },
                 ],
             },
+            # — Reports & Exports —
+            {
+                "title": _("Reports & Exports"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Data Exporter"),
+                        "icon": "download",
+                        "link": reverse_lazy("reports_and_exports"),
+                        "permission": lambda request: request.user.is_superuser or (
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin"]).exists()
+                        ),
+                    },
+                ],
+            },
         ],
     },
     # -------------------------------------------------------------------------
