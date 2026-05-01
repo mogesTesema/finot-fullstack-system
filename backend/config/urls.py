@@ -17,9 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from analytics.admin_views import ExportDashboardView
 
 urlpatterns = [
     path('', include('core.urls')),
+    path('admin/reports-and-exports/', ExportDashboardView.as_view(), name='reports_and_exports'),
     path('admin/', admin.site.urls),
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "questionanswer",
     "notifications",
     "course",
+    "analytics",
 ]
 
 MIDDLEWARE = [
