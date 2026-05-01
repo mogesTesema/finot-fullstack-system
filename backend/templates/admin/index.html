@@ -146,6 +146,12 @@ Dashboard | {{ site_title|default:_('Finot Admin') }}
 </style>
 
 <div class="finot-dashboard">
+
+  <!-- ─── Dashboard Header ────────────────── -->
+  <div class="flex justify-between items-center mb-6 mt-2">
+    <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">System Overview</h1>
+  </div>
+
   <!-- ─── Stat Cards ──────────────────────────── -->
   <div class="stat-grid">
     <div class="stat-card">
@@ -191,7 +197,7 @@ Dashboard | {{ site_title|default:_('Finot Admin') }}
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon neutral"><span class="material-symbols-outlined">groups</span></div>
+      <div class="stat-icon warning"><span class="material-symbols-outlined">diversity_3</span></div>
       <div>
         <div class="stat-label">Service Groups</div>
         <div class="stat-value">{{ total_service_groups }}</div>
@@ -206,36 +212,91 @@ Dashboard | {{ site_title|default:_('Finot Admin') }}
     </div>
   </div>
 
+  <script>
+    function updateChartRange(param, value) {
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.set(param, value);
+      window.location.search = urlParams.toString();
+    }
+  </script>
+
   <!-- ─── Charts ──────────────────────────────── -->
   <div class="chart-grid">
     <!-- Donations Over Time -->
     <div class="chart-card">
-      <h3>📈 Donations Over Time</h3>
+      <div class="flex justify-between items-center mb-4">
+        <h3>📈 Donations Over Time</h3>
+        <select onchange="updateChartRange('don_range', this.value)" class="block rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs px-2 py-1 text-gray-800 dark:text-gray-200 shadow-sm cursor-pointer">
+          <option value="30d" {% if don_range == '30d' %}selected{% endif %}>Last 30 Days</option>
+          <option value="3m" {% if don_range == '3m' %}selected{% endif %}>Last 3 Months</option>
+          <option value="6m" {% if don_range == '6m' %}selected{% endif %}>Last 6 Months</option>
+          <option value="9m" {% if don_range == '9m' %}selected{% endif %}>Last 9 Months</option>
+          <option value="1y" {% if don_range == '1y' %}selected{% endif %}>Past Year</option>
+        </select>
+      </div>
       <canvas id="donationsOverTimeChart"></canvas>
     </div>
 
     <!-- Donations by Fund Category -->
     <div class="chart-card">
-      <h3>📊 Donations by Fund</h3>
+      <div class="mb-4">
+        <h3>📊 Donations by Fund</h3>
+      </div>
       <canvas id="donationsByFundChart"></canvas>
     </div>
 
     <!-- Students by Department -->
     <div class="chart-card">
-      <h3>🎓 Students by Department</h3>
+      <div class="mb-4">
+        <h3>🎓 Students by Department</h3>
+      </div>
       <canvas id="studentsByDeptChart"></canvas>
     </div>
 
     <!-- Attendance Rate -->
     <div class="chart-card">
-      <h3>✅ Attendance Breakdown</h3>
+      <div class="mb-4">
+        <h3>✅ Attendance Breakdown</h3>
+      </div>
       <canvas id="attendanceChart"></canvas>
     </div>
 
     <!-- Events by Status -->
     <div class="chart-card">
-      <h3>📅 Events Overview</h3>
+      <div class="mb-4">
+        <h3>📅 Events Overview</h3>
+      </div>
       <canvas id="eventsChart"></canvas>
+    </div>
+
+    <!-- Attendance Progress -->
+    <div class="chart-card">
+      <div class="flex justify-between items-center mb-4">
+        <h3>📈 Attendance Progress (% Present)</h3>
+        <select onchange="updateChartRange('att_range', this.value)" class="block rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs px-2 py-1 text-gray-800 dark:text-gray-200 shadow-sm cursor-pointer">
+          <option value="30d" {% if att_range == '30d' %}selected{% endif %}>Last 30 Days</option>
+          <option value="3m" {% if att_range == '3m' %}selected{% endif %}>Last 3 Months</option>
+          <option value="6m" {% if att_range == '6m' %}selected{% endif %}>Last 6 Months</option>
+          <option value="9m" {% if att_range == '9m' %}selected{% endif %}>Last 9 Months</option>
+          <option value="1y" {% if att_range == '1y' %}selected{% endif %}>Past Year</option>
+        </select>
+      </div>
+      <canvas id="attendanceProgressChart"></canvas>
+    </div>
+
+    <!-- Q&A Progress -->
+    <div class="chart-card">
+      <div class="flex justify-between items-center mb-4">
+        <h3>💬 Q&A Volume Over Time</h3>
+        <select onchange="updateChartRange('qa_range', this.value)" class="block rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs px-2 py-1 text-gray-800 dark:text-gray-200 shadow-sm cursor-pointer">
+          <option value="30d" {% if qa_range == '30d' %}selected{% endif %}>Last 30 Days</option>
+          <option value="3m" {% if qa_range == '3m' %}selected{% endif %}>Last 3 Months</option>
+          <option value="6m" {% if qa_range == '6m' %}selected{% endif %}>Last 6 Months</option>
+          <option value="9m" {% if qa_range == '9m' %}selected{% endif %}>Last 9 Months</option>
+          <option value="1y" {% if qa_range == '1y' %}selected{% endif %}>Past Year</option>
+        </select>
+      </div>
+      <canvas id="qaProgressChart"></canvas>
     </div>
   </div>
 </div>
@@ -331,51 +392,120 @@ Dashboard | {{ site_title|default:_('Finot Admin') }}
     }
   });
 
-    const attendanceData = [{{ attendance_present }}, {{ attendance_late }}, {{ attendance_absent }}, {{ attendance_excused }}];
-    const attendanceSum = attendanceData.reduce((a, b) => a + b, 0);
-
-    new Chart(document.getElementById('attendanceChart'), {
-      type: 'doughnut',
-      data: {
-        labels: attendanceSum === 0 ? ['No Data'] : ['Present', 'Late', 'Absent', 'Excused'],
-        datasets: [{
-          data: attendanceSum === 0 ? [1] : attendanceData,
-          backgroundColor: attendanceSum === 0 ? ['#F3F4F6'] : [finotBlue, finotYellow, '#FCA5A5', '#D1D5DB'],
-          borderWidth: 0,
-          hoverOffset: 8,
-        }]
+  // ── Attendance Breakdown Doughnut ─────────────
+  const attendanceData = [{{ attendance_present }}, {{ attendance_late }}, {{ attendance_absent }}, {{ attendance_excused }}];
+  const attendanceSum = attendanceData.reduce((a, b) => a + b, 0);
+  new Chart(document.getElementById('attendanceChart'), {
+    type: 'doughnut',
+    data: {
+      labels: attendanceSum === 0 ? ['No Data'] : ['Present', 'Late', 'Absent', 'Excused'],
+      datasets: [{
+        data: attendanceSum === 0 ? [1] : attendanceData,
+        backgroundColor: attendanceSum === 0 ? ['#F3F4F6'] : [finotBlue, finotYellow, '#FCA5A5', '#D1D5DB'],
+        borderWidth: 0,
+        hoverOffset: 8,
+      }]
     },
     options: {
-    responsive: true,
-    cutout: '65%',
-    plugins: {
-      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+      responsive: true,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+      }
     }
-  }
   });
 
-    const eventsData = [{{ events_upcoming }}, {{ events_ongoing }}, {{ events_completed }}];
-    const eventsSum = eventsData.reduce((a, b) => a + b, 0);
-
-    new Chart(document.getElementById('eventsChart'), {
-      type: 'doughnut',
-      data: {
-        labels: eventsSum === 0 ? ['No Data'] : ['Upcoming', 'Ongoing', 'Completed'],
-        datasets: [{
-          data: eventsSum === 0 ? [1] : eventsData,
-          backgroundColor: eventsSum === 0 ? ['#F3F4F6'] : ['#93C5FD', finotYellow, finotBlue],
-          borderWidth: 0,
-          hoverOffset: 8,
-        }]
+  // ── Events Overview Doughnut ──────────────────
+  const eventsData = [{{ events_upcoming }}, {{ events_ongoing }}, {{ events_completed }}];
+  const eventsSum = eventsData.reduce((a, b) => a + b, 0);
+  new Chart(document.getElementById('eventsChart'), {
+    type: 'doughnut',
+    data: {
+      labels: eventsSum === 0 ? ['No Data'] : ['Upcoming', 'Ongoing', 'Completed'],
+      datasets: [{
+        data: eventsSum === 0 ? [1] : eventsData,
+        backgroundColor: eventsSum === 0 ? ['#F3F4F6'] : ['#93C5FD', finotYellow, finotBlue],
+        borderWidth: 0,
+        hoverOffset: 8,
+      }]
     },
     options: {
-    responsive: true,
-    cutout: '65%',
-    plugins: {
-      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+      responsive: true,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+      }
     }
-  }
   });
-});
+
+  // ── Attendance Progress Line Chart ─────────────
+  const attLabels = {{ attendance_progress_labels|safe|default:"['No Data']" }};
+  const attRates = {{ attendance_progress_rates|safe|default:"[0]" }};
+  new Chart(document.getElementById('attendanceProgressChart'), {
+    type: 'line',
+    data: {
+      labels: attLabels,
+      datasets: [{
+        label: 'Attendance Rate (%)',
+        data: attRates,
+        borderColor: '#10B981',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: '#10B981',
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, max: 100, grid: { color: gridColor } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // ── Q&A Progress Line Chart ────────────────────
+  const qaLabels = {{ qa_progress_labels|safe|default:"['No Data']" }};
+  const qaAsked = {{ qa_progress_asked|safe|default:"[0]" }};
+  const qaAnswered = {{ qa_progress_answered|safe|default:"[0]" }};
+  new Chart(document.getElementById('qaProgressChart'), {
+    type: 'line',
+    data: {
+      labels: qaLabels,
+      datasets: [
+        {
+          label: 'Questions Asked',
+          data: qaAsked,
+          borderColor: '#F59E0B',
+          backgroundColor: 'transparent',
+          tension: 0.4,
+          pointRadius: 4,
+          borderWidth: 2,
+        },
+        {
+          label: 'Questions Answered',
+          data: qaAnswered,
+          borderColor: finotBlue,
+          backgroundColor: 'transparent',
+          tension: 0.4,
+          pointRadius: 4,
+          borderWidth: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: gridColor } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  });
 </script>
 {% endblock %}
