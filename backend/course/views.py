@@ -59,7 +59,7 @@ class CourseEnrollmentViewSet(viewsets.ModelViewSet):
     serializer_class = CourseEnrollmentSerializer
 
     def get_queryset(self):
-        qs = CourseEnrollment.objects.select_related('student', 'semester_course', 'semester_course__course')
+        qs = CourseEnrollment.objects.select_related('student', 'semester_course', 'semester_course__course').prefetch_related('semester_course__teachers', 'semester_course__teachers__roles')
         if self.request.user.roles.filter(name=Role.SUPER_ADMIN).exists():
             return qs
         return qs.filter(student=self.request.user)
@@ -91,7 +91,16 @@ class CourseSessionViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSessionSerializer
 
     def get_queryset(self):
-        return CourseSession.objects.select_related('semester_course', 'semester_course__course')
+        qs = CourseSession.objects.select_related('semester_course', 'semester_course__course')
+        user = self.request.user
+        if not user.is_authenticated:
+            return qs.none()
+        if user.roles.filter(name=Role.SUPER_ADMIN).exists():
+            return qs
+        return qs.filter(
+            semester_course__id__in=list(user.teaching_semester_courses.values_list('id', flat=True)) +
+                                    list(SemesterCourse.objects.filter(enrollments__student=user).values_list('id', flat=True))
+        ).distinct()
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
@@ -110,7 +119,7 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
     serializer_class = AttendanceRecordSerializer
 
     def get_queryset(self):
-        qs = AttendanceRecord.objects.select_related('student', 'session', 'session__semester_course')
+        qs = AttendanceRecord.objects.select_related('student', 'session', 'session__semester_course', 'marked_by')
         user = self.request.user
         if user.roles.filter(name=Role.SUPER_ADMIN).exists():
             return qs
@@ -169,7 +178,16 @@ class CourseMaterialViewSet(viewsets.ModelViewSet):
     serializer_class = CourseMaterialSerializer
 
     def get_queryset(self):
-        return CourseMaterial.objects.select_related('semester_course', 'semester_course__course')
+        qs = CourseMaterial.objects.select_related('semester_course', 'semester_course__course')
+        user = self.request.user
+        if not user.is_authenticated:
+            return qs.none()
+        if user.roles.filter(name=Role.SUPER_ADMIN).exists():
+            return qs
+        return qs.filter(
+            semester_course__id__in=list(user.teaching_semester_courses.values_list('id', flat=True)) +
+                                    list(SemesterCourse.objects.filter(enrollments__student=user).values_list('id', flat=True))
+        ).distinct()
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
