@@ -140,6 +140,7 @@
     "welcome_back": "Welcome back, {{name}}! \ud83d\udc4b",
     "not_assigned": "Not assigned",
     "tab_overview": "Overview",
+    "resouces": "Resources",
     "tab_events": "Events",
     "tab_family": "Family",
     "tab_attendance": "Attendance",
@@ -235,6 +236,8 @@
     "saving": "Saving...",
     "save_changes": "Save Changes",
     "profile_update_success": "Profile updated successfully.",
+    "manage_events": "Manage Events",
+    "manage_events_description": "Create and manage your fellowship events",
 
     "anonymous_qa_desc": "Ask safely & privately",
     "ask_anonymously_desc": "Choose a nickname and ask questions safely without revealing your identity.",

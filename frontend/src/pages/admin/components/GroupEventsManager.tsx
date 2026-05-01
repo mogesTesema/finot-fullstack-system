@@ -24,7 +24,7 @@ const emptyForm: EventFormData = {
 
 type StatusFilter = "ALL" | "UPCOMING" | "ONGOING" | "COMPLETED";
 
-export default function GroupEventsManager({ groupId }: { groupId: number }) {
+export default function GroupEventsManager({ groupId }: { groupId?: number | null }) {
   const { t } = useTranslation();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

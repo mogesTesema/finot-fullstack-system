@@ -45,7 +45,6 @@ const Sidebar = ({ notifCount = 0, onLogout }: SidebarProps) => {
     { to: "/dashboard/questions", label: t("qa_forum"), icon: ChatBubbleLeftRightIcon },
     { to: "/dashboard/donations", label: t("donation"), icon: HeartIcon, badge: donationReminder ? 1 : 0 },
     { to: "/dashboard/service", label: t("services"), icon: Squares2X2Icon },
-    { to: "dashboard/resources", label: t("resources"), icon: DocumentIcon },  // ADD THIS
   ];
 
   if (role === "ServiceAdmin" || role === "service_admin") {

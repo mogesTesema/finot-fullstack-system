@@ -38,6 +38,7 @@ import ManageAgeglotDashboard from "../pages/admin/ManageAgeglotDashboard";
 import ProtectedRoute from "../features/auth/components/ProtectedRoute";
 import CourseManagement from "@/pages/admin/CourseManagement";
 import TakeAttendance from "@/pages/admin/TakeAttendance";
+import EventManagement from "@/pages/admin/EventManagement";
 
 export default function AppRoutes() {
   return (
@@ -76,7 +77,7 @@ export default function AppRoutes() {
               <Route path="profile" element={<DashboardProfile />} />
               <Route path="profile/edit" element={<EditProfile />} />
               <Route path="events" element={<DashboardEvents />} />
-              <Route path="attendance/event" element={<DashboardAttendance />} />
+              <Route path="attendance" element={<DashboardAttendance />} />
               <Route path="family" element={<DashboardFamily />} />
               <Route path="service" element={<DashboardService />} />
               <Route path="service/:id" element={<ServiceGroupDetail />} />
@@ -89,6 +90,7 @@ export default function AppRoutes() {
               <Route path="questions/ask" element={<AskQuestion />} />
               <Route path="notifications" element={<DashboardNotifications />}/>
               <Route path="resources" element={<ResourcesList />} />
+              <Route path="event-management" element={<EventManagement/>}/>
               {/* Admin‑only routes inside dashboard layout */}
               <Route
                 element={

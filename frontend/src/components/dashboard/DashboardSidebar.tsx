@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import { AuthUser } from "../../types";
-import { FiGrid, FiUser, FiCalendar, FiCheckCircle, FiUsers, FiBriefcase, FiHeart, FiMessageCircle, FiBell, FiLogOut, FiChevronLeft, FiChevronRight, FiSettings } from "react-icons/fi";
+import { FiGrid, FiUser, FiCalendar, FiCheckCircle, FiUsers, FiBriefcase, FiHeart, FiMessageCircle, FiBell, FiLogOut, FiChevronLeft, FiChevronRight, FiSettings, FiFile } from "react-icons/fi";
 
 type NavItem = {
   to: string;
@@ -39,9 +39,10 @@ const DashboardSidebar = ({
     { to: "/dashboard/events", label: t("tab_events"), icon: FiCalendar },
     { to: "/dashboard/attendance", label: t("tab_attendance"), icon: FiCheckCircle },
     { to: "/dashboard/family", label: t("tab_family"), icon: FiUsers },
+    { to: "/dashboard/questions", label: t("qa"), icon: FiMessageCircle },
     { to: "/dashboard/service", label: t("tab_groups"), icon: FiBriefcase },
     { to: "/dashboard/donations", label: t("donation"), icon: FiHeart },
-    { to: "/dashboard/questions", label: t("qa"), icon: FiMessageCircle },
+    { to: "/dashboard/resources", label: t("resources"), icon: FiFile },    
   ];
 
   // Add admin routes
@@ -49,6 +50,9 @@ const DashboardSidebar = ({
     navItems.push({ to: "/dashboard/manage-ageglot", label: t("manage_ageglot"), icon: FiSettings });
   }
 
+  if (role === "teacher" || role === "Teacher") {
+    navItems.push({ to: "/dashboard/teacher/qa", label: t("Management Question"), icon: FiMessageCircle });
+  }
   // Super admin is handled entirely via Django admin panel — no frontend route needed.
 
   return (

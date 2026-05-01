@@ -77,20 +77,6 @@ const Navbar = () => {
                 <ChatBubbleLeftRightIcon className="h-4 w-4" />
                 {t("anonymous_qa")}
               </Link>
-              {/* Resources Link - Only show when user is logged in */}
-              {localStorage.getItem("access_token") && (
-                <Link
-                  to="/resources"
-                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
-                    scrolled
-                      ? "text-foreground hover:text-accent hover:bg-muted"
-                      : "text-white/90 hover:text-accent hover:bg-white/10"
-                  }`}
-                >
-                  <DocumentIcon className="h-4 w-4" />
-                  {t("resources")}
-                </Link>
-              )}
             </div>
           </div>
 
@@ -194,17 +180,6 @@ const Navbar = () => {
                   <ChatBubbleLeftRightIcon className="h-4 w-4 flex-shrink-0" />
                   {t("anonymous_qa")}
                 </Link>
-                {/* Resources Link - Mobile */}
-                {localStorage.getItem("access_token") && (
-                  <Link
-                    to="/resources"
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-2 py-3 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium text-sm"
-                  >
-                    <DocumentIcon className="h-4 w-4 flex-shrink-0" />
-                    {t("resources")}
-                  </Link>
-                )}
                 <Link
                   to="/contact"
                   onClick={() => setIsOpen(false)}
