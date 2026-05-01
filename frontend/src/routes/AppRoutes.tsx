@@ -36,6 +36,8 @@ import ServiceGroupDetail from "../pages/service/ServiceGroupDetail";
 import PreferenceForm from "../pages/service/PreferenceForm";
 import ManageAgeglotDashboard from "../pages/admin/ManageAgeglotDashboard";
 import ProtectedRoute from "../features/auth/components/ProtectedRoute";
+import CourseManagement from "@/pages/admin/CourseManagement";
+import TakeAttendance from "@/pages/admin/TakeAttendance";
 
 export default function AppRoutes() {
   return (
@@ -74,7 +76,7 @@ export default function AppRoutes() {
               <Route path="profile" element={<DashboardProfile />} />
               <Route path="profile/edit" element={<EditProfile />} />
               <Route path="events" element={<DashboardEvents />} />
-              <Route path="attendance" element={<DashboardAttendance />} />
+              <Route path="attendance/event" element={<DashboardAttendance />} />
               <Route path="family" element={<DashboardFamily />} />
               <Route path="service" element={<DashboardService />} />
               <Route path="service/:id" element={<ServiceGroupDetail />} />
@@ -95,6 +97,8 @@ export default function AppRoutes() {
                 }
               >
               <Route path="manage-ageglot" element={<ManageAgeglotDashboard />} />
+              <Route path="courses" element={<CourseManagement/>}/>
+              <Route path="take-attendance" element={<TakeAttendance/>}/>
               <Route path="teacher/qa" element={<TeacherQaDashboard />}/>
               <Route path="resources/upload" element={<UploadResource/>}/>
               </Route>

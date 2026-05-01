@@ -80,7 +80,7 @@ const Navbar = () => {
               {/* Resources Link - Only show when user is logged in */}
               {localStorage.getItem("access_token") && (
                 <Link
-                  to="/dashboard/resources"
+                  to="/resources"
                   className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
                     scrolled
                       ? "text-foreground hover:text-accent hover:bg-muted"
@@ -197,7 +197,7 @@ const Navbar = () => {
                 {/* Resources Link - Mobile */}
                 {localStorage.getItem("access_token") && (
                   <Link
-                    to="/dashboard/resources"
+                    to="/resources"
                     onClick={() => setIsOpen(false)}
                     className="flex items-center gap-2 py-3 px-4 text-foreground hover:text-accent hover:bg-muted rounded-xl transition font-medium text-sm"
                   >

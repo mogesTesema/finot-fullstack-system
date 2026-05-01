@@ -3,6 +3,7 @@ import axiosInstance from './axios';
 import { AuthUser, AttendanceRecord, Donation, Event, Question, PaginatedResponse, ServiceGroup, ServiceSelection } from '../types';
 import { privateQaMockApi, MockPrivateQuestion, MockPrivateAnswer } from './privateQaMockApi';
 import { Resource } from '@/types/resource';
+import {Course, CourseSession, CourseAttendance, CourseWithDetails} from '@types/course'
 export const BACKEND_PAGE_SIZE = 20;
 
 /**
@@ -470,6 +471,126 @@ getResourceCategories: async (): Promise<{ id: string; name: string; icon: strin
     { id: "LINK", name: "Link", icon: "LinkIcon" },
     { id: "OTHER", name: "Other", icon: "FolderIcon" },
   ]);
+},
+
+// ========== COURSE ATTENDANCE API ==========
+
+// Get all courses (for Course Admin)
+getCourses: async (): Promise<Course[]> => {
+  const response = await apiClient.get('/courses');
+  return response.data;
+},
+
+// Get courses by batch year (for students to see their courses)
+getCoursesByBatch: async (batchYear: number): Promise<Course[]> => {
+  const response = await apiClient.get(`/courses?batch_year=${batchYear}`);
+  return response.data;
+},
+
+// Create new course
+createCourse: async (data: Omit<Course, 'id' | 'created_at'>): Promise<Course> => {
+  const response = await apiClient.post('/courses', {
+    ...data,
+    id: Date.now().toString(),
+    created_at: new Date().toISOString(),
+  });
+  return response.data;
+},
+
+// Get students by batch year
+getStudentsByBatch: async (batchYear: number): Promise<AuthUser[]> => {
+  // Get all users with student role and matching batch
+  const response = await apiClient.get('/users');
+  const allUsers = response.data;
+  // Filter students by batch year from their profile
+  // This assumes you have a way to get batch. For mock, return mock data
+  return allUsers.filter((u: any) => u.batch_year === batchYear);
+},
+
+// Get course sessions
+getCourseSessions: async (courseId: string): Promise<CourseSession[]> => {
+  const response = await apiClient.get(`/course_sessions?course_id=${courseId}`);
+  return response.data;
+},
+
+// Create session and mark attendance
+createSession: async (data: {
+  course_id: string;
+  session_date: string;
+  taken_by: number;
+  notes?: string;
+  attendances: { student_id: number; status: AttendanceStatus; remark?: string }[];
+}): Promise<{ session: CourseSession; attendances: CourseAttendance[] }> => {
+  // Create session
+  const sessionResponse = await apiClient.post('/course_sessions', {
+    id: Date.now().toString(),
+    course_id: data.course_id,
+    session_date: data.session_date,
+    taken_by: data.taken_by,
+    notes: data.notes || null,
+    created_at: new Date().toISOString(),
+  });
+  
+  const session = sessionResponse.data;
+  
+  // Create attendance records
+  const attendances = [];
+  for (const att of data.attendances) {
+    const attResponse = await apiClient.post('/course_attendance', {
+      id: Date.now().toString() + Math.random(),
+      session_id: session.id,
+      student_id: att.student_id,
+      status: att.status,
+      remark: att.remark || null,
+      recorded_at: new Date().toISOString(),
+    });
+    attendances.push(attResponse.data);
+  }
+  
+  return { session, attendances };
+},
+
+// Get my course attendance (for student)
+getMyCourseAttendance: async (studentId: number): Promise<CourseAttendance[]> => {
+  const response = await apiClient.get(`/course_attendance?student_id=${studentId}`);
+  return response.data;
+},
+
+// Get attendance with session and course details
+getMyAttendanceWithDetails: async (studentId: number): Promise<StudentAttendanceRecord[]> => {
+  // Get all attendance records for student
+  const attendanceResponse = await apiClient.get(`/course_attendance?student_id=${studentId}`);
+  const attendances = attendanceResponse.data;
+  
+  // Get all sessions
+  const sessionsResponse = await apiClient.get('/course_sessions');
+  const sessions = sessionsResponse.data;
+  
+  // Get all courses
+  const coursesResponse = await apiClient.get('/courses');
+  const courses = coursesResponse.data;
+  
+  // Join data
+  const records: StudentAttendanceRecord[] = [];
+  for (const att of attendances) {
+    const session = sessions.find((s: any) => s.id === att.session_id);
+    if (session) {
+      const course = courses.find((c: any) => c.id === session.course_id);
+      if (course) {
+        records.push({
+          courseName: course.name,
+          sessionDate: session.session_date,
+          status: att.status,
+          remark: att.remark,
+          venue: course.venue,
+          startTime: course.start_time,
+          endTime: course.end_time,
+        });
+      }
+    }
+  }
+  
+  return records;
 },
 
 
