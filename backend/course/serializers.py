@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 from .models import (
     Course,
     SemesterCourse,
@@ -48,6 +49,13 @@ class CourseEnrollmentSerializer(serializers.ModelSerializer):
         model = CourseEnrollment
         fields = ['id', 'semester_course', 'semester_course_details', 'student', 'student_details', 'enrolled_at']
         read_only_fields = ['id', 'enrolled_at']
+        validators = [
+            UniqueTogetherValidator(
+                queryset=CourseEnrollment.objects.all(),
+                fields=['semester_course', 'student'],
+                message="This student is already enrolled in this semester course."
+            )
+        ]
 
 
 class CourseSessionSerializer(serializers.ModelSerializer):
@@ -58,6 +66,13 @@ class CourseSessionSerializer(serializers.ModelSerializer):
         model = CourseSession
         fields = ['id', 'semester_course', 'date', 'topic', 'created_at']
         read_only_fields = ['id', 'created_at']
+        validators = [
+            UniqueTogetherValidator(
+                queryset=CourseSession.objects.all(),
+                fields=['semester_course', 'date'],
+                message="A session for this course already exists on this date."
+            )
+        ]
 
 
 class AttendanceRecordSerializer(serializers.ModelSerializer):
@@ -71,6 +86,13 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
         model = AttendanceRecord
         fields = ['id', 'session', 'student', 'student_details', 'status', 'marked_by', 'marked_by_details', 'updated_at']
         read_only_fields = ['id', 'marked_by', 'updated_at']
+        validators = [
+            UniqueTogetherValidator(
+                queryset=AttendanceRecord.objects.all(),
+                fields=['session', 'student'],
+                message="An attendance record for this student in this session already exists."
+            )
+        ]
 
 
 class CourseMaterialSerializer(serializers.ModelSerializer):

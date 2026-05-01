@@ -1,6 +1,8 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.shortcuts import render, redirect
 from unfold.admin import ModelAdmin, TabularInline
-from unfold.decorators import display
+from unfold.decorators import display, action
+from .services import get_unassigned_freshers, get_filter_options, assign_students_to_family
 from .models import (
     ServiceGroup, AgeglotSelection, Family, FamilyMembership,
     Event, ServiceConfiguration, ServiceGroupMembership, ServiceAttendance
@@ -136,13 +138,84 @@ class FamilyMembershipAdmin(ModelAdmin):
 
 @admin.register(Family)
 class FamilyAdmin(ModelAdmin):
-    list_display = ('name', 'father', 'mother', 'religious_father', 'member_count', 'created_at')
+    list_display = ('name', 'display_gender', 'father', 'mother', 'religious_father', 'member_count', 'created_at')
     search_fields = ('name', 'father__username', 'mother__username', 'religious_father')
     autocomplete_fields = ['father', 'mother']
-    list_filter = ('created_at',)
+    list_filter = ('gender', 'created_at')
     list_per_page = 25
     inlines = [FamilyMembershipInline]
+    actions_detail = ['assign_students']
+
+    @display(description="Gender", label={"Male": "info", "Female": "warning"})
+    def display_gender(self, obj):
+        return obj.get_gender_display() if obj.gender else "Not Set"
 
     def member_count(self, obj):
         return obj.members.count()
     member_count.short_description = "Members"
+
+    @action(description="Assign Students")
+    def assign_students(self, request, object_id):
+        # SuperAdmin-only check
+        from core.models import Role
+        if not (request.user.is_superuser or request.user.roles.filter(name=Role.SUPER_ADMIN).exists()):
+            self.message_user(request, "Permission denied. Only SuperAdmins can perform this action.", level=messages.ERROR)
+            return redirect("admin:service_family_change", object_id)
+
+        family = self.get_object(request, object_id)
+        if not family:
+            return redirect("admin:service_family_changelist")
+
+        # Handle POST — assign selected students
+        if request.method == "POST" and request.POST.getlist("selected_students"):
+            student_ids = request.POST.getlist("selected_students")
+            results = assign_students_to_family(family, student_ids)
+
+            if results["assigned_count"] > 0:
+                self.message_user(
+                    request,
+                    f"Successfully assigned {results['assigned_count']} student(s) to {family.name}.",
+                    level=messages.SUCCESS,
+                )
+            for warning in results.get("warnings", []):
+                self.message_user(request, warning, level=messages.WARNING)
+            for name in results.get("skipped_names", []):
+                self.message_user(request, f"Skipped: {name}", level=messages.WARNING)
+
+            return redirect("admin:service_family_change", object_id)
+
+        # Handle GET — show filtered student list
+        gender = request.GET.get("gender", "")
+        dorm_block = request.GET.get("dorm_block", "")
+        dorm_room = request.GET.get("dorm_room", "")
+        section = request.GET.get("section", "")
+
+        students = get_unassigned_freshers(
+            gender=gender or None,
+            dorm_block=int(dorm_block) if dorm_block else None,
+            dorm_room=int(dorm_room) if dorm_room else None,
+            section=int(section) if section else None,
+        )
+
+        filter_options = get_filter_options()
+        current_count = family.members.count()
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": f"Assign Students to {family.name}",
+            "opts": self.model._meta,
+            "family": family,
+            "current_count": current_count,
+            "max_size": 15,
+            "available_slots": 15 - current_count,
+            "students": students,
+            "student_count": students.count(),
+            "filter_options": filter_options,
+            "current_filters": {
+                "gender": gender,
+                "dorm_block": dorm_block,
+                "dorm_room": dorm_room,
+                "section": section,
+            },
+        }
+        return render(request, "admin/distribute_freshers.html", context)

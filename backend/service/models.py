@@ -237,7 +237,21 @@ class Family(models.Model):
     Groups students under senior mentorship (Family structure).
     """
 
+    MALE = "M"
+    FEMALE = "F"
+    GENDER_CHOICES = [
+        (MALE, "Male"),
+        (FEMALE, "Female"),
+    ]
+
     name = models.CharField(max_length=100, unique=True)
+    gender = models.CharField(
+        max_length=1,
+        choices=GENDER_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Determines whether this family accepts male or female students. Leave blank for mixed.",
+    )
 
     # Enforce that one user leads only ONE family
     father = models.OneToOneField(

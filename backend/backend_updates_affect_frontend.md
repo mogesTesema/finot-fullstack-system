@@ -1,0 +1,178 @@
+# Backend Updates: Private Counselor Q&A Feature
+**Target Audience:** Frontend Engineers
+**Date:** April 2026
+
+This document outlines the recent backend architectural changes related to the **Private Q&A feature** and explains how these updates impact frontend data fetching, user flows, and notifications.
+
+---
+
+## 1. Overview: The New `visibility` Concept
+The Question model now supports a `visibility` field. Questions can either be `PUBLIC` or `PRIVATE`.
+* **PUBLIC**: The standard flow. Requires approval by a `QAModerator` before it appears in the public feed. Can be submitted anonymously.
+* **PRIVATE**: A direct channel between a logged-in user and a `QACounselor`. These bypass moderation, are auto-approved, and **never** appear in the public feed.
+
+---
+
+## 2. Changes to Question Submission (POST)
+When the frontend submits a new question via `POST /api/qa/questions/`, you must account for the new `visibility` field.
+
+### Payload Updates
+* **`visibility` (string, optional)**: Accepts `"PUBLIC"` or `"PRIVATE"`. Defaults to `"PUBLIC"` if omitted.
+
+### Important Rules to Handle in UI
+1. **Authentication Requirement**: If a user selects "Private" in your UI, **they must be logged in**. The backend will reject any private question from an anonymous user with a `400 Bad Request`.
+2. **Auto-Approval**: Private questions do not require moderation. Once submitted, they go straight to the Counselor Queue.
+
+---
+
+## 3. New API Endpoints & User Flows
+
+The core `/api/qa/questions/` `GET` endpoint remains unchanged and will **only return APPROVED + PUBLIC questions**. To support the new flows, we have introduced several dedicated endpoints:
+
+### A. For Standard Users (Students/Members)
+* `GET /api/qa/questions/my-contributions/`
+  * **Use case**: A user dashboard to show their activity.
+  * **Returns**: BOTH questions and answers submitted by the currently logged-in user, regardless of their approval status or visibility.
+  * **Structure**: Returns a JSON object with two arrays: `{"questions": [...], "answers": [...]}`.
+
+* `GET /api/qa/questions/private-inbox/`
+  * **Use case**: A dedicated "Private Inbox" screen where users can see conversations they started with counselors.
+  * **Returns**: ONLY the logged-in user's `PRIVATE` questions, alongside the counselor's answers.
+
+### B. For QA Counselors (Role: `QACounselor`)
+* `GET /api/qa/questions/counselor-queue/`
+  * **Use case**: The dashboard for counselors to view incoming private questions.
+  * **Returns**: All `PRIVATE` questions. Unanswered questions are sorted to appear first.
+  * **Note**: Counselors use the standard `POST /api/qa/answers/` endpoint to reply. Private answers are auto-approved.
+
+### C. For QA Moderators (Role: `QAModerator`)
+* `GET /api/qa/questions/moderation-queue/`
+  * **Use case**: The moderation dashboard.
+  * **Returns**: All unapproved `PUBLIC` questions.
+* `POST /api/qa/questions/{id}/approve/`
+  * **Use case**: Approves a public question to make it visible on the main feed.
+* `POST /api/qa/answers/{id}/approve/`
+  * **Use case**: Approves a public answer.
+
+*(Note: Ensure your UI hides the Counselor and Moderation queues unless the logged-in user's JWT token contains the respective roles: `QACounselor` or `QAModerator`.)*
+
+---
+
+## 4. Notification System Updates
+
+When a counselor answers a user's private question, the backend now automatically fires a notification to the user who asked the question.
+
+### What the Frontend Needs to Know
+* **New Notification Type**: The `notification_type` for these alerts is `"QA"`.
+* **Channels Used**: These notifications are dispatched via **In-App Notifications** (saved to the DB for the user's notification bell) and **Firebase Push Notifications** (sent to the user's registered FCM devices).
+* **Action Required**: 
+  1. In your notification bell dropdown or screen, if a notification has `notification_type === "QA"`, clicking it should route the user to their Private Inbox (`/private-inbox` or equivalent frontend route).
+  2. Ensure your Firebase push notification listener on the client is prepared to handle payloads where `type` is `"QA"`. Note that SMS and Email channels are explicitly disabled for Q&A to save costs.
+
+---
+
+## 5. API Documentation
+All endpoints, including payload schemas and response structures, have been fully documented using OpenAPI/Swagger. 
+* You can view and test the exact contracts by visiting: **`/api/docs/swagger/`** on your local backend server or staging environment.
+
+<br/>
+
+# Backend Updates: Course Management API
+**Target Audience:** Frontend Engineers
+**Date:** April 2026
+
+This section outlines how to interact with the newly refactored `course` application from the frontend. The backend handles complex role-based access control (RBAC), meaning the API will automatically filter data based on who is logged in.
+
+---
+
+## 1. Core Concepts & Terminology
+
+Before fetching data, it's important to understand the hierarchy of the new models:
+
+1. **Curriculum (`Course`)**: The static blueprint (e.g., "Intro to Theology").
+2. **Semester Course (`SemesterCourse`)**: An active instance of a Curriculum for a specific year and semester (e.g., "Intro to Theology - 2026 Semester 1"). Teachers are assigned here.
+3. **Enrollment (`CourseEnrollment`)**: Links a Student to a Semester Course.
+4. **Session (`CourseSession`)**: A specific date/day the Semester Course meets (e.g., "Sunday, Sept 5th").
+5. **Attendance (`AttendanceRecord`)**: Tracks if a student was PRESENT, ABSENT, or EXCUSED for a specific Session.
+6. **Material (`CourseMaterial`)**: PDFs or links uploaded by a Teacher for a Semester Course.
+
+---
+
+## 2. API Endpoints Overview
+
+The base URL for all course endpoints is: `/api/course/`
+
+| Resource | Endpoint | Description |
+| :--- | :--- | :--- |
+| **Curriculums** | `GET /api/course/curriculums/` | Returns the static course blueprints. |
+| **Semester Courses** | `GET /api/course/semester-courses/` | Returns the active courses for the semester. |
+| **Enrollments** | `GET /api/course/enrollments/` | Returns the student's enrollments. |
+| **Sessions** | `GET /api/course/sessions/` | Returns scheduled class dates. |
+| **Attendance** | `GET /api/course/attendance/` | Returns roll call data. |
+| **Materials** | `GET /api/course/materials/` | Returns uploaded files and links. |
+
+---
+
+## 3. Role-Based Views & Frontend UI Flows
+
+The backend automatically filters what data is returned based on the user's role (`STUDENT`, `TEACHER`, `SUPER_ADMIN`). You do **not** need to pass user IDs in your GET requests to filter data.
+
+### A. The Student Flow
+When a user with the `STUDENT` role logs in:
+* `GET /api/course/semester-courses/`: Returns **only** the courses they are officially enrolled in.
+* `GET /api/course/materials/`: Returns **only** the materials for their enrolled courses.
+* `GET /api/course/attendance/`: Returns their personal attendance history.
+
+**UI Recommendation**: Build a "My Courses" dashboard. A single fetch to `/api/course/semester-courses/` will give you their active schedule.
+
+### B. The Teacher Flow
+When a user with the `TEACHER` role logs in:
+* `GET /api/course/semester-courses/`: Returns **only** the courses where they are assigned as a teacher.
+* `GET /api/course/enrollments/`: Returns the list of students enrolled in their assigned courses (crucial for building the attendance roster grid).
+* `GET /api/course/sessions/`: Returns the sessions for their classes.
+* `POST /api/course/materials/`: Allows them to upload files for their assigned courses.
+
+**UI Recommendation**: Build a "Teacher Dashboard". Allow them to select one of their `SemesterCourses`, create `CourseSessions`, and upload `CourseMaterials`.
+
+---
+
+## 4. Bulk Operations (Important for UI)
+
+To prevent the frontend from sending hundreds of individual requests, the backend provides two powerful bulk endpoints.
+
+### 1. Bulk Enroll Students (Admin Only)
+**Endpoint:** `POST /api/course/enrollments/bulk-enroll/<semester_course_id>/`
+**Use Case:** An admin wants to enroll an entire batch of students (e.g., all Year 1 students) into a course instantly.
+**Payload:**
+```json
+{
+  "batch_year": 1
+}
+```
+**Response:** `{"message": "Bulk enrollment completed.", "requested_students": 100, "new_enrollments": 100}`
+
+### 2. Bulk Mark Attendance (Teacher Only)
+**Endpoint:** `POST /api/course/attendance/bulk-mark/<session_id>/`
+**Use Case:** A teacher has an attendance grid/spreadsheet on their screen and hits "Submit" to save the whole class at once.
+**Payload:**
+```json
+{
+  "records": [
+    { "student_id": "uuid-of-student-1", "status": "PRESENT" },
+    { "student_id": "uuid-of-student-2", "status": "ABSENT" },
+    { "student_id": "uuid-of-student-3", "status": "EXCUSED" }
+  ]
+}
+```
+**UI Recommendation**: For a specific `CourseSession`, fetch all enrolled students, display them in a list with a dropdown/toggle for status, and send the array to this endpoint on save.
+
+---
+
+## 5. Security & Error Handling
+
+* **403 Forbidden**: If a Teacher tries to create a session or mark attendance for a course they are not assigned to, the backend will reject it. Handle these gracefully in the UI.
+* **400 Bad Request (Validation Errors)**: The backend enforces strict data integrity. You will receive a `400` response if:
+  * Bulk payloads are malformed or missing required fields.
+  * A Teacher submits attendance for a student who is **not enrolled** in the course (returns `{"error": "Some students are not enrolled...", "invalid_student_ids": [...]}`).
+  * A duplicate `CourseSession` is created on the same date.
+  * A duplicate `AttendanceRecord` is submitted for the same student in the same session.
