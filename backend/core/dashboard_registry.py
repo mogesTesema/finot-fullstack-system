@@ -24,16 +24,24 @@ def register_stat_provider(name: str, provider: Callable):
     logger.debug(f"Dashboard registry: registered provider '{name}'")
 
 
-def collect_all_stats() -> dict:
+def collect_all_stats(request=None) -> dict:
     """
     Call all registered providers and merge their context dicts.
+    Passes `request` to the provider if possible.
     Each provider is wrapped in try/except so one failing app
     cannot crash the entire dashboard.
     """
+    import inspect
     context = {}
     for name, provider in _stat_providers.items():
         try:
-            result = provider()
+            # Check if provider accepts a request argument
+            sig = inspect.signature(provider)
+            if 'request' in sig.parameters or any(p.kind == inspect.Parameter.VAR_POSITIONAL for p in sig.parameters.values()):
+                result = provider(request)
+            else:
+                result = provider()
+                
             if isinstance(result, dict):
                 context.update(result)
         except Exception as e:

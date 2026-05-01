@@ -46,7 +46,7 @@ def dashboard_callback(request: HttpRequest, context: Dict[str, Any]) -> Dict[st
 
     # Collect all registered stats from feature apps (student, donation, service, qa)
     # Each provider is wrapped in error handling inside the registry.
-    feature_stats = collect_all_stats()
+    feature_stats = collect_all_stats(request)
     context.update(feature_stats)
 
     return context
