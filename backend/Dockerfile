@@ -21,4 +21,4 @@ COPY . /app/
 
 EXPOSE 8000
 
-CMD ["bash", "-c", "gunicorn config.wsgi:application --bind 0.0.0.0:${PORT}"]
+CMD ["bash", "-c", "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]
