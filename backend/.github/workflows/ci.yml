@@ -1,0 +1,56 @@
+name: CI (Test & Lint)
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Pytest
+    runs-on: ubuntu-latest
+
+    # Spin up a temporary isolated PostgreSQL container specifically for testing
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: finot_user
+          POSTGRES_PASSWORD: finot_password
+          POSTGRES_DB: finot_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Run Tests with Pytest
+        env:
+          # Override environment variables for the test environment
+          DATABASE_URL: postgres://finot_user:finot_password@localhost:5432/finot_db
+          SECRET_KEY: fake_secret_key_for_testing_purposes
+          DEBUG: "True"
+        run: |
+          uv run pytest

@@ -1,0 +1,47 @@
+name: CD (Deploy to Production)
+
+on:
+  # Allows you to trigger this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - staging
+          - production
+  
+  # Optional: Automatically trigger if CI passes on the main branch
+  # workflow_run:
+  #   workflows: ["CI (Test & Lint)"]
+  #   types:
+  #     - completed
+  #   branches:
+  #     - main
+
+jobs:
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    
+    # Optional: If you use GitHub Environments, this will tie it to environment secrets
+    environment: ${{ github.event.inputs.environment || 'production' }}
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      # Example of how deployment would look (adjust to your actual hosting setup)
+      - name: Execute Deployment
+        run: |
+          echo "🚀 Initiating deployment to ${{ github.event.inputs.environment || 'production' }} environment..."
+          
+          # Example 1: If using Docker / SSH
+          # ssh user@yourserver "cd /path/to/project && git pull && docker-compose up -d --build"
+          
+          # Example 2: If using a PaaS (like Render or Heroku)
+          # curl -X POST ${{ secrets.DEPLOY_HOOK_URL }}
+          
+          echo "✅ Deployment triggered successfully!"
