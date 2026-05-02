@@ -67,19 +67,13 @@ const AskQuestion = () => {
     
     setIsSubmitting(true);
     try {
-      if (questionType === "public") {
-        await api.postQuestion({
-          user: user?.id || null,
-          display_name: nickname.trim() || "Anonymous",
-          category: category as Question["category"],
-          question_body: question,
-        });
-      } else {
-        await api.postPrivateQuestion({
-          question_body: question,
-          category: category,
-        });
-      }
+      await api.postQuestion({
+        user: user?.id || null,
+        display_name: questionType === "public" ? (nickname.trim() || "Anonymous") : user?.full_name,
+        category: category as Question["category"],
+        question_body: question,
+        visibility: questionType === "public" ? "PUBLIC" : "PRIVATE",  // KEY FIELD
+      });
       
       Swal.fire({
         icon: "success",
@@ -163,16 +157,6 @@ const AskQuestion = () => {
             </select>
           </div>
 
-            {/* Category - Only show for public questions */}
-            {questionType === "public" && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">{t("category")} *</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value as Question["category"] | "")} className="input">
-                  <option value="">{t("select_category")}</option>
-                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-            )}
 
             {/* Question Body */}
             <div>

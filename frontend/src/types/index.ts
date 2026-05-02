@@ -135,6 +135,7 @@ export interface Question {
   question_body: string;
   is_approved: boolean;
   is_verified?: boolean; // Frontend flag
+  visibility: "PUBLIC" | "PRIVATE";  // NEW
   answer_count: number;
   created_at: string;
   answers?: Answer[];

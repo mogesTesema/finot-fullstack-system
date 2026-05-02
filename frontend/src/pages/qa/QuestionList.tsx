@@ -38,25 +38,9 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString();
 };
 
-// Private Question type (for JSON Server)
-interface PrivateQuestion {
-  id: string;
-  student_id: number;
-  category: string;  // ADD THIS
-  question_body: string;
-  created_at: string;
-  is_answered: boolean;
-}
-
-interface PrivateAnswer {
-  id: string;
-  question_id: string;
-  teacher_id: number;
-  teacher_name: string;
-  answer_body: string;
-  is_primary: boolean;
-  parent_answer_id: string | null;
-  created_at: string;
+// Extended Question type with visibility
+interface ExtendedQuestion extends Question {
+  visibility: "PUBLIC" | "PRIVATE";
 }
 
 const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
@@ -64,7 +48,7 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const { user } = useAuth();
   
   // Public questions state
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<ExtendedQuestion[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -74,16 +58,15 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [editedQuestionBody, setEditedQuestionBody] = useState("");
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
-  const [selectedAnswer, setSelectedAnswer] = useState<{ question: Question; answer: Answer } | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<{ question: ExtendedQuestion; answer: Answer } | null>(null);
 
-  // Private questions state
-  const [privateQuestions, setPrivateQuestions] = useState<PrivateQuestion[]>([]);
-  const [privateAnswers, setPrivateAnswers] = useState<Record<string, PrivateAnswer[]>>({});
+  // Private questions state (using same Question type with visibility=PRIVATE)
+  const [privateQuestions, setPrivateQuestions] = useState<ExtendedQuestion[]>([]);
   const [loadingPrivate, setLoadingPrivate] = useState(false);
   const [activeTab, setActiveTab] = useState<"public" | "private">("public");
   const [privateCategoryFilter, setPrivateCategoryFilter] = useState("all");
 
-  const isAdmin = user?.role === "service_admin";
+  const isAdmin = user?.role === "QACounselor" || user?.role === "QA_counselor";
   const isLoggedIn = !!user;
 
   const isInitialMount = useRef(true);
@@ -106,7 +89,7 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
     setCurrentPage(1);
   }, [categoryFilter]);
 
-  // Fetch public questions from server
+  // Fetch public questions from backend (only APPROVED + PUBLIC)
   const fetchQuestions = useCallback(async (showSpinner: boolean = true) => {
     if (showSpinner) setLoading(true);
     try {
@@ -129,23 +112,16 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
     }
   }, [currentPage, debouncedSearch, categoryFilter, t]);
 
-  // Fetch private questions from JSON Server
+  // Fetch private questions from backend using /private-inbox/ endpoint
   const fetchPrivateQuestions = useCallback(async () => {
     if (!user?.id) return;
     setLoadingPrivate(true);
     try {
-      const userPrivateQuestions = await api.getMyPrivateQuestions();
-      setPrivateQuestions(userPrivateQuestions);
-      
-      // Fetch answers for each private question
-      const answersMap: Record<string, PrivateAnswer[]> = {};
-      for (const q of userPrivateQuestions) {
-        const answers = await api.getPrivateAnswers(q.id);
-        answersMap[q.id] = answers;
-      }
-      setPrivateAnswers(answersMap);
+      const privateInbox = await api.getPrivateInbox();
+      setPrivateQuestions(privateInbox);
     } catch (error) {
       console.error("Failed to fetch private questions", error);
+      toast.error(t("failed_load_private_questions"));
     } finally {
       setLoadingPrivate(false);
     }
@@ -172,6 +148,10 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
       });
       toast.success(t("answer_posted_success"));
       await fetchQuestions(false);
+      // Also refresh private questions if on private tab
+      if (activeTab === "private") {
+        await fetchPrivateQuestions();
+      }
       setAnswerText((prev) => ({ ...prev, [questionId]: "" }));
     } catch (error) { 
       console.error("Failed to post answer", error); 
@@ -185,6 +165,9 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
       await api.deleteQuestion(questionId); 
       toast.success(t("question_deleted")); 
       await fetchQuestions(false); 
+      if (activeTab === "private") {
+        await fetchPrivateQuestions();
+      }
     } catch (error) { 
       console.error("Failed to delete question", error); 
       toast.error(t("failed_delete_question")); 
@@ -222,13 +205,13 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
 
   const totalPages = Math.ceil(totalCount / BACKEND_PAGE_SIZE);
 
-  const getApprovedAnswers = (q: Question) => (q.answers || []).filter((a) => a.is_approved ?? true);
+  const getApprovedAnswers = (q: ExtendedQuestion) => (q.answers || []).filter((a) => a.is_approved ?? true);
   const previewAnswer = (text: string) => text.length > LONG_ANSWER_LIMIT ? `${text.slice(0, LONG_ANSWER_LIMIT)}...` : text;
 
   const askRoute = isDashboard ? "/dashboard/questions/ask" : "/anonymous/ask";
   const backRoute = isDashboard ? "/dashboard" : "/anonymous";
 
-  // Render Private Questions List
+  // Render Private Questions List (using data from /private-inbox/)
   const renderPrivateQuestions = () => {
     if (loadingPrivate) {
       return (
@@ -262,27 +245,27 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
     }
     
     return filteredQuestions.map((q) => {
-      const answers = privateAnswers[q.id] || [];
-      const primaryAnswer = answers.find(a => a.is_primary);
+      const answers = q.answers || [];
+      const primaryAnswer = answers.find(a => a.is_approved);
       
       return (
         <div key={q.id} className="card border-l-4 border-l-primary">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-primary/10 text-primary flex items-center gap-1">
-              <LockClosedIcon className="h-3 w-3" />
-              {t("private")}
-            </span>
-            <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-accent/10 text-accent-foreground">
-              {t(`cat_${q.category?.toLowerCase()}`) || q.category || t("general")}
-            </span>
-            <span className="text-xs text-muted-foreground">{t("you")} • {formatDate(q.created_at)}</span>
+              <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-primary/10 text-primary flex items-center gap-1">
+                <LockClosedIcon className="h-3 w-3" />
+                {t("private")}
+              </span>
+              <span className="text-xs font-medium px-2 py-0.5 rounded-lg bg-accent/10 text-accent-foreground">
+                {t(`cat_${q.category.toLowerCase()}`) || q.category || t("general")}
+              </span>
+              <span className="text-xs text-muted-foreground">{t("you")} • {formatDate(q.created_at)}</span>
             </div>
             <div className="flex items-center gap-2 self-start">
               <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-lg">
                 {t("answers_count", { count: answers.length })}
               </span>
-              {q.is_answered && (
+              {answers.length > 0 && (
                 <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-lg">
                   {t("answered")}
                 </span>
@@ -301,10 +284,10 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
             </div>
           )}
 
-          {answers.filter(a => !a.is_primary).length > 0 && (
+          {answers.filter(a => !a.is_approved && a.id !== primaryAnswer?.id).length > 0 && (
             <div className="mt-3 space-y-2">
               <p className="text-xs text-muted-foreground font-medium">{t("additional_comments")}</p>
-              {answers.filter(a => !a.is_primary).map((a) => (
+              {answers.filter(a => !a.is_approved && a.id !== primaryAnswer?.id).map((a) => (
                 <div key={a.id} className="p-2 bg-muted/30 rounded-lg">
                   <p className="text-xs text-foreground/70">{a.answer_body}</p>
                 </div>
@@ -312,7 +295,7 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
             </div>
           )}
 
-          {!q.is_answered && (
+          {answers.length === 0 && (
             <div className="mt-4 text-sm text-muted-foreground bg-amber-50 p-3 rounded-lg">
               {t("awaiting_answer")}
             </div>
@@ -466,22 +449,22 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
 
               <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
             </>
-            ) : (
-              <>
-                <h1 className="text-lg font-medium text-foreground">{t("my_private_questions")}</h1>
-                <p className="text-sm text-muted-foreground mb-4">{t("private_questions_description")}</p>
-                
-                {/* Category Filter for Private Questions */}
-                <div className="mb-4">
-                  <FilterBar 
-                    categories={ALL_CATEGORIES} 
-                    selected={privateCategoryFilter} 
-                    onChange={(v) => setPrivateCategoryFilter(v)} 
-                  />
-                </div>
-                
-                {renderPrivateQuestions()}
-              </>
+          ) : (
+            <>
+              <h1 className="text-lg font-medium text-foreground">{t("my_private_questions")}</h1>
+              <p className="text-sm text-muted-foreground mb-4">{t("private_questions_description")}</p>
+              
+              {/* Category Filter for Private Questions */}
+              <div className="mb-4">
+                <FilterBar 
+                  categories={ALL_CATEGORIES} 
+                  selected={privateCategoryFilter} 
+                  onChange={(v) => setPrivateCategoryFilter(v)} 
+                />
+              </div>
+              
+              {renderPrivateQuestions()}
+            </>
           )}
         </motion.div>
       </div>

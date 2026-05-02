@@ -8,7 +8,7 @@ import axios from 'axios';
 // CONFIGURATION - CHANGE THIS ONE LINE ONLY
 // ============================================
 // For JSON Server (development):
-const PRIVATE_API_BASE_URL = "http://localhost:5000";
+const PRIVATE_API_BASE_URL = "http://localhost:8000/api";
 
 // For real backend (when ready):
 // const PRIVATE_API_BASE_URL = "http://localhost:8000/api";

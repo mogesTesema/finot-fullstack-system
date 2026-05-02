@@ -1,7 +1,7 @@
 // src/services/api.real.js
 import axiosInstance from './axios';
-import { AuthUser, AttendanceRecord, Donation, Event, Question, PaginatedResponse, ServiceGroup, ServiceSelection } from '../types';
-import { privateQaMockApi, MockPrivateQuestion, MockPrivateAnswer } from './privateQaMockApi';
+import { AuthUser, AttendanceRecord, Donation, Event, Question, PaginatedResponse, ServiceGroup, ServiceSelection, Answer } from '../types';
+//import { privateQaMockApi, MockPrivateQuestion, MockPrivateAnswer } from './privateQaMockApi';
 import { Resource } from '@/types/resource';
 //import {Course, CourseSession, CourseAttendance, CourseWithDetails} from '@types/course'
 export const BACKEND_PAGE_SIZE = 20;
@@ -36,12 +36,8 @@ const combineUserWithProfile = (userData: Record<string, any>, profileData: Reco
     role = 'service_admin';
   } else if (backendRoles.includes('FamilyAdmin')) {
     role = 'family_admin';
-  } else if (backendRoles.includes('FamilyAdmin')){
-    role = "teacher";
-  }
-
-  if (!role.includes('teacher')) {
-    role = 'teacher';
+  } else if (backendRoles.includes('QACounselor')){
+    role = 'QA_counselor';
   }
 
 
@@ -395,23 +391,6 @@ export const api = {
     return { success: true };
   },
 
-  // Get user's private questions from mock server
-getMyPrivateQuestions: async (): Promise<MockPrivateQuestion[]> => {
-  const user = await api.getUser(); // Get current user to get student_id
-  return privateQaMockApi.getMyPrivateQuestions(user.id);
-},
-
-// Post a new private question to mock server
-postPrivateQuestion: async (data: { question_body: string; category: string }): Promise<MockPrivateQuestion> => {
-  const user = await api.getUser();
-  return privateQaMockApi.postPrivateQuestion(user.id, data.question_body, data.category);
-},
-
-// Get answers for a private question from mock server
-getPrivateAnswers: async (questionId: string): Promise<MockPrivateAnswer[]> => {
-  return privateQaMockApi.getPrivateAnswers(questionId);
-},
-
 // ========== RESOURCES API ==========
 
 // Get all resources with filters
@@ -592,6 +571,43 @@ getResourceCategories: async (): Promise<{ id: string; name: string; icon: strin
   
 //   return records;
 // },
+
+// ========== UPDATED Q&A API METHODS ==========
+
+// Get user's private questions (for student inbox)
+getPrivateInbox: async (): Promise<Question[]> => {
+  const response = await axiosInstance.get('/api/qa/questions/private-inbox/');
+  return response.data;
+},
+
+// Get user's contributions (questions + answers)
+getMyContributions: async (): Promise<{ questions: Question[]; answers: Answer[] }> => {
+  const response = await axiosInstance.get('/api/qa/questions/my-contributions/');
+  return response.data;
+},
+
+// Counselor: Get queue of private questions
+getCounselorQueue: async (): Promise<Question[]> => {
+  const response = await axiosInstance.get('/api/qa/questions/counselor-queue/');
+  return response.data;
+},
+
+// Moderator: Get moderation queue
+getModerationQueue: async (): Promise<Question[]> => {
+  const response = await axiosInstance.get('/api/qa/questions/moderation-queue/');
+  return response.data;
+},
+
+// Approve public question (moderator only)
+approveQuestion: async (questionId: string): Promise<void> => {
+  await axiosInstance.post(`/api/qa/questions/${questionId}/approve/`);
+},
+
+// Approve public answer (moderator only)
+approveAnswer: async (answerId: number): Promise<void> => {
+  await axiosInstance.post(`/api/qa/answers/${answerId}/approve/`);
+},
+
 
 
   

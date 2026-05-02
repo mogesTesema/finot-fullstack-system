@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "../layouts/MainLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
-import TeacherQaDashboard from "../pages/admin/TeacherQaDashboard";
+import TeacherQaDashboard from "../pages/admin/CounselorQueue";
 import HomePage from "../pages/home/HomePage";
 import AboutPage from "../pages/about/AboutPage";
 import ContactPage from "../pages/contact/ContactPage";
@@ -39,6 +39,7 @@ import ProtectedRoute from "../features/auth/components/ProtectedRoute";
 import CourseManagement from "@/pages/admin/CourseManagement";
 import TakeAttendance from "@/pages/admin/TakeAttendance";
 import EventManagement from "@/pages/admin/EventManagement";
+import CounselorQueue from "../pages/admin/CounselorQueue";
 
 export default function AppRoutes() {
   return (
@@ -68,7 +69,7 @@ export default function AppRoutes() {
           <Route
             element={
               <ProtectedRoute
-                allowedRoles={["student", "service_admin", "teacher", "family_admin"]}
+                allowedRoles={["student", "service_admin", "QA_counselor", "family_admin"]}
               />
             }
           >
@@ -94,7 +95,7 @@ export default function AppRoutes() {
               {/* Admin‑only routes inside dashboard layout */}
               <Route
                 element={
-                  <ProtectedRoute allowedRoles={["service_admin", "teacher", "resource_admin"]} />
+                  <ProtectedRoute allowedRoles={["service_admin", "QA_counselor", "resource_admin"]} />
 
                 }
               >
@@ -103,6 +104,7 @@ export default function AppRoutes() {
               <Route path="take-attendance" element={<TakeAttendance/>}/>
               <Route path="teacher/qa" element={<TeacherQaDashboard />}/>
               <Route path="resources/upload" element={<UploadResource/>}/>
+              <Route path="counselor/queue" element={<CounselorQueue />}/>
               </Route>
             </Route>
           </Route>
