@@ -89,6 +89,29 @@ export const NotificationBell = ({ iconClassName }: { iconClassName?: string }) 
     }
   };
 
+  // Navigate based on notification type
+  const handleNotificationClick = (notification: any) => {
+    // Mark as read if not already
+    if (!notification.is_read) {
+      markAsRead(notification.id);
+    }
+    
+    // Handle different notification types
+    if (notification.notification_type === "QA") {
+      // Navigate to Q&A page with private tab active
+      window.location.href = "/dashboard/questions?tab=private";
+    } else if (notification.notification_type === "EVENT") {
+      // Navigate to events page
+      window.location.href = "/dashboard/events";
+    } else if (notification.notification_type === "DONATION") {
+      // Navigate to donations page
+      window.location.href = "/dashboard/donations";
+    } else {
+      // Default - just close dropdown
+      setIsOpen(false);
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button 
@@ -130,11 +153,7 @@ export const NotificationBell = ({ iconClassName }: { iconClassName?: string }) 
                 {notifications.map((notification) => (
                   <li 
                     key={notification.id} 
-                    onClick={() => {
-                      if (!notification.is_read) {
-                        markAsRead(notification.id);
-                      }
-                    }}
+                    onClick={() => handleNotificationClick(notification)}
                     className={`p-4 transition-colors flex gap-3 cursor-pointer ${!notification.is_read ? 'bg-primary/5 dark:bg-primary/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'}`}
                   >
                     {!notification.is_read && (

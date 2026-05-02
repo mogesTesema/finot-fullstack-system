@@ -1,57 +1,47 @@
-// src/types/course.ts
+// src/types/course.ts (updated)
 
-export type AttendanceStatus = "PRESENT" | "ABSENT" | "LATE";
-
-export interface Course {
+export interface Curriculum {
   id: string;
-  name: string;
-  batch_year: number;  // 1,2,3,4,5
-  day1: string;        // MON, TUE, WED, THU, FRI, SAT, SUN
-  day2: string | null; // optional second day
-  start_time: string;  // HH:MM
-  end_time: string;    // HH:MM
-  venue: string | null;
-  semester: number;    // 1 or 2
-  created_by: number;
-  created_at: string;
+  title: string;
+  description: string;
+  code: string; // e.g., "THEO101"
+}
+
+export interface SemesterCourse {
+  id: string;
+  curriculum: Curriculum;
+  semester: number; // 1 or 2
+  academic_year: string; // "2026"
+  teacher: { id: string; full_name: string };
+  schedule_day: string; // "MONDAY", "WEDNESDAY"
+  start_time: string;
+  end_time: string;
+  venue: string;
 }
 
 export interface CourseSession {
   id: string;
-  course_id: string;
-  session_date: string;  // YYYY-MM-DD
-  taken_by: number;
-  notes: string | null;
+  semester_course: SemesterCourse;
+  session_date: string;
+  topic: string;
   created_at: string;
 }
 
-export interface CourseAttendance {
+export interface AttendanceRecord {
   id: string;
-  session_id: string;
-  student_id: number;
-  status: AttendanceStatus;
-  remark: string | null;
-  recorded_at: string;
+  session: CourseSession;
+  student: { id: string; full_name: string };
+  status: "PRESENT" | "ABSENT" | "EXCUSED";
+  remarks: string | null;
+  marked_at: string;
 }
 
-// Extended type for UI (with joined data)
-export interface CourseWithDetails extends Course {
-  sessions?: CourseSession[];
-  attendanceSummary?: {
-    totalSessions: number;
-    presentCount: number;
-    absentCount: number;
-    lateCount: number;
-    percentage: number;
-  };
-}
-
-export interface StudentAttendanceRecord {
-  courseName: string;
-  sessionDate: string;
-  status: AttendanceStatus;
-  remark: string | null;
-  venue: string | null;
-  startTime: string;
-  endTime: string;
+export interface CourseMaterial {
+  id: string;
+  semester_course: SemesterCourse;
+  title: string;
+  description: string;
+  file_url: string | null;
+  link_url: string | null;
+  uploaded_at: string;
 }

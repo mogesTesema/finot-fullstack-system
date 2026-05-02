@@ -36,10 +36,12 @@ import ServiceGroupDetail from "../pages/service/ServiceGroupDetail";
 import PreferenceForm from "../pages/service/PreferenceForm";
 import ManageAgeglotDashboard from "../pages/admin/ManageAgeglotDashboard";
 import ProtectedRoute from "../features/auth/components/ProtectedRoute";
-import CourseManagement from "@/pages/admin/CourseManagement";
-import TakeAttendance from "@/pages/admin/TakeAttendance";
+import CourseManagement from "@/pages/course/TeacherCourses";
+import TakeAttendance from "@/pages/course/TakeAttendance";
 import EventManagement from "@/pages/admin/EventManagement";
 import CounselorQueue from "../pages/admin/CounselorQueue";
+import TeacherCourses from "@/pages/course/TeacherCourses";
+import CourseMaterials from "@/pages/course/CourseMaterials";
 
 export default function AppRoutes() {
   return (
@@ -69,7 +71,7 @@ export default function AppRoutes() {
           <Route
             element={
               <ProtectedRoute
-                allowedRoles={["student", "service_admin", "QA_counselor", "family_admin"]}
+                allowedRoles={["student", "service_admin", "QA_counselor", "family_admin", "teacher"]}
               />
             }
           >
@@ -95,7 +97,7 @@ export default function AppRoutes() {
               {/* Admin‑only routes inside dashboard layout */}
               <Route
                 element={
-                  <ProtectedRoute allowedRoles={["service_admin", "QA_counselor", "resource_admin"]} />
+                  <ProtectedRoute allowedRoles={["service_admin", "QA_counselor", "resource_admin", "teacher"]} />
 
                 }
               >
@@ -105,6 +107,9 @@ export default function AppRoutes() {
               <Route path="teacher/qa" element={<TeacherQaDashboard />}/>
               <Route path="resources/upload" element={<UploadResource/>}/>
               <Route path="counselor/queue" element={<CounselorQueue />}/>
+              <Route path="courses" element={<TeacherCourses/>}/>
+              <Route path="courses/:id/attendance" element={<TakeAttendance/>}/>
+              <Route path="courses/:id/materials" element={<CourseMaterials/>}/>
               </Route>
             </Route>
           </Route>

@@ -38,6 +38,8 @@ const combineUserWithProfile = (userData: Record<string, any>, profileData: Reco
     role = 'family_admin';
   } else if (backendRoles.includes('QACounselor')){
     role = 'QA_counselor';
+  } else if (backendRoles.includes('Teacher')){
+    role = 'teacher'
   }
 
 
@@ -354,6 +356,8 @@ export const api = {
     return { success: true };
   },
 
+
+
   // ========== ADMIN SPECIFIC ==========
   getGroupByAdminId: async (adminId: string | number) => {
     const response = await axiosInstance.get(`/api/service/groups/?admin=${adminId}`);
@@ -390,6 +394,43 @@ export const api = {
     await axiosInstance.delete(`/auth/users/${userId}/`);
     return { success: true };
   },
+
+  // ========== UPDATED Q&A API METHODS ==========
+
+// Get user's private questions (for student inbox)
+getPrivateInbox: async (): Promise<Question[]> => {
+  const response = await axiosInstance.get('/api/qa/questions/private-inbox/');
+  return response.data;
+},
+
+// Get user's contributions (questions + answers)
+getMyContributions: async (): Promise<{ questions: Question[]; answers: Answer[] }> => {
+  const response = await axiosInstance.get('/api/qa/questions/my-contributions/');
+  return response.data;
+},
+
+// Counselor: Get queue of private questions
+getCounselorQueue: async (): Promise<Question[]> => {
+  const response = await axiosInstance.get('/api/qa/questions/counselor-queue/');
+  return response.data;
+},
+
+// Moderator: Get moderation queue
+getModerationQueue: async (): Promise<Question[]> => {
+  const response = await axiosInstance.get('/api/qa/questions/moderation-queue/');
+  return response.data;
+},
+
+// Approve public question (moderator only)
+approveQuestion: async (questionId: string): Promise<void> => {
+  await axiosInstance.post(`/api/qa/questions/${questionId}/approve/`);
+},
+
+// Approve public answer (moderator only)
+approveAnswer: async (answerId: number): Promise<void> => {
+  await axiosInstance.post(`/api/qa/answers/${answerId}/approve/`);
+},
+
 
 // ========== RESOURCES API ==========
 
@@ -452,163 +493,60 @@ getResourceCategories: async (): Promise<{ id: string; name: string; icon: strin
   ]);
 },
 
-// ========== COURSE ATTENDANCE API ==========
+// ========== COURSE ATTENDANCE API (NEW BACKEND) ==========
 
-// Get all courses (for Course Admin)
-// getCourses: async (): Promise<Course[]> => {
-//   const response = await apiClient.get('/courses');
-//   return response.data;
-// },
-
-// // Get courses by batch year (for students to see their courses)
-// getCoursesByBatch: async (batchYear: number): Promise<Course[]> => {
-//   const response = await apiClient.get(`/courses?batch_year=${batchYear}`);
-//   return response.data;
-// },
-
-// // Create new course
-// createCourse: async (data: Omit<Course, 'id' | 'created_at'>): Promise<Course> => {
-//   const response = await apiClient.post('/courses', {
-//     ...data,
-//     id: Date.now().toString(),
-//     created_at: new Date().toISOString(),
-//   });
-//   return response.data;
-// },
-
-// // Get students by batch year
-// getStudentsByBatch: async (batchYear: number): Promise<AuthUser[]> => {
-//   // Get all users with student role and matching batch
-//   const response = await apiClient.get('/users');
-//   const allUsers = response.data;
-//   // Filter students by batch year from their profile
-//   // This assumes you have a way to get batch. For mock, return mock data
-//   return allUsers.filter((u: any) => u.batch_year === batchYear);
-// },
-
-// // Get course sessions
-// getCourseSessions: async (courseId: string): Promise<CourseSession[]> => {
-//   const response = await apiClient.get(`/course_sessions?course_id=${courseId}`);
-//   return response.data;
-// },
-
-// // Create session and mark attendance
-// createSession: async (data: {
-//   course_id: string;
-//   session_date: string;
-//   taken_by: number;
-//   notes?: string;
-//   attendances: { student_id: number; status: AttendanceStatus; remark?: string }[];
-// }): Promise<{ session: CourseSession; attendances: CourseAttendance[] }> => {
-//   // Create session
-//   const sessionResponse = await apiClient.post('/course_sessions', {
-//     id: Date.now().toString(),
-//     course_id: data.course_id,
-//     session_date: data.session_date,
-//     taken_by: data.taken_by,
-//     notes: data.notes || null,
-//     created_at: new Date().toISOString(),
-//   });
-  
-//   const session = sessionResponse.data;
-  
-//   // Create attendance records
-//   const attendances = [];
-//   for (const att of data.attendances) {
-//     const attResponse = await apiClient.post('/course_attendance', {
-//       id: Date.now().toString() + Math.random(),
-//       session_id: session.id,
-//       student_id: att.student_id,
-//       status: att.status,
-//       remark: att.remark || null,
-//       recorded_at: new Date().toISOString(),
-//     });
-//     attendances.push(attResponse.data);
-//   }
-  
-//   return { session, attendances };
-// },
-
-// // Get my course attendance (for student)
-// getMyCourseAttendance: async (studentId: number): Promise<CourseAttendance[]> => {
-//   const response = await apiClient.get(`/course_attendance?student_id=${studentId}`);
-//   return response.data;
-// },
-
-// // Get attendance with session and course details
-// getMyAttendanceWithDetails: async (studentId: number): Promise<StudentAttendanceRecord[]> => {
-//   // Get all attendance records for student
-//   const attendanceResponse = await apiClient.get(`/course_attendance?student_id=${studentId}`);
-//   const attendances = attendanceResponse.data;
-  
-//   // Get all sessions
-//   const sessionsResponse = await apiClient.get('/course_sessions');
-//   const sessions = sessionsResponse.data;
-  
-//   // Get all courses
-//   const coursesResponse = await apiClient.get('/courses');
-//   const courses = coursesResponse.data;
-  
-//   // Join data
-//   const records: StudentAttendanceRecord[] = [];
-//   for (const att of attendances) {
-//     const session = sessions.find((s: any) => s.id === att.session_id);
-//     if (session) {
-//       const course = courses.find((c: any) => c.id === session.course_id);
-//       if (course) {
-//         records.push({
-//           courseName: course.name,
-//           sessionDate: session.session_date,
-//           status: att.status,
-//           remark: att.remark,
-//           venue: course.venue,
-//           startTime: course.start_time,
-//           endTime: course.end_time,
-//         });
-//       }
-//     }
-//   }
-  
-//   return records;
-// },
-
-// ========== UPDATED Q&A API METHODS ==========
-
-// Get user's private questions (for student inbox)
-getPrivateInbox: async (): Promise<Question[]> => {
-  const response = await axiosInstance.get('/api/qa/questions/private-inbox/');
+// Get semester courses (auto-filtered by role: STUDENT sees enrolled, TEACHER sees assigned)
+getSemesterCourses: async (): Promise<any[]> => {
+  const response = await axiosInstance.get('/api/course/semester-courses/');
   return response.data;
 },
 
-// Get user's contributions (questions + answers)
-getMyContributions: async (): Promise<{ questions: Question[]; answers: Answer[] }> => {
-  const response = await axiosInstance.get('/api/qa/questions/my-contributions/');
+// Get enrollments for a specific semester course (teacher only)
+getCourseEnrollments: async (semesterCourseId: string): Promise<any[]> => {
+  const response = await axiosInstance.get(`/api/course/enrollments/?semester_course=${semesterCourseId}`);
   return response.data;
 },
 
-// Counselor: Get queue of private questions
-getCounselorQueue: async (): Promise<Question[]> => {
-  const response = await axiosInstance.get('/api/qa/questions/counselor-queue/');
+// Get sessions for a semester course
+getCourseSessions: async (semesterCourseId: string): Promise<any[]> => {
+  const response = await axiosInstance.get(`/api/course/sessions/?semester_course=${semesterCourseId}`);
   return response.data;
 },
 
-// Moderator: Get moderation queue
-getModerationQueue: async (): Promise<Question[]> => {
-  const response = await axiosInstance.get('/api/qa/questions/moderation-queue/');
+// Create a new session (teacher only)
+createCourseSession: async (data: {
+  semester_course: string;
+  session_date: string;
+  topic?: string;
+}): Promise<any> => {
+  const response = await axiosInstance.post('/api/course/sessions/', data);
   return response.data;
 },
 
-// Approve public question (moderator only)
-approveQuestion: async (questionId: string): Promise<void> => {
-  await axiosInstance.post(`/api/qa/questions/${questionId}/approve/`);
+// Get my attendance records (student only)
+getMyCourseAttendance: async (): Promise<any[]> => {
+  const response = await axiosInstance.get('/api/course/attendance/');
+  return response.data;
 },
 
-// Approve public answer (moderator only)
-approveAnswer: async (answerId: number): Promise<void> => {
-  await axiosInstance.post(`/api/qa/answers/${answerId}/approve/`);
+// Bulk mark attendance (teacher only)
+bulkMarkAttendance: async (sessionId: string, records: { student_id: string; status: string; remarks?: string }[]): Promise<any> => {
+  const response = await axiosInstance.post(`/api/course/attendance/bulk-mark/${sessionId}/`, { records });
+  return response.data;
 },
 
+// Get course materials
+getCourseMaterials: async (semesterCourseId: string): Promise<any[]> => {
+  const response = await axiosInstance.get(`/api/course/materials/?semester_course=${semesterCourseId}`);
+  return response.data;
+},
 
-
+// Upload course material (teacher only)
+uploadCourseMaterial: async (data: FormData): Promise<any> => {
+  const response = await axiosInstance.post('/api/course/materials/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+},
   
 };

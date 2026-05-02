@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import { AuthUser } from "../../types";
 import { FiGrid, FiUser, FiCalendar, FiCheckCircle, FiUsers, FiBriefcase, FiHeart, FiMessageCircle, FiBell, FiLogOut, FiChevronLeft, FiChevronRight, FiSettings, FiFile } from "react-icons/fi";
-import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { ChatBubbleLeftRightIcon, RectangleGroupIcon,  } from "@heroicons/react/24/outline";
 
 type NavItem = {
   to: string;
@@ -54,6 +54,11 @@ const DashboardSidebar = ({
   if (role === "QACounselor" || role === "QA_counselor") {
     navItems.push({to: "/dashboard/counselor/queue", label: t("counselor_queue"), icon: ChatBubbleLeftRightIcon});
   }
+
+  if (role === "Teacher" || role === "teacher") {
+    navItems.push({ to: "/dashboard/courses", label: t("my_courses"), icon: RectangleGroupIcon });
+  }
+
   // Super admin is handled entirely via Django admin panel — no frontend route needed.
 
   return (

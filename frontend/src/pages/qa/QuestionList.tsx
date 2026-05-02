@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -46,6 +46,7 @@ interface ExtendedQuestion extends Question {
 const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   
   // Public questions state
   const [questions, setQuestions] = useState<ExtendedQuestion[]>([]);
@@ -88,6 +89,14 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   useEffect(() => {
     setCurrentPage(1);
   }, [categoryFilter]);
+
+  // Handle URL parameter to open private tab
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "private") {
+      setActiveTab("private");
+    }
+  }, [searchParams]);
 
   // Fetch public questions from backend (only APPROVED + PUBLIC)
   const fetchQuestions = useCallback(async (showSpinner: boolean = true) => {
