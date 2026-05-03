@@ -16,6 +16,7 @@ class Role(models.Model):
     QA_COUNSELOR = "QACounselor"
     QA_MODERATOR = "QAModerator"
     TEACHER = "Teacher"
+    EVENT_MANAGER = "EventManager"
     
     ROLE_CHOICES = [
         (STUDENT, "Student"),
@@ -25,6 +26,7 @@ class Role(models.Model):
         (QA_COUNSELOR, "QA Counselor"),
         (QA_MODERATOR, "QA Moderator"),
         (TEACHER, "Teacher"),
+        (EVENT_MANAGER, "Event Manager"),
     ]
 
     id = models.AutoField(primary_key=True)
