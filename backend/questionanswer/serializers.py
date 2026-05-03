@@ -12,16 +12,7 @@ class AnswerSerializer(serializers.ModelSerializer):
         fields = ['id', 'question', 'responder', 'display_name', 'answer_body', 'created_at', 'is_approved']
         read_only_fields = ['id', 'created_at', 'is_approved', 'responder']
 
-    def create(self, validated_data):
-        """
-        Handle answer creation with or without user.
-        """
-        request = self.context.get('request')
-        responder = None
-        if request and request.user.is_authenticated:
-            responder = request.user
-            
-        return Answer.objects.create(responder=responder, **validated_data)
+
 
 
 class QuestionSerializer(serializers.ModelSerializer):
