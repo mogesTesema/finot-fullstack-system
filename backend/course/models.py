@@ -31,7 +31,7 @@ class Course(models.Model):
 class SemesterCourse(models.Model):
     """
     A temporal instance of a course happening in a specific semester.
-    Teachers are assigned here, not to the generic Course.
+    Coordinators (nominated students) are assigned here to manage operations.
     """
 
     SEMESTER_CHOICES = [
@@ -45,8 +45,9 @@ class SemesterCourse(models.Model):
     )
     academic_year = models.PositiveIntegerField(help_text="Start year, e.g., 2026")
     semester = models.PositiveIntegerField(choices=SEMESTER_CHOICES)
-    teachers = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, related_name="teaching_semester_courses", blank=True
+    coordinators = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="coordinating_semester_courses", blank=True,
+        help_text="Nominated students who manage sessions, attendance, and materials for this course."
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -106,6 +107,10 @@ class CourseSession(models.Model):
     date = models.DateField()
     topic = models.CharField(
         max_length=255, blank=True, null=True, help_text="Optional topic for the day"
+    )
+    teacher_name = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text="Name of the guest teacher for this session day."
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

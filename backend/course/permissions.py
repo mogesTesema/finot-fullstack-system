@@ -12,9 +12,9 @@ class IsSuperAdmin(permissions.BasePermission):
         return request.user.roles.filter(name=Role.SUPER_ADMIN).exists()
 
 
-class IsTeacherForSemesterCourse(permissions.BasePermission):
+class IsCourseCoordinator(permissions.BasePermission):
     """
-    Teachers can only modify data for SemesterCourses they are assigned to.
+    Course Coordinators can only modify data for SemesterCourses they are assigned to.
     This permission is checked at the object level.
     """
     def has_permission(self, request, view):
@@ -25,7 +25,7 @@ class IsTeacherForSemesterCourse(permissions.BasePermission):
         if request.user.roles.filter(name=Role.SUPER_ADMIN).exists():
             return True
         
-        # Check if user is a teacher for this semester course
+        # Check if user is a coordinator for this semester course
         semester_course = getattr(obj, 'semester_course', None)
         if not semester_course and isinstance(obj, SemesterCourse):
             semester_course = obj
@@ -33,15 +33,15 @@ class IsTeacherForSemesterCourse(permissions.BasePermission):
             semester_course = obj.session.semester_course
             
         if semester_course:
-            return semester_course.teachers.filter(id=request.user.id).exists()
+            return semester_course.coordinators.filter(id=request.user.id).exists()
             
         return False
 
 
-class IsEnrolledStudentOrTeacher(permissions.BasePermission):
+class IsEnrolledStudentOrCoordinator(permissions.BasePermission):
     """
     Students can read data for semester courses they are enrolled in.
-    Teachers for the semester course and SuperAdmins can also read.
+    Coordinators for the semester course and SuperAdmins can also read.
     """
     def has_permission(self, request, view):
         return request.user and request.user.is_authenticated
@@ -57,8 +57,8 @@ class IsEnrolledStudentOrTeacher(permissions.BasePermission):
             semester_course = obj.session.semester_course
             
         if semester_course:
-            is_teacher = semester_course.teachers.filter(id=request.user.id).exists()
+            is_coordinator = semester_course.coordinators.filter(id=request.user.id).exists()
             is_student = semester_course.enrollments.filter(student=request.user).exists()
-            return is_teacher or is_student
+            return is_coordinator or is_student
             
         return False

@@ -17,7 +17,7 @@ class Role(models.Model):
     FAMILY_ADMIN = "FamilyAdmin"
     QA_COUNSELOR = "QACounselor"
     QA_MODERATOR = "QAModerator"
-    TEACHER = "Teacher"
+    COURSE_COORDINATOR = "CourseCoordinator"
     EVENT_MANAGER = "EventManager"
 
     ROLE_CHOICES = [
@@ -27,7 +27,7 @@ class Role(models.Model):
         (SUPER_ADMIN, "Super Admin"),
         (QA_COUNSELOR, "QA Counselor"),
         (QA_MODERATOR, "QA Moderator"),
-        (TEACHER, "Teacher"),
+        (COURSE_COORDINATOR, "Course Coordinator"),
         (EVENT_MANAGER, "Event Manager"),
     ]
 

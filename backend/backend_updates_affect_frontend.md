@@ -90,11 +90,11 @@ This section outlines how to interact with the newly refactored `course` applica
 Before fetching data, it's important to understand the hierarchy of the new models:
 
 1. **Curriculum (`Course`)**: The static blueprint (e.g., "Intro to Theology").
-2. **Semester Course (`SemesterCourse`)**: An active instance of a Curriculum for a specific year and semester (e.g., "Intro to Theology - 2026 Semester 1"). Teachers are assigned here.
+2. **Semester Course (`SemesterCourse`)**: An active instance of a Curriculum for a specific year and semester (e.g., "Intro to Theology - 2026 Semester 1"). Course Coordinators (nominated students) are assigned here.
 3. **Enrollment (`CourseEnrollment`)**: Links a Student to a Semester Course.
-4. **Session (`CourseSession`)**: A specific date/day the Semester Course meets (e.g., "Sunday, Sept 5th").
+4. **Session (`CourseSession`)**: A specific date/day the Semester Course meets (e.g., "Sunday, Sept 5th"). Includes `teacher_name` — the guest lecturer for that day.
 5. **Attendance (`AttendanceRecord`)**: Tracks if a student was PRESENT, ABSENT, or EXCUSED for a specific Session.
-6. **Material (`CourseMaterial`)**: PDFs or links uploaded by a Teacher for a Semester Course.
+6. **Material (`CourseMaterial`)**: PDFs or links uploaded by a Course Coordinator for a Semester Course.
 
 ---
 
@@ -115,7 +115,7 @@ The base URL for all course endpoints is: `/api/course/`
 
 ## 3. Role-Based Views & Frontend UI Flows
 
-The backend automatically filters what data is returned based on the user's role (`STUDENT`, `TEACHER`, `SUPER_ADMIN`). You do **not** need to pass user IDs in your GET requests to filter data.
+The backend automatically filters what data is returned based on the user's role (`STUDENT`, `COURSE_COORDINATOR`, `SUPER_ADMIN`). You do **not** need to pass user IDs in your GET requests to filter data.
 
 ### A. The Student Flow
 When a user with the `STUDENT` role logs in:
@@ -125,14 +125,15 @@ When a user with the `STUDENT` role logs in:
 
 **UI Recommendation**: Build a "My Courses" dashboard. A single fetch to `/api/course/semester-courses/` will give you their active schedule.
 
-### B. The Teacher Flow
-When a user with the `TEACHER` role logs in:
-* `GET /api/course/semester-courses/`: Returns **only** the courses where they are assigned as a teacher.
+### B. The Course Coordinator Flow
+When a user with the `CourseCoordinator` role logs in:
+* `GET /api/course/semester-courses/`: Returns **only** the courses where they are assigned as a coordinator.
 * `GET /api/course/enrollments/`: Returns the list of students enrolled in their assigned courses (crucial for building the attendance roster grid).
 * `GET /api/course/sessions/`: Returns the sessions for their classes.
+* `POST /api/course/sessions/`: Allows creating sessions with an optional `teacher_name` field (the guest lecturer's name for that day).
 * `POST /api/course/materials/`: Allows them to upload files for their assigned courses.
 
-**UI Recommendation**: Build a "Teacher Dashboard". Allow them to select one of their `SemesterCourses`, create `CourseSessions`, and upload `CourseMaterials`.
+**UI Recommendation**: Build a "Coordinator Dashboard". Allow them to select one of their `SemesterCourses`, create `CourseSessions` with a guest teacher name, and upload `CourseMaterials`.
 
 ---
 
@@ -151,9 +152,9 @@ To prevent the frontend from sending hundreds of individual requests, the backen
 ```
 **Response:** `{"message": "Bulk enrollment completed.", "requested_students": 100, "new_enrollments": 100}`
 
-### 2. Bulk Mark Attendance (Teacher Only)
+### 2. Bulk Mark Attendance (Coordinator Only)
 **Endpoint:** `POST /api/course/attendance/bulk-mark/<session_id>/`
-**Use Case:** A teacher has an attendance grid/spreadsheet on their screen and hits "Submit" to save the whole class at once.
+**Use Case:** A coordinator has an attendance grid/spreadsheet on their screen and hits "Submit" to save the whole class at once.
 **Payload:**
 ```json
 {
@@ -170,10 +171,10 @@ To prevent the frontend from sending hundreds of individual requests, the backen
 
 ## 5. Security & Error Handling
 
-* **403 Forbidden**: If a Teacher tries to create a session or mark attendance for a course they are not assigned to, the backend will reject it. Handle these gracefully in the UI.
+* **403 Forbidden**: If a Coordinator tries to create a session or mark attendance for a course they are not assigned to, the backend will reject it. Handle these gracefully in the UI.
 * **400 Bad Request (Validation Errors)**: The backend enforces strict data integrity. You will receive a `400` response if:
   * Bulk payloads are malformed or missing required fields.
-  * A Teacher submits attendance for a student who is **not enrolled** in the course (returns `{"error": "Some students are not enrolled...", "invalid_student_ids": [...]}`).
+  * A Coordinator submits attendance for a student who is **not enrolled** in the course (returns `{"error": "Some students are not enrolled...", "invalid_student_ids": [...]}`).
   * A duplicate `CourseSession` is created on the same date.
   * A duplicate `AttendanceRecord` is submitted for the same student in the same session.
 
@@ -239,3 +240,50 @@ This section details critical bug fixes and security enhancements deployed to th
 **What the Frontend must handle:**
 - QA Moderators are no longer restricted to just "Approving" content. They now have the authority to completely delete inappropriate or spam questions/answers from the system.
 - **UI Implication:** In the Moderation Dashboard (`/api/qa/questions/moderation-queue/`), the frontend should now render a "Reject/Delete" button alongside the "Approve" button. This button should trigger a `DELETE /api/qa/questions/{id}/` (or answers) request.
+
+<br/>
+
+# Backend Updates: Course Coordinator Migration (Breaking Change)
+**Target Audience:** Frontend Engineers
+**Date:** May 2026
+
+This section documents a **breaking API change** to the Course Management system. The `Teacher` role and field have been completely replaced by `CourseCoordinator`.
+
+---
+
+## 1. Why This Changed
+The "Teacher" in the previous API was actually a guest lecturer who may not have a Finot account. The person who actually operates the system (creates sessions, takes attendance, uploads materials) is a **nominated student** — now correctly called a **Course Coordinator**.
+
+## 2. Breaking API Changes
+
+### SemesterCourse Response Shape
+The `GET /api/course/semester-courses/` response has changed:
+```diff
+- "teachers": ["uuid-1", "uuid-2"],
+- "teachers_details": [{...}, {...}],
++ "coordinators": ["uuid-1", "uuid-2"],
++ "coordinators_details": [{...}, {...}],
+```
+**Action Required:** Update all frontend references from `teachers` / `teachers_details` to `coordinators` / `coordinators_details`.
+
+### CourseSession Response Shape
+The `GET /api/course/sessions/` response now includes a new field:
+```json
+{
+  "id": "uuid",
+  "semester_course": "uuid",
+  "date": "2026-05-04",
+  "topic": "Church History Chapter 3",
+  "teacher_name": "Abba Gebremedhin",
+  "created_at": "..."
+}
+```
+**Action Required:** When creating/editing a session, the frontend should provide an optional `teacher_name` text field for the guest lecturer's name.
+
+### Role Name Change
+```diff
+- "Teacher"
++ "CourseCoordinator"
+```
+**Action Required:** Update all frontend role checks from `"Teacher"` to `"CourseCoordinator"`. This affects sidebar visibility, dashboard routing, and any role-based UI gating.
+
