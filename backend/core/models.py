@@ -5,10 +5,12 @@ from django.conf import settings
 
 # Create your models here.
 
+
 class Role(models.Model):
     """
     Defines system-level permissions.
     """
+
     STUDENT = "Student"
     SERVICE_ADMIN = "ServiceAdmin"
     SUPER_ADMIN = "SuperAdmin"
@@ -17,7 +19,7 @@ class Role(models.Model):
     QA_MODERATOR = "QAModerator"
     TEACHER = "Teacher"
     EVENT_MANAGER = "EventManager"
-    
+
     ROLE_CHOICES = [
         (STUDENT, "Student"),
         (FAMILY_ADMIN, "Family Admin"),
@@ -42,19 +44,22 @@ class User(AbstractUser):
     Stores system authentication information.
     Identity management only.
     """
-    email = models.EmailField(_('email address'), unique=True)
+
+    email = models.EmailField(_("email address"), unique=True)
     middle_name = models.CharField(max_length=150, blank=True)
-    
+
     GENDER_MALE = "M"
     GENDER_FEMALE = "F"
     GENDER_CHOICES = [
         (GENDER_MALE, "Male"),
         (GENDER_FEMALE, "Female"),
     ]
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
-    
+    gender = models.CharField(
+        max_length=1, choices=GENDER_CHOICES, blank=True, null=True
+    )
+
     # Roles mapping (Many-to-Many through UserRole)
-    roles = models.ManyToManyField(Role, through='UserRole', related_name='users')
+    roles = models.ManyToManyField(Role, through="UserRole", related_name="users")
 
     def __str__(self):
         return self.username
@@ -65,12 +70,13 @@ class UserRole(models.Model):
     Many-to-Many mapping between users and roles.
     Allows a student to also be an admin, multiple roles per user.
     """
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
     assigned_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'role')
-    
+        unique_together = ("user", "role")
+
     def __str__(self):
         return f"{self.user} - {self.role}"
