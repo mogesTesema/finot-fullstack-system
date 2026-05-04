@@ -56,13 +56,13 @@ class IsQuestionOwner(permissions.BasePermission):
 
 class IsAdminOrOwner(permissions.BasePermission):
     """
-    General permission: staff, SuperAdmin, or owner of the object.
+    General permission: staff, SuperAdmin, QAModerator, or owner of the object.
     Moved from views.py to centralize all Q&A permissions.
     """
 
     def has_object_permission(self, request, view, obj):
         if request.user and request.user.is_authenticated:
-            if request.user.is_staff or request.user.roles.filter(name="SuperAdmin").exists():
+            if request.user.is_staff or request.user.roles.filter(name__in=["SuperAdmin", "QAModerator"]).exists():
                 return True
             if hasattr(obj, "user") and obj.user == request.user:
                 return True

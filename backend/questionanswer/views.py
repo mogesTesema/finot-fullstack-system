@@ -41,34 +41,44 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Public sees only APPROVED + PUBLIC questions.
-        Uses Prefetch and annotate to eliminate N+1 queries:
-          - approved_answers prefetch avoids per-question answer filter calls.
-          - answer_count_db annotation avoids per-question .count() calls.
+        Public sees only APPROVED + PUBLIC questions in lists.
+        Detail views allow users to see/edit their own pending items, and admins to see all.
         """
-        # The approve action needs to fetch unapproved objects to approve them.
-        if self.action == "approve":
-            return Question.objects.all()
+        user = self.request.user
+        
+        # Filter for the main public list endpoint
+        if self.action == "list":
+            qs = Question.objects.filter(
+                is_approved=True,
+                visibility=Question.VISIBILITY_PUBLIC,
+            )
+        else:
+            # Detail endpoints (retrieve, update, destroy, approve)
+            if user and user.is_authenticated:
+                if user.is_staff or user.roles.filter(name__in=["SuperAdmin", "QAModerator", "QACounselor"]).exists():
+                    qs = Question.objects.all()
+                else:
+                    qs = Question.objects.filter(
+                        Q(is_approved=True, visibility=Question.VISIBILITY_PUBLIC) | Q(user=user)
+                    )
+            else:
+                qs = Question.objects.filter(
+                    is_approved=True,
+                    visibility=Question.VISIBILITY_PUBLIC,
+                )
 
         approved_answers_qs = Answer.objects.filter(is_approved=True).order_by(
             "created_at"
         )
 
-        qs = (
-            Question.objects.filter(
-                is_approved=True,
-                visibility=Question.VISIBILITY_PUBLIC,
+        qs = qs.prefetch_related(
+            Prefetch(
+                "answers",
+                queryset=approved_answers_qs,
+                to_attr="approved_answers_list",
             )
-            .prefetch_related(
-                Prefetch(
-                    "answers",
-                    queryset=approved_answers_qs,
-                    to_attr="approved_answers_list",
-                )
-            )
-            .annotate(
-                answer_count_db=Count("answers", filter=Q(answers__is_approved=True))
-            )
+        ).annotate(
+            answer_count_db=Count("answers", filter=Q(answers__is_approved=True))
         )
 
         # Filter by Category
@@ -82,6 +92,22 @@ class QuestionViewSet(viewsets.ModelViewSet):
             qs = qs.filter(user_id=user_id)
 
         return qs
+
+    def perform_update(self, serializer):
+        """
+        Prevent moderation bypass: When a non-privileged user edits a public question,
+        reset its approval status to False, forcing it back to the moderation queue.
+        Also prevents users from bypassing moderation by changing a private question to public.
+        """
+        user = self.request.user
+        is_privileged = user.is_staff or user.roles.filter(name__in=["SuperAdmin", "QAModerator"]).exists()
+        
+        new_visibility = serializer.validated_data.get("visibility", serializer.instance.visibility)
+        
+        if new_visibility == Question.VISIBILITY_PUBLIC and not is_privileged:
+            serializer.save(is_approved=False)
+        else:
+            serializer.save()
 
     @action(
         detail=False,
@@ -237,15 +263,28 @@ class AnswerViewSet(viewsets.ModelViewSet):
         Filter by specific question if ?question=ID is provided.
         Can also filter by responder (User ID) or Category (via Question).
         """
-        # The approve action needs to fetch unapproved objects to approve them.
-        if self.action == "approve":
-            return Answer.objects.select_related("question").all()
+        user = self.request.user
 
-        # select_related('question') avoids a per-answer query when filtering by category.
-        queryset = Answer.objects.filter(
-            is_approved=True,
-            question__visibility=Question.VISIBILITY_PUBLIC,
-        ).select_related("question")
+        if self.action == "list":
+            queryset = Answer.objects.filter(
+                is_approved=True,
+                question__visibility=Question.VISIBILITY_PUBLIC,
+            )
+        else:
+            if user and user.is_authenticated:
+                if user.is_staff or user.roles.filter(name__in=["SuperAdmin", "QAModerator", "QACounselor"]).exists():
+                    queryset = Answer.objects.all()
+                else:
+                    queryset = Answer.objects.filter(
+                        Q(is_approved=True, question__visibility=Question.VISIBILITY_PUBLIC) | Q(responder=user)
+                    )
+            else:
+                queryset = Answer.objects.filter(
+                    is_approved=True,
+                    question__visibility=Question.VISIBILITY_PUBLIC,
+                )
+
+        queryset = queryset.select_related("question")
 
         # Filter by Question ID
         question_id = self.request.query_params.get("question")
@@ -298,6 +337,20 @@ class AnswerViewSet(viewsets.ModelViewSet):
         else:
             # Public answers follow normal moderation flow
             serializer.save(responder=self.request.user)
+
+    def perform_update(self, serializer):
+        """
+        Prevent moderation bypass for answers.
+        """
+        user = self.request.user
+        is_privileged = user.is_staff or user.roles.filter(name__in=["SuperAdmin", "QAModerator", "QACounselor"]).exists()
+        
+        new_question = serializer.validated_data.get("question", serializer.instance.question)
+        
+        if new_question.visibility == Question.VISIBILITY_PUBLIC and not is_privileged:
+            serializer.save(is_approved=False)
+        else:
+            serializer.save()
 
     @action(detail=True, methods=["POST"], url_path="approve")
     def approve(self, request, pk=None):
