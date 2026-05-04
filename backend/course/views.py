@@ -14,6 +14,7 @@ from .serializers import (
     CourseSessionSerializer, AttendanceRecordSerializer, CourseMaterialSerializer,
     BulkEnrollmentRequestSerializer, BulkAttendanceRequestSerializer
 )
+from student.models import StudentProfile
 from .permissions import IsSuperAdmin, IsCourseCoordinator, IsEnrolledStudentOrCoordinator
 
 
@@ -42,12 +43,14 @@ class SemesterCourseViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not user.is_authenticated:
             return qs.none()
-        if user.roles.filter(name=Role.SUPER_ADMIN).exists():
+            
+        batch_year = self.request.query_params.get('batch_year')
+        if batch_year:
+            qs = qs.filter(course__batch_year=batch_year)
+            
+        if user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
-        return qs.filter(
-            id__in=list(user.coordinating_semester_courses.values_list('id', flat=True)) +
-                   list(SemesterCourse.objects.filter(enrollments__student=user).values_list('id', flat=True))
-        ).distinct()
+        return qs.filter(enrollments__student=user).distinct()
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
@@ -60,11 +63,9 @@ class CourseEnrollmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = CourseEnrollment.objects.select_related('student', 'semester_course', 'semester_course__course').prefetch_related('semester_course__coordinators', 'semester_course__coordinators__roles')
-        if self.request.user.roles.filter(name=Role.SUPER_ADMIN).exists():
+        if self.request.user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
-        return qs.filter(
-            Q(student=self.request.user) | Q(semester_course__coordinators=self.request.user)
-        ).distinct()
+        return qs.filter(student=self.request.user).distinct()
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'bulk_enroll']:
@@ -81,7 +82,11 @@ class CourseEnrollmentViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         batch_year = serializer.validated_data['batch_year']
-        students = User.objects.filter(is_active=True, student_profile__batch_year=batch_year)
+        students = User.objects.filter(
+            is_active=True, 
+            student_profile__batch_year=batch_year,
+            student_profile__status=StudentProfile.IN_CAMPUS
+        )
         if not students.exists():
             return Response({"message": f"No active students found in batch year {batch_year}."}, status=status.HTTP_404_NOT_FOUND)
         enrollments = [CourseEnrollment(semester_course=sc, student=s) for s in students]
@@ -97,24 +102,14 @@ class CourseSessionViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not user.is_authenticated:
             return qs.none()
-        if user.roles.filter(name=Role.SUPER_ADMIN).exists():
+        if user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
-        return qs.filter(
-            semester_course__id__in=list(user.coordinating_semester_courses.values_list('id', flat=True)) +
-                                    list(SemesterCourse.objects.filter(enrollments__student=user).values_list('id', flat=True))
-        ).distinct()
+        return qs.filter(semester_course__enrollments__student=user).distinct()
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsCourseCoordinator()]
         return [IsEnrolledStudentOrCoordinator()]
-
-    def perform_create(self, serializer):
-        sc = serializer.validated_data.get('semester_course')
-        user = self.request.user
-        if not user.roles.filter(name=Role.SUPER_ADMIN).exists() and not sc.coordinators.filter(id=user.id).exists():
-            raise PermissionDenied("You must be a coordinator for this semester course to create a session.")
-        serializer.save()
 
 
 class AttendanceRecordViewSet(viewsets.ModelViewSet):
@@ -123,11 +118,9 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = AttendanceRecord.objects.select_related('student', 'session', 'session__semester_course', 'marked_by')
         user = self.request.user
-        if user.roles.filter(name=Role.SUPER_ADMIN).exists():
+        if user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
-        return qs.filter(
-            Q(student=user) | Q(session__semester_course__coordinators=user)
-        ).distinct()
+        return qs.filter(student=user).distinct()
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'bulk_mark']:
@@ -137,12 +130,19 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         session = serializer.validated_data.get('session')
         student = serializer.validated_data.get('student')
-        user = self.request.user
         if not CourseEnrollment.objects.filter(student=student, semester_course=session.semester_course).exists():
             raise serializers.ValidationError({"student": "Student is not enrolled in this course."})
-        if not user.roles.filter(name=Role.SUPER_ADMIN).exists() and not session.semester_course.coordinators.filter(id=user.id).exists():
-            raise PermissionDenied("You must be a coordinator to mark attendance.")
-        serializer.save(marked_by=user)
+        serializer.save(marked_by=self.request.user)
+
+    def perform_update(self, serializer):
+        session = serializer.validated_data.get('session')
+        student = serializer.validated_data.get('student')
+        if session or student:
+            effective_session = session if session else serializer.instance.session
+            effective_student = student if student else serializer.instance.student
+            if not CourseEnrollment.objects.filter(student=effective_student, semester_course=effective_session.semester_course).exists():
+                raise serializers.ValidationError({"student": "Student is not enrolled in this course."})
+        serializer.save(marked_by=self.request.user)
 
     @action(detail=False, methods=['post'], url_path='bulk-mark/(?P<session_id>[^/.]+)')
     def bulk_mark(self, request, session_id=None):
@@ -151,7 +151,7 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
         except CourseSession.DoesNotExist:
             return Response({"error": "Session not found."}, status=status.HTTP_404_NOT_FOUND)
         is_super = request.user.roles.filter(name=Role.SUPER_ADMIN).exists()
-        is_coordinator = session.semester_course.coordinators.filter(id=request.user.id).exists()
+        is_coordinator = request.user.roles.filter(name=Role.COURSE_COORDINATOR).exists()
         if not (is_super or is_coordinator):
             return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
         serializer = BulkAttendanceRequestSerializer(data=request.data)
@@ -201,21 +201,11 @@ class CourseMaterialViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not user.is_authenticated:
             return qs.none()
-        if user.roles.filter(name=Role.SUPER_ADMIN).exists():
+        if user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
-        return qs.filter(
-            semester_course__id__in=list(user.coordinating_semester_courses.values_list('id', flat=True)) +
-                                    list(SemesterCourse.objects.filter(enrollments__student=user).values_list('id', flat=True))
-        ).distinct()
+        return qs.filter(semester_course__enrollments__student=user).distinct()
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsCourseCoordinator()]
         return [IsEnrolledStudentOrCoordinator()]
-
-    def perform_create(self, serializer):
-        sc = serializer.validated_data.get('semester_course')
-        user = self.request.user
-        if not user.roles.filter(name=Role.SUPER_ADMIN).exists() and not sc.coordinators.filter(id=user.id).exists():
-            raise PermissionDenied("You must be a coordinator to upload materials.")
-        serializer.save()

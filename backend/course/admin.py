@@ -62,10 +62,8 @@ class SemesterCourseAdmin(ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if is_superadmin(request.user):
+        if is_superadmin(request.user) or is_coordinator(request.user):
             return qs
-        if is_coordinator(request.user):
-            return qs.filter(coordinators=request.user)
         return qs.none()
 
     def has_module_permission(self, request):
@@ -146,10 +144,8 @@ class CourseEnrollmentAdmin(ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if is_superadmin(request.user):
+        if is_superadmin(request.user) or is_coordinator(request.user):
             return qs
-        if is_coordinator(request.user):
-            return qs.filter(semester_course__coordinators=request.user)
         return qs.none()
 
     def has_module_permission(self, request):
@@ -176,15 +172,11 @@ class CourseSessionAdmin(ModelAdmin):
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if is_superadmin(request.user):
+        if is_superadmin(request.user) or is_coordinator(request.user):
             return qs
-        if is_coordinator(request.user):
-            return qs.filter(semester_course__coordinators=request.user)
         return qs.none()
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "semester_course" and not is_superadmin(request.user):
-            kwargs["queryset"] = SemesterCourse.objects.filter(coordinators=request.user)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def has_module_permission(self, request):
@@ -211,19 +203,11 @@ class AttendanceRecordAdmin(ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if is_superadmin(request.user):
+        if is_superadmin(request.user) or is_coordinator(request.user):
             return qs
-        if is_coordinator(request.user):
-            return qs.filter(session__semester_course__coordinators=request.user)
         return qs.none()
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "session" and not is_superadmin(request.user):
-            kwargs["queryset"] = CourseSession.objects.filter(semester_course__coordinators=request.user)
-        if db_field.name == "student" and not is_superadmin(request.user):
-            from core.models import User
-            enrolled_student_ids = CourseEnrollment.objects.filter(semester_course__coordinators=request.user).values_list('student_id', flat=True)
-            kwargs["queryset"] = User.objects.filter(id__in=enrolled_student_ids)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
@@ -254,15 +238,11 @@ class CourseMaterialAdmin(ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if is_superadmin(request.user):
+        if is_superadmin(request.user) or is_coordinator(request.user):
             return qs
-        if is_coordinator(request.user):
-            return qs.filter(semester_course__coordinators=request.user)
         return qs.none()
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "semester_course" and not is_superadmin(request.user):
-            kwargs["queryset"] = SemesterCourse.objects.filter(coordinators=request.user)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def has_module_permission(self, request):

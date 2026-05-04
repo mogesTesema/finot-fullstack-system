@@ -82,7 +82,7 @@ Finot employs a decoupled, registry-based pattern to handle system-wide analytic
 - **Service & Ministry Management**: Organization of users into specific service groups (Agelglot) with hierarchical admin structures.
 - **Event Broadcasting**: Context-aware broadcasting where general events alert all users, but service-specific events are strictly scoped to active members of that group to prevent notification fatigue.
 - **Counselor Q&A**: A dual-layered system supporting public moderated forums and private, confidential 1-on-1 counselor threads that bypass standard moderation loops.
-- **Academic Course Tracking**: Management of static yearly curriculums mapped to dynamic semester courses. Course Coordinators (nominated students) manage session scheduling, bulk student enrollment, granular session-based attendance tracking, and material uploads. Guest teacher names are recorded per-session to support rotating lecturers.
+- **Academic Course Tracking**: Management of static yearly curriculums mapped to dynamic semester courses. Course Coordinators (nominated students with global course management access) manage session scheduling, bulk student enrollment, granular session-based attendance tracking, and material uploads across all batches. Guest teacher names are recorded per-session to support rotating lecturers.
 
 ### 5.2 Non-Functional Requirements
 - **Scalability via Bulk Operations**: The system must support massive bulk operations (e.g., batch-enrolling 1,000 students into a semester course, or marking 500 attendance records) in a single database transaction using Django's `bulk_create` and custom admin actions.

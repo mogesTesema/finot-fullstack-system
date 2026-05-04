@@ -126,14 +126,15 @@ When a user with the `STUDENT` role logs in:
 **UI Recommendation**: Build a "My Courses" dashboard. A single fetch to `/api/course/semester-courses/` will give you their active schedule.
 
 ### B. The Course Coordinator Flow
-When a user with the `CourseCoordinator` role logs in:
-* `GET /api/course/semester-courses/`: Returns **only** the courses where they are assigned as a coordinator.
-* `GET /api/course/enrollments/`: Returns the list of students enrolled in their assigned courses (crucial for building the attendance roster grid).
-* `GET /api/course/sessions/`: Returns the sessions for their classes.
+When a user with the `CourseCoordinator` role logs in, they have **global access** to all course data across all batches:
+* `GET /api/course/semester-courses/`: Returns **all** active semester courses in the system. 
+  * **New Feature:** You can append `?batch_year=1` to filter the courses for a specific batch.
+* `GET /api/course/enrollments/`: Returns all students enrolled in the courses (crucial for building the attendance roster grid).
+* `GET /api/course/sessions/`: Returns the sessions for all classes.
 * `POST /api/course/sessions/`: Allows creating sessions with an optional `teacher_name` field (the guest lecturer's name for that day).
-* `POST /api/course/materials/`: Allows them to upload files for their assigned courses.
+* `POST /api/course/materials/`: Allows them to upload files for any course.
 
-**UI Recommendation**: Build a "Coordinator Dashboard". Allow them to select one of their `SemesterCourses`, create `CourseSessions` with a guest teacher name, and upload `CourseMaterials`.
+**UI Recommendation**: Build a "Coordinator Dashboard". Provide a dropdown filter for `batch_year` at the top so they can easily find the `SemesterCourses` they want to manage today, create `CourseSessions` with a guest teacher name, and upload `CourseMaterials`.
 
 ---
 
@@ -171,7 +172,7 @@ To prevent the frontend from sending hundreds of individual requests, the backen
 
 ## 5. Security & Error Handling
 
-* **403 Forbidden**: If a Coordinator tries to create a session or mark attendance for a course they are not assigned to, the backend will reject it. Handle these gracefully in the UI.
+* **403 Forbidden**: If a Coordinator tries to use an endpoint they don't have access to, though they have global access to the Course app now.
 * **400 Bad Request (Validation Errors)**: The backend enforces strict data integrity. You will receive a `400` response if:
   * Bulk payloads are malformed or missing required fields.
   * A Coordinator submits attendance for a student who is **not enrolled** in the course (returns `{"error": "Some students are not enrolled...", "invalid_student_ids": [...]}`).
