@@ -46,6 +46,10 @@ class QuestionViewSet(viewsets.ModelViewSet):
           - approved_answers prefetch avoids per-question answer filter calls.
           - answer_count_db annotation avoids per-question .count() calls.
         """
+        # The approve action needs to fetch unapproved objects to approve them.
+        if self.action == "approve":
+            return Question.objects.all()
+
         approved_answers_qs = Answer.objects.filter(is_approved=True).order_by(
             "created_at"
         )
@@ -233,6 +237,10 @@ class AnswerViewSet(viewsets.ModelViewSet):
         Filter by specific question if ?question=ID is provided.
         Can also filter by responder (User ID) or Category (via Question).
         """
+        # The approve action needs to fetch unapproved objects to approve them.
+        if self.action == "approve":
+            return Answer.objects.select_related("question").all()
+
         # select_related('question') avoids a per-answer query when filtering by category.
         queryset = Answer.objects.filter(
             is_approved=True,

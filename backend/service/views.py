@@ -231,8 +231,8 @@ class EventViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         
-        # SuperAdmins see all
-        if user.is_staff or user.roles.filter(name='SuperAdmin').exists():
+        # SuperAdmins and EventManagers see all
+        if user.is_staff or user.roles.filter(name__in=['SuperAdmin', 'EventManager']).exists():
             return Event.objects.all().order_by('-start_date').select_related('created_by', 'service_group')
             
         # Service Admins see global + their managed group's events
@@ -259,7 +259,7 @@ class EventViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         
-        if user.is_staff or user.roles.filter(name='SuperAdmin').exists():
+        if user.is_staff or user.roles.filter(name__in=['SuperAdmin', 'EventManager']).exists():
              serializer.save(created_by=user)
              return
              
@@ -271,6 +271,26 @@ class EventViewSet(viewsets.ModelViewSet):
                  return
                  
         raise permissions.PermissionDenied("You do not have permission to create events.")
+
+    def perform_update(self, serializer):
+        self._check_edit_permissions(serializer.instance)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        self._check_edit_permissions(instance)
+        instance.delete()
+
+    def _check_edit_permissions(self, event):
+        user = self.request.user
+        if user.is_staff or user.roles.filter(name__in=['SuperAdmin', 'EventManager']).exists():
+            return
+            
+        if user.roles.filter(name='ServiceAdmin').exists():
+            managed_group = user.managed_service_groups.first()
+            if managed_group and event.service_group == managed_group:
+                return
+                
+        raise permissions.PermissionDenied("You do not have permission to modify this event.")
 
 
 class ServiceAttendanceViewSet(viewsets.ReadOnlyModelViewSet):
