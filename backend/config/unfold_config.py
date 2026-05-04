@@ -316,7 +316,7 @@ UNFOLD = {
                         "icon": "calendar_month",
                         "link": reverse_lazy("admin:course_semestercourse_changelist"),
                         "permission": lambda request: request.user.is_superuser or (
-                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                         ),
                     },
                     {
@@ -324,7 +324,7 @@ UNFOLD = {
                         "icon": "how_to_reg",
                         "link": reverse_lazy("admin:course_courseenrollment_changelist"),
                         "permission": lambda request: request.user.is_superuser or (
-                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                         ),
                     },
                     {
@@ -332,7 +332,7 @@ UNFOLD = {
                         "icon": "schedule",
                         "link": reverse_lazy("admin:course_coursesession_changelist"),
                         "permission": lambda request: request.user.is_superuser or (
-                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                         ),
                     },
                     {
@@ -340,7 +340,7 @@ UNFOLD = {
                         "icon": "checklist",
                         "link": reverse_lazy("admin:course_attendancerecord_changelist"),
                         "permission": lambda request: request.user.is_superuser or (
-                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                         ),
                     },
                     {
@@ -348,7 +348,7 @@ UNFOLD = {
                         "icon": "attach_file",
                         "link": reverse_lazy("admin:course_coursematerial_changelist"),
                         "permission": lambda request: request.user.is_superuser or (
-                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                         ),
                     },
                 ],
@@ -532,35 +532,35 @@ UNFOLD = {
                     "title": _("Semester Courses"),
                     "link": reverse_lazy("admin:course_semestercourse_changelist"),
                     "permission": lambda request: request.user.is_superuser or (
-                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                     ),
                 },
                 {
                     "title": _("Enrollments"),
                     "link": reverse_lazy("admin:course_courseenrollment_changelist"),
                     "permission": lambda request: request.user.is_superuser or (
-                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                     ),
                 },
                 {
                     "title": _("Sessions"),
                     "link": reverse_lazy("admin:course_coursesession_changelist"),
                     "permission": lambda request: request.user.is_superuser or (
-                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                     ),
                 },
                 {
                     "title": _("Attendance"),
                     "link": reverse_lazy("admin:course_attendancerecord_changelist"),
                     "permission": lambda request: request.user.is_superuser or (
-                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                     ),
                 },
                 {
                     "title": _("Materials"),
                     "link": reverse_lazy("admin:course_coursematerial_changelist"),
                     "permission": lambda request: request.user.is_superuser or (
-                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "Teacher"]).exists()
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                     ),
                 },
             ],

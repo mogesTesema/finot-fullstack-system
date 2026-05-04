@@ -27,13 +27,13 @@ class SemesterCourseSerializer(serializers.ModelSerializer):
     Includes nested basic course details for frontend convenience.
     """
     course_details = CourseSerializer(source='course', read_only=True)
-    teachers_details = UserSerializer(source='teachers', many=True, read_only=True)
+    coordinators_details = UserSerializer(source='coordinators', many=True, read_only=True)
 
     class Meta:
         model = SemesterCourse
         fields = [
             'id', 'course', 'course_details', 'academic_year', 
-            'semester', 'teachers', 'teachers_details', 'created_at'
+            'semester', 'coordinators', 'coordinators_details', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
@@ -64,7 +64,7 @@ class CourseSessionSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = CourseSession
-        fields = ['id', 'semester_course', 'date', 'topic', 'created_at']
+        fields = ['id', 'semester_course', 'date', 'topic', 'teacher_name', 'created_at']
         read_only_fields = ['id', 'created_at']
         validators = [
             UniqueTogetherValidator(
