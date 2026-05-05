@@ -10,23 +10,29 @@ import {
   AcademicCapIcon,
   ClipboardDocumentListIcon,
   FolderIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
-import Spinner from "@/components/ui/Spinner";
-import { api } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
+import Spinner from "../../components/ui/Spinner";
+import { api } from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-// Types based on new backend
+interface Coordinator {
+  id: string;
+  full_name: string;
+}
+
 interface Curriculum {
   id: string;
   title: string;
   code: string;
+  description?: string;
 }
 
 interface SemesterCourse {
@@ -34,14 +40,24 @@ interface SemesterCourse {
   curriculum: Curriculum;
   semester: number;
   academic_year: string;
-  teacher: { id: string; full_name: string };
+  coordinators: string[];
+  coordinators_details: Coordinator[];
   schedule_day: string;
   start_time: string;
   end_time: string;
   venue: string | null;
 }
 
-const TeacherCourses = () => {
+interface CourseSession {
+  id: string;
+  semester_course: string;
+  session_date: string;
+  topic: string | null;
+  teacher_name: string | null;
+  created_at: string;
+}
+
+const CoordinatorCourses = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -50,24 +66,30 @@ const TeacherCourses = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"courses" | "sessions">("courses");
   const [selectedCourse, setSelectedCourse] = useState<SemesterCourse | null>(null);
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<CourseSession[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
-  
+  const [batchFilter, setBatchFilter] = useState<string>("");
+  const [availableBatches, setAvailableBatches] = useState<number[]>([]);
+
   // Session creation modal
   const [showCreateSession, setShowCreateSession] = useState(false);
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().split("T")[0]);
   const [sessionTopic, setSessionTopic] = useState("");
+  const [teacherName, setTeacherName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const isTeacher = user?.role === "teacher" || user?.role === "TEACHER";
+  const isCourseCoordinator = user?.role === "Course_coordinator" || user?.role?.includes("CourseCoordinator");
 
-  const fetchCourses = async () => {
+  // Fetch coordinator's courses
+  const fetchCourses = async (batch?: string) => {
     setLoading(true);
     try {
-      const data = await api.getSemesterCourses() as any;
-      // Handle both array and paginated object responses
-      const coursesArray = Array.isArray(data) ? data : (data?.results || []);
-      setCourses(coursesArray);
+      const data = await api.getSemesterCourses(batch ? parseInt(batch) : undefined);
+      setCourses(data);
+      
+      // Extract unique batch years for filter
+      const batches = [...new Set(data.map((c: SemesterCourse) => parseInt(c.academic_year)))];
+      setAvailableBatches(batches.sort());
     } catch (error) {
       console.error("Failed to fetch courses", error);
       toast.error(t("failed_to_load_courses"));
@@ -76,12 +98,12 @@ const TeacherCourses = () => {
     }
   };
 
+  // Fetch sessions for selected course
   const fetchSessions = async (courseId: string) => {
     setLoadingSessions(true);
     try {
-      const data = await api.getCourseSessions(courseId) as any;
-      const sessionsArray = Array.isArray(data) ? data : (data?.results || []);
-      setSessions(sessionsArray);
+      const data = await api.getCourseSessions(courseId);
+      setSessions(data);
     } catch (error) {
       console.error("Failed to fetch sessions", error);
       toast.error(t("failed_to_load_sessions"));
@@ -91,8 +113,10 @@ const TeacherCourses = () => {
   };
 
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    if (isCourseCoordinator) {
+      fetchCourses();
+    }
+  }, [isCourseCoordinator]);
 
   const handleCourseSelect = (course: SemesterCourse) => {
     setSelectedCourse(course);
@@ -109,13 +133,14 @@ const TeacherCourses = () => {
       await api.createCourseSession({
         semester_course: selectedCourse.id,
         session_date: sessionDate,
-        topic: sessionTopic,
+        topic: sessionTopic || undefined,
+        teacher_name: teacherName || undefined,
       });
       toast.success(t("session_created_success"));
       setShowCreateSession(false);
       setSessionDate(new Date().toISOString().split("T")[0]);
       setSessionTopic("");
-      // Refresh sessions
+      setTeacherName("");
       fetchSessions(selectedCourse.id);
     } catch (error) {
       console.error("Failed to create session", error);
@@ -138,6 +163,19 @@ const TeacherCourses = () => {
     return days[day] || day;
   };
 
+  // Redirect if not course coordinator
+  if (!isCourseCoordinator && !loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="card p-8 max-w-md mx-auto">
+          <AcademicCapIcon className="h-12 w-12 mx-auto text-red-500 mb-3" />
+          <p className="text-foreground font-medium">{t("access_denied")}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("coordinator_access_only")}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -156,11 +194,11 @@ const TeacherCourses = () => {
         className="mb-6"
       >
         <h1 className="text-2xl font-bold text-foreground">
-          {activeTab === "courses" ? t("my_courses") : t("course_sessions")}
+          {activeTab === "courses" ? t("course_management") : t("course_sessions")}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           {activeTab === "courses" 
-            ? t("teacher_courses_description") 
+            ? t("coordinator_courses_description") 
             : t("manage_sessions_description")}
         </p>
       </motion.div>
@@ -187,6 +225,28 @@ const TeacherCourses = () => {
           variants={fadeIn}
           className="space-y-4"
         >
+          {/* Batch Filter */}
+          {availableBatches.length > 0 && (
+            <div className="flex gap-2 items-center">
+              <label className="text-sm text-muted-foreground">{t("filter_by_batch")}:</label>
+              <select
+                value={batchFilter}
+                onChange={(e) => {
+                  setBatchFilter(e.target.value);
+                  fetchCourses(e.target.value);
+                }}
+                className="input py-1.5 text-sm w-32"
+              >
+                <option value="">{t("all_batches")}</option>
+                {availableBatches.map((batch) => (
+                  <option key={batch} value={batch}>
+                    {batch}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {courses.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <AcademicCapIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -201,7 +261,7 @@ const TeacherCourses = () => {
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold text-foreground text-lg">
                         {course.curriculum?.title || "Course"}
                       </h3>
@@ -229,6 +289,13 @@ const TeacherCourses = () => {
                         </span>
                       )}
                     </div>
+                    {/* Display coordinators */}
+                    {course.coordinators_details && course.coordinators_details.length > 0 && (
+                      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                        <UserGroupIcon className="h-3 w-3" />
+                        {t("coordinators")}: {course.coordinators_details.map(c => c.full_name).join(", ")}
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2 self-start md:self-center">
                     <button
@@ -313,6 +380,11 @@ const TeacherCourses = () => {
                     {session.topic && (
                       <p className="text-sm text-muted-foreground mt-1">{session.topic}</p>
                     )}
+                    {session.teacher_name && (
+                      <p className="text-xs text-primary mt-1">
+                        {t("teacher")}: {session.teacher_name}
+                      </p>
+                    )}
                   </div>
                   <button
                     onClick={() => navigate(`/dashboard/courses/${selectedCourse.id}/attendance?session=${session.id}`)}
@@ -365,6 +437,21 @@ const TeacherCourses = () => {
                   className="input w-full"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  {t("teacher_name_optional")}
+                </label>
+                <input
+                  type="text"
+                  value={teacherName}
+                  onChange={(e) => setTeacherName(e.target.value)}
+                  placeholder={t("guest_lecturer_name")}
+                  className="input w-full"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t("teacher_name_help")}
+                </p>
+              </div>
               <div className="flex gap-3 pt-2">
                 <button type="submit" disabled={submitting} className="btn-primary flex-1">
                   {submitting ? t("creating") : t("create")}
@@ -385,4 +472,4 @@ const TeacherCourses = () => {
   );
 };
 
-export default TeacherCourses;
+export default CoordinatorCourses;

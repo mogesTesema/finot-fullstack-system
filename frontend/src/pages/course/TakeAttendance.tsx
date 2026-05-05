@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeftIcon, CheckCircleIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
-import Spinner from "@/components/ui/Spinner";
-import { api } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
+import Spinner from "../../components/ui/Spinner";
+import { api } from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -27,6 +27,13 @@ interface SemesterCourse {
   semester: number;
 }
 
+interface CourseSession {
+  id: string;
+  session_date: string;
+  topic: string | null;
+  teacher_name: string | null;
+}
+
 const TakeAttendance = () => {
   const { id: semesterCourseId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -37,8 +44,9 @@ const TakeAttendance = () => {
 
   const [course, setCourse] = useState<SemesterCourse | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<CourseSession[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(sessionIdParam);
+  const [selectedSessionDetails, setSelectedSessionDetails] = useState<CourseSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
@@ -52,15 +60,13 @@ const TakeAttendance = () => {
       
       setLoading(true);
       try {
-        // Get semester course details (from list or direct API)
+        // Get semester course details
         const courses = await api.getSemesterCourses();
         const foundCourse = courses.find((c: any) => c.id === semesterCourseId);
         setCourse(foundCourse || null);
 
         // Get enrolled students for this course
-        // Get enrolled students for this course
-        const enrollmentsData = await api.getCourseEnrollments(semesterCourseId) as any;
-        const enrollments = Array.isArray(enrollmentsData) ? enrollmentsData : (enrollmentsData?.results || []);
+        const enrollments = await api.getCourseEnrollments(semesterCourseId);
         const studentList = enrollments.map((e: any) => ({
           id: e.student.id,
           full_name: e.student.full_name,
@@ -78,6 +84,14 @@ const TakeAttendance = () => {
         // Get sessions for session dropdown
         const sessionsData = await api.getCourseSessions(semesterCourseId);
         setSessions(sessionsData);
+        
+        // If sessionId from URL, find and set it
+        if (sessionIdParam) {
+          const foundSession = sessionsData.find((s: any) => s.id === sessionIdParam);
+          if (foundSession) {
+            setSelectedSessionDetails(foundSession);
+          }
+        }
       } catch (error) {
         console.error("Failed to fetch data", error);
         toast.error(t("failed_to_load_data"));
@@ -87,15 +101,17 @@ const TakeAttendance = () => {
     };
 
     fetchData();
-  }, [semesterCourseId]);
+  }, [semesterCourseId, sessionIdParam]);
 
-  // When session is selected, load existing attendance if any
+  // When session is selected, update details
   useEffect(() => {
-    if (!selectedSessionId) return;
-    
-    // TODO: Fetch existing attendance for this session and pre-fill form
-    // This will come from a future API endpoint
-  }, [selectedSessionId]);
+    if (selectedSessionId) {
+      const session = sessions.find(s => s.id === selectedSessionId);
+      setSelectedSessionDetails(session || null);
+    } else {
+      setSelectedSessionDetails(null);
+    }
+  }, [selectedSessionId, sessions]);
 
   const handleStatusChange = (studentId: string, status: string) => {
     setAttendanceData((prev) => ({
@@ -233,6 +249,25 @@ const TakeAttendance = () => {
               ))}
             </select>
           </div>
+          
+          {/* Show session details if selected */}
+          {selectedSessionDetails && (
+            <div className="mt-3 p-3 bg-muted/30 rounded-lg">
+              <p className="text-sm">
+                <span className="font-medium">{t("date")}:</span> {new Date(selectedSessionDetails.session_date).toLocaleDateString()}
+              </p>
+              {selectedSessionDetails.topic && (
+                <p className="text-sm mt-1">
+                  <span className="font-medium">{t("topic")}:</span> {selectedSessionDetails.topic}
+                </p>
+              )}
+              {selectedSessionDetails.teacher_name && (
+                <p className="text-sm mt-1">
+                  <span className="font-medium">{t("teacher")}:</span> {selectedSessionDetails.teacher_name}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Students List - only show if session selected */}

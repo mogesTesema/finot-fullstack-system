@@ -93,6 +93,7 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   // Handle URL parameter to open private tab
   useEffect(() => {
     const tabParam = searchParams.get("tab");
+    console.log("Tab parameter:", tabParam); // ADD THIS
     if (tabParam === "private") {
       setActiveTab("private");
     }
@@ -195,10 +196,19 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
     }
   };
 
-  const updateQuestion = async (questionId: string, newBody: string) => {
+  const updateQuestion = async (questionId: string, newBody: string, wasApproved: boolean) => {
     try {
       await api.updateQuestion(questionId, { question_body: newBody });
-      toast.success(t("question_updated"));
+      
+      // If the question was already approved, show moderation reset message
+      if (wasApproved) {
+        toast.success(t("question_updated_moderation"));
+        // Remove from current list since it needs re-approval
+        setQuestions((prev) => prev.filter((q) => q.id !== questionId));
+      } else {
+        toast.success(t("question_updated"));
+      }
+      
       await fetchQuestions(false);
       setEditingQuestion(null);
     } catch (error) { 
@@ -408,7 +418,7 @@ const QuestionList = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                         <div className="mt-3 space-y-2">
                           <textarea value={editedQuestionBody} onChange={(e) => setEditedQuestionBody(e.target.value)} className="input" rows={3} />
                           <div className="flex gap-2">
-                            <button onClick={() => updateQuestion(q.id, editedQuestionBody)} className="btn-primary text-sm px-3 py-1.5">{t("save")}</button>
+                            <button  onClick={() => updateQuestion(q.id, editedQuestionBody, q.is_approved)}  className="btn-primary text-sm px-3 py-1.5"> {t("save")}</button>
                             <button onClick={() => setEditingQuestion(null)} className="btn-outline text-sm px-3 py-1.5">{t("cancel")}</button>
                           </div>
                         </div>

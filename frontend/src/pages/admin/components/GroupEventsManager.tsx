@@ -3,6 +3,7 @@ import { api } from "../../../lib/api";
 import { PlusIcon, MapPinIcon, TrashIcon, PhotoIcon, PencilIcon, XMarkIcon, FunnelIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
+import { useAuth } from "../../../context/AuthContext";
 
 interface EventFormData {
   title: string;
@@ -24,8 +25,15 @@ const emptyForm: EventFormData = {
 
 type StatusFilter = "ALL" | "UPCOMING" | "ONGOING" | "COMPLETED";
 
-export default function GroupEventsManager({ groupId }: { groupId?: number | null }) {
+interface GroupEventsManagerProps {
+  groupId?: number | null;
+  eventType: "global" | "group";  // NEW: Controls whether service_group is sent
+}
+
+export default function GroupEventsManager({ groupId, eventType }: GroupEventsManagerProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -35,6 +43,31 @@ export default function GroupEventsManager({ groupId }: { groupId?: number | nul
   const [editingEventId, setEditingEventId] = useState<number | null>(null);
   const [formData, setFormData] = useState<EventFormData>({ ...emptyForm });
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+
+  // Check if user can edit/delete an event
+  const canEditEvent = (event: any) => {
+    // SuperAdmin can edit any event
+    if (user?.role === "Super_admin" || user?.role?.includes("SuperAdmin")) {
+      return true;
+    }
+    
+    // EventManager can edit any event (global events)
+    if (user?.role === "Event_manager" || user?.role?.includes("EventManager")) {
+      return true;
+    }
+    
+    // ServiceAdmin can only edit events belonging to their group
+    if (user?.role === "service_admin" || user?.role?.includes("ServiceAdmin")) {
+      // If event has a service_group and it matches the admin's group
+      if (event.service_group && groupId && event.service_group === groupId) {
+        return true;
+      }
+      // If event has no service_group (global event), ServiceAdmin cannot edit
+      return false;
+    }
+    
+    return false;
+  };
 
   useEffect(() => {
     fetchEvents();
@@ -108,6 +141,11 @@ export default function GroupEventsManager({ groupId }: { groupId?: number | nul
       if (formData.place_name) fd.append("place_name", formData.place_name);
       if (formData.place_url) fd.append("place_url", formData.place_url);
       if (photoFile) fd.append("photo", photoFile);
+      
+      // ONLY add service_group if eventType is "group" AND groupId exists
+      if (eventType === "group" && groupId) {
+        fd.append("service_group", groupId.toString());
+      }
 
       const { default: axiosInstance } = await import("../../../lib/axios");
 
@@ -129,8 +167,13 @@ export default function GroupEventsManager({ groupId }: { groupId?: number | nul
       const detail = err.response?.data?.detail;
       const errors = err.response?.data;
       let msg = t("failed_save_event");
-      if (detail) msg = detail;
-      else if (errors && typeof errors === 'object') {
+      
+      // Handle 403 Forbidden specifically
+      if (err.response?.status === 403) {
+        msg = t("no_permission_to_modify_event");
+      } else if (detail) {
+        msg = detail;
+      } else if (errors && typeof errors === 'object') {
         const firstKey = Object.keys(errors)[0];
         if (firstKey && Array.isArray(errors[firstKey])) {
           msg = `${firstKey}: ${errors[firstKey][0]}`;
@@ -149,8 +192,13 @@ export default function GroupEventsManager({ groupId }: { groupId?: number | nul
       await axiosInstance.delete(`/api/service/events/${eventId}/`);
       toast.success(t("event_deleted_success"));
       fetchEvents();
-    } catch (err) {
-      toast.error(t("failed_delete_event"));
+    } catch (err: any) {
+      // Handle 403 Forbidden specifically
+      if (err.response?.status === 403) {
+        toast.error(t("no_permission_to_delete_event"));
+      } else {
+        toast.error(t("failed_delete_event"));
+      }
     }
   };
 
@@ -159,10 +207,14 @@ export default function GroupEventsManager({ groupId }: { groupId?: number | nul
     ? events
     : events.filter((e) => e.status === statusFilter);
 
+  // Determine title based on event type
+  const pageTitle = eventType === "global" ? t("global_events") : t("group_events");
+  const createButtonText = eventType === "global" ? t("create_global_event") : t("create_group_event");
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-xl font-bold">{t("group_events")}</h2>
+        <h2 className="text-xl font-bold">{pageTitle}</h2>
         <button
           onClick={() => {
             if (showForm) { resetForm(); } else { setShowForm(true); }
@@ -172,7 +224,7 @@ export default function GroupEventsManager({ groupId }: { groupId?: number | nul
           {showForm ? (
             <><XMarkIcon className="h-4 w-4" /> {t("cancel")}</>
           ) : (
-            <><PlusIcon className="h-4 w-4" /> {t("create_event")}</>
+            <><PlusIcon className="h-4 w-4" /> {createButtonText}</>
           )}
         </button>
       </div>
@@ -180,8 +232,21 @@ export default function GroupEventsManager({ groupId }: { groupId?: number | nul
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-card p-6 rounded-xl border border-border shadow-soft space-y-4">
           <h3 className="font-semibold text-lg text-foreground">
-            {editingEventId ? t("edit_event") : t("new_event")}
+            {editingEventId ? t("edit_event") : (eventType === "global" ? t("new_global_event") : t("new_group_event"))}
           </h3>
+          
+          {/* Info message about event visibility */}
+          {eventType === "global" && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+              {t("global_event_info")}
+            </div>
+          )}
+          {eventType === "group" && (
+            <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg text-sm text-purple-700 dark:text-purple-300">
+              {t("group_event_info")}
+            </div>
+          )}
+          
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-medium text-muted-foreground">{t("title")} *</label>
@@ -316,22 +381,24 @@ export default function GroupEventsManager({ groupId }: { groupId?: number | nul
               </div>
               <div className="bg-muted/30 px-5 py-3 border-t border-border flex justify-between items-center text-xs text-muted-foreground">
                 <span>{t("by")} {event.created_by_name}</span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => startEdit(event)}
-                    className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                    title={t("edit_event")}
-                  >
-                    <PencilIcon className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(event.id)}
-                    className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                    title={t("delete_event")}
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
-                </div>
+                {canEditEvent(event) && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => startEdit(event)}
+                      className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                      title={t("edit_event")}
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(event.id)}
+                      className="p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                      title={t("delete_event")}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

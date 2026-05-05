@@ -40,7 +40,13 @@ const combineUserWithProfile = (userData: Record<string, any>, profileData: Reco
     role = 'QA_counselor';
   } else if (backendRoles.includes('Teacher')){
     role = 'teacher'
-  }
+  } else if (backendRoles.includes('QAModerator')){
+    role = 'QA_moderator'
+  } else if (backendRoles.includes('EventManager')){
+    role = 'Event_manager'
+  } else if (backendRoles.includes('CourseCoordinator')){
+    role = 'Course_coordinator'
+  } 
 
 
   return {
@@ -152,7 +158,6 @@ export const api = {
 
     try {
       const response = await axiosInstance.post('/auth/users/', payload);
-      console.log('✅ Registration response:', response.data);
       return await api.login(userData.email, userData.password);
     } catch (error: any) {
       console.error(' Registration error response:', error.response?.data);
@@ -356,6 +361,40 @@ export const api = {
     return { success: true };
   },
 
+  // ========== MODERATOR Q&A API ==========
+
+  // Get moderation queue (unapproved PUBLIC questions only)
+  getModerationQueue: async (): Promise<any[]> => {
+    const response = await axiosInstance.get('/api/qa/questions/moderation-queue/');
+    // Returns array of unapproved PUBLIC questions
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
+  
+  // Approve a public question
+  approveQuestion: async (questionId: string): Promise<void> => {
+    await axiosInstance.post(`/api/qa/questions/${questionId}/approve/`);
+  },
+  
+  // Approve a public answer
+  approveAnswer: async (answerId: number): Promise<void> => {
+    await axiosInstance.post(`/api/qa/answers/${answerId}/approve/`);
+  },
+  
+  // Reject/Delete a question (moderator can delete inappropriate ones)
+  rejectQuestion: async (questionId: string): Promise<void> => {
+    await axiosInstance.delete(`/api/qa/questions/${questionId}/`);
+  },
+  
+  // Reject/Delete an answer
+  rejectAnswer: async (answerId: number): Promise<void> => {
+    await axiosInstance.delete(`/api/qa/answers/${answerId}/`);
+  },
+  
+  // Get pending answers for a specific question (if needed)
+  getPendingAnswers: async (questionId: string): Promise<any[]> => {
+    const response = await axiosInstance.get(`/api/qa/answers/?question=${questionId}&is_approved=false`);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
 
 
   // ========== ADMIN SPECIFIC ==========
@@ -413,22 +452,6 @@ getMyContributions: async (): Promise<{ questions: Question[]; answers: Answer[]
 getCounselorQueue: async (): Promise<Question[]> => {
   const response = await axiosInstance.get('/api/qa/questions/counselor-queue/');
   return response.data;
-},
-
-// Moderator: Get moderation queue
-getModerationQueue: async (): Promise<Question[]> => {
-  const response = await axiosInstance.get('/api/qa/questions/moderation-queue/');
-  return response.data;
-},
-
-// Approve public question (moderator only)
-approveQuestion: async (questionId: string): Promise<void> => {
-  await axiosInstance.post(`/api/qa/questions/${questionId}/approve/`);
-},
-
-// Approve public answer (moderator only)
-approveAnswer: async (answerId: number): Promise<void> => {
-  await axiosInstance.post(`/api/qa/answers/${answerId}/approve/`);
 },
 
 
@@ -493,60 +516,65 @@ getResourceCategories: async (): Promise<{ id: string; name: string; icon: strin
   ]);
 },
 
-// ========== COURSE ATTENDANCE API (NEW BACKEND) ==========
+  // ========== COURSE ATTENDANCE API ==========
 
-// Get semester courses (auto-filtered by role: STUDENT sees enrolled, TEACHER sees assigned)
-getSemesterCourses: async (): Promise<any[]> => {
-  const response = await axiosInstance.get('/api/course/semester-courses/');
-  return response.data;
-},
+  // Get semester courses (auto-filtered by role)
+  getSemesterCourses: async (batchYear?: number): Promise<any[]> => {
+    let url = '/api/course/semester-courses/';
+    if (batchYear) {
+      url += `?batch_year=${batchYear}`;
+    }
+    const response = await axiosInstance.get(url);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
 
-// Get enrollments for a specific semester course (teacher only)
-getCourseEnrollments: async (semesterCourseId: string): Promise<any[]> => {
-  const response = await axiosInstance.get(`/api/course/enrollments/?semester_course=${semesterCourseId}`);
-  return response.data;
-},
+  // Get enrollments for a specific semester course (coordinator only)
+  getCourseEnrollments: async (semesterCourseId: string): Promise<any[]> => {
+    const response = await axiosInstance.get(`/api/course/enrollments/?semester_course=${semesterCourseId}`);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
 
-// Get sessions for a semester course
-getCourseSessions: async (semesterCourseId: string): Promise<any[]> => {
-  const response = await axiosInstance.get(`/api/course/sessions/?semester_course=${semesterCourseId}`);
-  return response.data;
-},
+  // Get sessions for a semester course
+  getCourseSessions: async (semesterCourseId: string): Promise<any[]> => {
+    const response = await axiosInstance.get(`/api/course/sessions/?semester_course=${semesterCourseId}`);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
 
-// Create a new session (teacher only)
-createCourseSession: async (data: {
-  semester_course: string;
-  session_date: string;
-  topic?: string;
-}): Promise<any> => {
-  const response = await axiosInstance.post('/api/course/sessions/', data);
-  return response.data;
-},
+  // Create a new session with optional teacher_name (guest lecturer)
+  createCourseSession: async (data: {
+    semester_course: string;
+    session_date: string;
+    topic?: string;
+    teacher_name?: string;  // NEW FIELD
+  }): Promise<any> => {
+    const response = await axiosInstance.post('/api/course/sessions/', data);
+    return response.data;
+  },
 
-// Get my attendance records (student only)
-getMyCourseAttendance: async (): Promise<any[]> => {
-  const response = await axiosInstance.get('/api/course/attendance/');
-  return response.data;
-},
+  // Get my attendance records (student only)
+  getMyCourseAttendance: async (): Promise<any[]> => {
+    const response = await axiosInstance.get('/api/course/attendance/');
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
 
-// Bulk mark attendance (teacher only)
-bulkMarkAttendance: async (sessionId: string, records: { student_id: string; status: string; remarks?: string }[]): Promise<any> => {
-  const response = await axiosInstance.post(`/api/course/attendance/bulk-mark/${sessionId}/`, { records });
-  return response.data;
-},
+  // Bulk mark attendance (coordinator only)
+  bulkMarkAttendance: async (sessionId: string, records: { student_id: string; status: string; remarks?: string }[]): Promise<any> => {
+    const response = await axiosInstance.post(`/api/course/attendance/bulk-mark/${sessionId}/`, { records });
+    return response.data;
+  },
 
-// Get course materials
-getCourseMaterials: async (semesterCourseId: string): Promise<any[]> => {
-  const response = await axiosInstance.get(`/api/course/materials/?semester_course=${semesterCourseId}`);
-  return response.data;
-},
+  // Get course materials
+  getCourseMaterials: async (semesterCourseId: string): Promise<any[]> => {
+    const response = await axiosInstance.get(`/api/course/materials/?semester_course=${semesterCourseId}`);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
 
-// Upload course material (teacher only)
-uploadCourseMaterial: async (data: FormData): Promise<any> => {
-  const response = await axiosInstance.post('/api/course/materials/', data, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return response.data;
-},
+  // Upload course material
+  uploadCourseMaterial: async (data: FormData): Promise<any> => {
+    const response = await axiosInstance.post('/api/course/materials/', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
   
 };

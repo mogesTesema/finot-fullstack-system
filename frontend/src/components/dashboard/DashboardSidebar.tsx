@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 import { AuthUser } from "../../types";
 import { FiGrid, FiUser, FiCalendar, FiCheckCircle, FiUsers, FiBriefcase, FiHeart, FiMessageCircle, FiBell, FiLogOut, FiChevronLeft, FiChevronRight, FiSettings, FiFile } from "react-icons/fi";
-import { ChatBubbleLeftRightIcon, RectangleGroupIcon,  } from "@heroicons/react/24/outline";
+import { ChatBubbleLeftRightIcon, RectangleGroupIcon, ShieldCheckIcon  } from "@heroicons/react/24/outline";
 
 type NavItem = {
   to: string;
@@ -50,13 +50,17 @@ const DashboardSidebar = ({
   if (role === "ServiceAdmin" || role === "service_admin") {
     navItems.push({ to: "/dashboard/manage-ageglot", label: t("manage_ageglot"), icon: FiSettings });
   }
-
   if (role === "QACounselor" || role === "QA_counselor") {
     navItems.push({to: "/dashboard/counselor/queue", label: t("counselor_queue"), icon: ChatBubbleLeftRightIcon});
   }
-
-  if (role === "Teacher" || role === "teacher") {
-    navItems.push({ to: "/dashboard/courses", label: t("my_courses"), icon: RectangleGroupIcon });
+  if (role === "CourseCoordinator" || role === "Course_coordinator") {
+    navItems.push({ to: "/dashboard/courses/coordinator", label: t("course_coordinator"), icon: RectangleGroupIcon });
+  }
+  if (role === "QAModerator" || role === "qa_moderator" || role === "QA_moderator"){
+    navItems.push({to: "/dashboard/counselor/approve", label: t("moderator_queue"), icon: ShieldCheckIcon});
+  }
+  if (role === "EventAdmin" || role === "Event_manager") {
+    navItems.push({to:"/dashboard/event-management", label: t("event_management"), icon: FiCalendar});
   }
 
   // Super admin is handled entirely via Django admin panel — no frontend route needed.

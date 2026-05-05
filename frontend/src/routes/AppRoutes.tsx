@@ -36,12 +36,14 @@ import ServiceGroupDetail from "../pages/service/ServiceGroupDetail";
 import PreferenceForm from "../pages/service/PreferenceForm";
 import ManageAgeglotDashboard from "../pages/admin/ManageAgeglotDashboard";
 import ProtectedRoute from "../features/auth/components/ProtectedRoute";
-import CourseManagement from "@/pages/course/TeacherCourses";
+import CourseManagement from "@/pages/course/CoordinatorCourses";
 import TakeAttendance from "@/pages/course/TakeAttendance";
 import EventManagement from "@/pages/admin/EventManagement";
 import CounselorQueue from "../pages/admin/CounselorQueue";
-import TeacherCourses from "@/pages/course/TeacherCourses";
+import TeacherCourses from "@/pages/course/CoordinatorCourses";
 import CourseMaterials from "@/pages/course/CourseMaterials";
+import ModeratorQueue from "@/pages/admin/ModeratorQueue";
+import CoordinatorCourses from "@/pages/course/CoordinatorCourses";
 
 export default function AppRoutes() {
   return (
@@ -71,7 +73,7 @@ export default function AppRoutes() {
           <Route
             element={
               <ProtectedRoute
-                allowedRoles={["student", "service_admin", "QA_counselor", "family_admin", "teacher"]}
+                allowedRoles={["student", "service_admin", "QA_counselor", "family_admin", "Course_coordinator", "QA_moderator", "Event_manager"]}
               />
             }
           >
@@ -93,23 +95,24 @@ export default function AppRoutes() {
               <Route path="questions/ask" element={<AskQuestion />} />
               <Route path="notifications" element={<DashboardNotifications />}/>
               <Route path="resources" element={<ResourcesList />} />
-              <Route path="event-management" element={<EventManagement/>}/>
               {/* Admin‑only routes inside dashboard layout */}
               <Route
                 element={
-                  <ProtectedRoute allowedRoles={["service_admin", "QA_counselor", "resource_admin", "teacher"]} />
+                  <ProtectedRoute allowedRoles={["service_admin", "QA_counselor", "resource_admin", "Course_coordinator", "QA_moderator", "Event_manager"]} />
 
                 }
               >
               <Route path="manage-ageglot" element={<ManageAgeglotDashboard />} />
               <Route path="courses" element={<CourseManagement/>}/>
+              <Route path="event-management" element={<EventManagement/>}/>
               <Route path="take-attendance" element={<TakeAttendance/>}/>
-              <Route path="teacher/qa" element={<TeacherQaDashboard />}/>
+              <Route path="counselor/approve" element={<ModeratorQueue/>}/>
               <Route path="resources/upload" element={<UploadResource/>}/>
               <Route path="counselor/queue" element={<CounselorQueue />}/>
-              <Route path="courses" element={<TeacherCourses/>}/>
+              <Route path="courses/coordinator" element={<CoordinatorCourses/>}/>
               <Route path="courses/:id/attendance" element={<TakeAttendance/>}/>
               <Route path="courses/:id/materials" element={<CourseMaterials/>}/>
+
               </Route>
             </Route>
           </Route>

@@ -31,6 +31,21 @@ export const NotificationBell = ({ iconClassName }: { iconClassName?: string }) 
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    // TEMPORARY - Test mock QA notification
+    const mockQA = {
+      id: 999,
+      title: "Test QA Notification",
+      message: "A counselor answered your private question",
+      notification_type: "QA",
+      is_read: false,
+      created_at: new Date().toISOString(),
+    };
+    
+    // Uncomment to test
+    // setNotifications(prev => [mockQA, ...prev]);
+  }, []);
+
   // Close on navigation
   useEffect(() => {
     setIsOpen(false);
@@ -97,7 +112,7 @@ export const NotificationBell = ({ iconClassName }: { iconClassName?: string }) 
     }
     
     // Handle different notification types
-    if (notification.notification_type === "QA") {
+    if (notification.notification_type === "QA" || notification.notification_type === "qa") {
       // Navigate to Q&A page with private tab active
       window.location.href = "/dashboard/questions?tab=private";
     } else if (notification.notification_type === "EVENT") {

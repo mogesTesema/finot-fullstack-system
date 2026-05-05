@@ -93,7 +93,8 @@ export default function ManageAgeglotDashboard() {
         className="min-h-[500px]"
       >
         {activeTab === "events" ? (
-          <GroupEventsManager groupId={group.id} />
+          // ServiceAdmin creates ONLY group-specific events (eventType="group")
+          <GroupEventsManager groupId={group.id} eventType="group" />
         ) : (
           <GroupAttendanceManager groupId={group.id} />
         )}

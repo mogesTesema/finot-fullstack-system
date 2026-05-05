@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (accessToken || refreshToken) {
         try {
           const userData = await api.getUser();
-          console.log(userData);
           setUser(userData);
           
           // Request and register Firebase token
@@ -57,7 +56,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     const response = await api.login(email, password);
-    console.log("LOGIN RESPONSE:", response);
     setUser(response.user);
     return response;
   };

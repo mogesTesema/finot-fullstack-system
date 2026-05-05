@@ -7,8 +7,6 @@ import {
   PlusCircleIcon,
   DocumentIcon,
   LinkIcon,
-  TrashIcon,
-  ArrowDownTrayIcon,
   EyeIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
@@ -56,7 +54,8 @@ const CourseMaterials = () => {
   const [file, setFile] = useState<File | null>(null);
   const [linkUrl, setLinkUrl] = useState("");
 
-  const isTeacher = user?.role === "teacher" || user?.role === "TEACHER";
+  // Check if user is CourseCoordinator
+  const isCourseCoordinator = user?.role === "Course_coordinator" || user?.role?.includes("CourseCoordinator");
 
   // Fetch course and materials
   useEffect(() => {
@@ -71,9 +70,8 @@ const CourseMaterials = () => {
         setCourse(foundCourse || null);
         
         // Get materials
-        const materialsData = await api.getCourseMaterials(semesterCourseId) as any;
-        const materialsArray = Array.isArray(materialsData) ? materialsData : (materialsData?.results || []);
-        setMaterials(materialsArray);
+        const materialsData = await api.getCourseMaterials(semesterCourseId);
+        setMaterials(materialsData);
       } catch (error) {
         console.error("Failed to fetch materials", error);
         toast.error(t("failed_to_load_materials"));
@@ -195,8 +193,8 @@ const CourseMaterials = () => {
         </div>
       </motion.div>
 
-      {/* Upload Button (Teachers Only) */}
-      {isTeacher && (
+      {/* Upload Button (Course Coordinators Only) */}
+      {isCourseCoordinator && (
         <div className="mb-6">
           <button
             onClick={() => setShowUploadForm(!showUploadForm)}
@@ -209,7 +207,7 @@ const CourseMaterials = () => {
       )}
 
       {/* Upload Form */}
-      {showUploadForm && isTeacher && (
+      {showUploadForm && isCourseCoordinator && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -327,7 +325,7 @@ const CourseMaterials = () => {
         <div className="text-center py-12 text-muted-foreground">
           <DocumentIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p>{t("no_materials_yet")}</p>
-          {isTeacher && (
+          {isCourseCoordinator && (
             <button
               onClick={() => setShowUploadForm(true)}
               className="btn-primary inline-flex items-center gap-2 mt-4"
@@ -374,7 +372,7 @@ const CourseMaterials = () => {
                       download
                       className="btn-outline text-sm px-3 py-1.5 flex items-center gap-1"
                     >
-                      <ArrowDownTrayIcon className="h-3.5 w-3.5" />
+                      <EyeIcon className="h-3.5 w-3.5" />
                       {t("download")}
                     </a>
                   )}

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { CalendarIcon, CheckCircleIcon, XCircleIcon, ClockIcon, BookOpenIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
-import Spinner from "@/components/ui/Spinner";
+import Spinner from "../../components/ui/Spinner";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 
@@ -13,6 +13,7 @@ interface AttendanceRecord {
     id: string;
     session_date: string;
     topic: string | null;
+    teacher_name: string | null;
     semester_course: {
       id: string;
       curriculum: {
@@ -66,7 +67,6 @@ const CourseAttendanceTab = () => {
         
         records.forEach((record) => {
           const courseId = record.session.semester_course.id;
-          const courseTitle = record.session.semester_course.curriculum?.title || "Unknown Course";
           
           if (!courseSummary[courseId]) {
             courseSummary[courseId] = {
@@ -182,11 +182,10 @@ const CourseAttendanceTab = () => {
         </div>
       )}
 
-      {/* Summary Cards - only show for selected course or all */}
+      {/* Summary Cards */}
       {Object.keys(summary).length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Object.entries(summary).map(([courseId, data]) => {
-            // Skip if not matching filter
             if (selectedCourseId !== "all" && courseId !== selectedCourseId) return null;
             
             const course = enrolledCourses.find((c) => c.id === courseId);
@@ -240,6 +239,7 @@ const CourseAttendanceTab = () => {
                   <th className="text-left py-3 px-4">{t("course")}</th>
                   <th className="text-left py-3 px-4">{t("date")}</th>
                   <th className="text-left py-3 px-4">{t("topic")}</th>
+                  <th className="text-left py-3 px-4">{t("teacher")}</th>
                   <th className="text-left py-3 px-4">{t("status")}</th>
                   <th className="text-left py-3 px-4">{t("remark")}</th>
                 </tr>
@@ -255,6 +255,9 @@ const CourseAttendanceTab = () => {
                     </td>
                     <td className="py-3 px-4 text-muted-foreground">
                       {record.session.topic || "-"}
+                    </td>
+                    <td className="py-3 px-4 text-muted-foreground">
+                      {record.session.teacher_name || "-"}
                     </td>
                     <td className="py-3 px-4">
                       <span className="flex items-center gap-1">
