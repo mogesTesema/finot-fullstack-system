@@ -6,7 +6,6 @@ from .models import (
     CourseEnrollment,
     CourseSession,
     AttendanceRecord,
-    CourseMaterial
 )
 from core.serializers import UserSerializer
 
@@ -94,15 +93,6 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
             )
         ]
 
-
-class CourseMaterialSerializer(serializers.ModelSerializer):
-    """
-    Serializer for course materials and files.
-    """
-    class Meta:
-        model = CourseMaterial
-        fields = ['id', 'semester_course', 'title', 'file', 'url', 'uploaded_at']
-        read_only_fields = ['id', 'uploaded_at']
 
 
 # =========================================================================

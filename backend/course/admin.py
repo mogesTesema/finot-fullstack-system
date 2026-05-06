@@ -10,8 +10,7 @@ from .models import (
     SemesterCourse, 
     CourseEnrollment, 
     CourseSession, 
-    AttendanceRecord, 
-    CourseMaterial
+    AttendanceRecord
 )
 
 class BatchEnrollForm(forms.Form):
@@ -231,31 +230,3 @@ class AttendanceRecordAdmin(ModelAdmin):
         return is_superadmin(request.user) or is_coordinator(request.user)
 
 
-@admin.register(CourseMaterial)
-class CourseMaterialAdmin(ModelAdmin):
-    list_display = ('title', 'semester_course', 'uploaded_at')
-    search_fields = ('title', 'semester_course__course__title')
-
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if is_superadmin(request.user) or is_coordinator(request.user):
-            return qs
-        return qs.none()
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def has_module_permission(self, request):
-        return is_superadmin(request.user) or is_coordinator(request.user)
-
-    def has_view_permission(self, request, obj=None):
-        return is_superadmin(request.user) or is_coordinator(request.user)
-
-    def has_add_permission(self, request):
-        return is_superadmin(request.user) or is_coordinator(request.user)
-
-    def has_change_permission(self, request, obj=None):
-        return is_superadmin(request.user) or is_coordinator(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        return is_superadmin(request.user) or is_coordinator(request.user)

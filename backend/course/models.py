@@ -166,21 +166,3 @@ class AttendanceRecord(models.Model):
 
     def __str__(self):
         return f"{self.student} - {self.status} on {self.session.date}"
-
-
-class CourseMaterial(models.Model):
-    """
-    Files, PDFs, or links provided by a teacher for a specific SemesterCourse.
-    """
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    semester_course = models.ForeignKey(
-        SemesterCourse, on_delete=models.CASCADE, related_name="materials"
-    )
-    title = models.CharField(max_length=255)
-    file = models.FileField(upload_to="course_materials/", blank=True, null=True)
-    url = models.URLField(blank=True, null=True, help_text="Optional external link")
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.title} for {self.semester_course}"

@@ -7,11 +7,11 @@ from django.db.models import Prefetch, Q
 from core.models import User, Role
 from .models import (
     Course, SemesterCourse, CourseEnrollment,
-    CourseSession, AttendanceRecord, CourseMaterial
+    CourseSession, AttendanceRecord
 )
 from .serializers import (
     CourseSerializer, SemesterCourseSerializer, CourseEnrollmentSerializer,
-    CourseSessionSerializer, AttendanceRecordSerializer, CourseMaterialSerializer,
+    CourseSessionSerializer, AttendanceRecordSerializer,
     BulkEnrollmentRequestSerializer, BulkAttendanceRequestSerializer
 )
 from student.models import StudentProfile
@@ -260,27 +260,3 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
         return Response({"message": "Bulk attendance processed.", "created": len(to_create), "updated": len(to_update)}, status=status.HTTP_200_OK)
 
 
-class CourseMaterialViewSet(viewsets.ModelViewSet):
-    serializer_class = CourseMaterialSerializer
-
-    def get_queryset(self):
-        qs = CourseMaterial.objects.select_related('semester_course', 'semester_course__course')
-        semester_course_id = self.request.query_params.get('semester_course')
-        if semester_course_id:
-            try:
-                import uuid
-                uuid.UUID(semester_course_id)
-                qs = qs.filter(semester_course_id=semester_course_id)
-            except ValueError:
-                raise serializers.ValidationError({"semester_course": "Invalid UUID format."})
-        user = self.request.user
-        if not user.is_authenticated:
-            return qs.none()
-        if user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
-            return qs
-        return qs.filter(semester_course__enrollments__student=user).distinct()
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsCourseCoordinator()]
-        return [IsEnrolledStudentOrCoordinator()]

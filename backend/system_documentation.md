@@ -22,11 +22,12 @@ graph TD
         Service[service - Ministries & Events]
         QA[questionanswer - Q&A]
         Course[course - Academics]
+        Resources[resources - Unified Materials]
         Notif[notifications - Dispatcher]
         Analytics[analytics - Dashboard Reporting]
     end
     
-    Django --> Auth & Student & Service & QA & Course & Notif & Analytics
+    Django --> Auth & Student & Service & QA & Course & Resources & Notif & Analytics
     
     Django -->|ORM| PostgreSQL[(PostgreSQL Database)]
     Notif -->|FCM Push| Firebase((Firebase Cloud Messaging))
@@ -82,7 +83,8 @@ Finot employs a decoupled, registry-based pattern to handle system-wide analytic
 - **Service & Ministry Management**: Organization of users into specific service groups (Agelglot) with hierarchical admin structures.
 - **Event Broadcasting**: Context-aware broadcasting where general events alert all users, but service-specific events are strictly scoped to active members of that group to prevent notification fatigue.
 - **Counselor Q&A**: A dual-layered system supporting public moderated forums and private, confidential 1-on-1 counselor threads that bypass standard moderation loops.
-- **Academic Course Tracking**: Management of static yearly curriculums mapped to dynamic semester courses. Course Coordinators (nominated students with global course management access) manage session scheduling, bulk student enrollment, granular session-based attendance tracking, and material uploads across all batches. Guest teacher names are recorded per-session to support rotating lecturers.
+- **Academic Course Tracking**: Management of static yearly curriculums mapped to dynamic semester courses. Course Coordinators (nominated students with global course management access) manage session scheduling, bulk student enrollment, and granular session-based attendance tracking across all batches. Guest teacher names are recorded per-session to support rotating lecturers.
+- **Unified Material System**: A polymorphic `resources` app provides a single `Material` model supporting three scopes: **Course** (tied to a static curriculum, reusable across semesters), **Service Group** (accessible only to active members of that group), and **General** (university-wide, available to all active students). Materials are created once and persist indefinitely. Write access is strictly role-gated: SuperAdmin for General, ServiceAdmin for their group, CourseCoordinator for course materials.
 
 ### 5.2 Non-Functional Requirements
 - **Scalability via Bulk Operations**: The system must support massive bulk operations. This is implemented via custom REST API endpoints (e.g., `POST /api/course/enrollments/bulk-enroll/<id>/` and `POST /api/course/attendance/bulk-mark/<id>/`) utilizing Django's `bulk_create` and `bulk_update` with `ignore_conflicts=True`, allowing teachers and admins to handle thousands of records in a single transaction without performance degradation.
@@ -124,9 +126,12 @@ erDiagram
     USER ||--o{ COURSE_ENROLLMENT : "enrolled in"
     
     SEMESTER_COURSE ||--o{ COURSE_SESSION : "has classes"
-    SEMESTER_COURSE ||--o{ COURSE_MATERIAL : "provides files/links"
     COURSE_SESSION ||--o{ ATTENDANCE_RECORD : "contains"
     USER ||--o{ ATTENDANCE_RECORD : "marked present/absent"
+
+    COURSE ||--o{ MATERIAL : "has course materials"
+    SERVICE_GROUP ||--o{ MATERIAL : "has service materials"
+    USER ||--o{ MATERIAL : "uploaded by"
 ```
 
 ### 6.3 Security & Data Integrity Constraints
