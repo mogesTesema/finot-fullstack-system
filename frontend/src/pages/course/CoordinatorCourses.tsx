@@ -36,6 +36,8 @@ interface Curriculum {
 }
 
 interface SemesterCourse {
+  course_details: any;
+  batch_year: import("react/jsx-runtime").JSX.Element;
   id: string;
   curriculum: Curriculum;
   semester: number;
@@ -263,17 +265,24 @@ const CoordinatorCourses = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold text-foreground text-lg">
-                        {course.curriculum?.title || "Course"}
+                      {course.course_details?.title || course.curriculum?.title || "Course"}
                       </h3>
                       <span className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                        {course.curriculum?.code}
+                      {course.course_details?.code || course.curriculum?.code}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1">
                         <AcademicCapIcon className="h-4 w-4" />
                         {t("year")} {course.academic_year} • {t("semester")} {course.semester}
                       </span>
+                      {/* Add batch year if available */}
+                      {course.batch_year && (
+                        <span className="flex items-center gap-1">
+                          <UserGroupIcon className="h-3 w-3" />
+                          {t("batch")} {course.batch_year}
+                        </span>
+                      )}
                       <span className="flex items-center gap-1">
                         <CalendarIcon className="h-4 w-4" />
                         {getDayName(course.schedule_day)}

@@ -528,6 +528,12 @@ getResourceCategories: async (): Promise<{ id: string; name: string; icon: strin
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   },
 
+  // Get pre-assembled roster for a session (students + their attendance status)
+  getSessionRoster: async (sessionId: string): Promise<{ roster: Array<{ student_id: string; first_name: string; last_name: string; status: string | null }> }> => {
+    const response = await axiosInstance.get(`/api/course/sessions/${sessionId}/roster/`);
+    return response.data;
+  },
+
   // Get enrollments for a specific semester course (coordinator only)
   getCourseEnrollments: async (semesterCourseId: string): Promise<any[]> => {
     const response = await axiosInstance.get(`/api/course/enrollments/?semester_course=${semesterCourseId}`);

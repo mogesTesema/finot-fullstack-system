@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import Spinner from "../../components/ui/Spinner";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
+import { sanitizeUuid } from "../../lib/utils";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -17,7 +18,7 @@ const fadeIn = {
 interface Student {
   id: string;
   full_name: string;
-  email: string;
+  email?: string;
 }
 
 interface SemesterCourse {
@@ -52,11 +53,19 @@ const TakeAttendance = () => {
   
   // Attendance state: { studentId: { status, remarks } }
   const [attendanceData, setAttendanceData] = useState<Record<string, { status: string; remarks: string }>>({});
-
+  // Before making API call
   // Fetch course, students, and sessions
   useEffect(() => {
     const fetchData = async () => {
       if (!semesterCourseId) return;
+      
+      // Validate UUID before proceeding
+      const validCourseId = sanitizeUuid(semesterCourseId);
+      if (!validCourseId) {
+        toast.error(t("invalid_course_id"));
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       try {
@@ -65,21 +74,9 @@ const TakeAttendance = () => {
         const foundCourse = courses.find((c: any) => c.id === semesterCourseId);
         setCourse(foundCourse || null);
 
-        // Get enrolled students for this course
-        const enrollments = await api.getCourseEnrollments(semesterCourseId);
-        const studentList = enrollments.map((e: any) => ({
-          id: e.student.id,
-          full_name: e.student.full_name,
-          email: e.student.email,
-        }));
-        setStudents(studentList);
-
-        // Initialize attendance data with PRESENT as default
-        const initialData: Record<string, { status: string; remarks: string }> = {};
-        studentList.forEach((student: Student) => {
-          initialData[student.id] = { status: "PRESENT", remarks: "" };
-        });
-        setAttendanceData(initialData);
+        // Note: We'll fetch roster AFTER session is selected, not here
+        // For now, just set empty students array
+        setStudents([]);
 
         // Get sessions for session dropdown
         const sessionsData = await api.getCourseSessions(semesterCourseId);
@@ -103,13 +100,42 @@ const TakeAttendance = () => {
     fetchData();
   }, [semesterCourseId, sessionIdParam]);
 
-  // When session is selected, update details
+  // When session is selected, fetch roster and update details
   useEffect(() => {
     if (selectedSessionId) {
       const session = sessions.find(s => s.id === selectedSessionId);
       setSelectedSessionDetails(session || null);
+      
+      // Fetch roster for this session
+      const fetchRoster = async () => {
+        try {
+          const rosterData = await api.getSessionRoster(selectedSessionId);
+          const studentList = rosterData.roster.map((student: any) => ({
+            id: student.student_id,
+            full_name: `${student.first_name} ${student.last_name}`,
+            email: "", // Add placeholder email since roster doesn't provide it
+          }));
+          setStudents(studentList);
+          
+          // Initialize attendance data with existing status from roster
+          const initialData: Record<string, { status: string; remarks: string }> = {};
+          rosterData.roster.forEach((student: any) => {
+            initialData[student.student_id] = {
+              status: student.status || "PRESENT",
+              remarks: "",
+            };
+          });
+          setAttendanceData(initialData);
+        } catch (error) {
+          console.error("Failed to fetch roster", error);
+          toast.error(t("failed_to_load_roster"));
+        }
+      };
+      
+      fetchRoster();
     } else {
       setSelectedSessionDetails(null);
+      setStudents([]);
     }
   }, [selectedSessionId, sessions]);
 
