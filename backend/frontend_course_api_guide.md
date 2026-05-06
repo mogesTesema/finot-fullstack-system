@@ -1,8 +1,8 @@
-# Frontend Integration Guide: Course App API
+# Frontend Integration Guide: Course & Materials API
 **Target Audience:** Frontend Engineers
-**Date:** April 2026
+**Last Updated:** May 2026
 
-This document outlines how to interact with the newly refactored `course` application from the frontend. The backend handles complex role-based access control (RBAC), meaning the API will automatically filter data based on who is logged in.
+This document outlines how to interact with the `course` and `resources` applications from the frontend. The backend handles complex role-based access control (RBAC), meaning the API will automatically filter data based on who is logged in.
 
 ---
 
@@ -36,7 +36,7 @@ The base URL for all course endpoints is: `/api/course/`
 
 ## 3. Role-Based Views & Frontend UI Flows
 
-The backend automatically filters what data is returned based on the user's role (`STUDENT`, `TEACHER`, `SUPER_ADMIN`). You do **not** need to pass user IDs in your GET requests to filter data.
+The backend automatically filters what data is returned based on the user's role (`STUDENT`, `COURSE_COORDINATOR`, `SERVICE_ADMIN`, `SUPER_ADMIN`). You do **not** need to pass user IDs in your GET requests to filter data.
 
 ### A. The Student Flow
 When a user with the `STUDENT` role logs in:
@@ -50,14 +50,14 @@ When a user with the `STUDENT` role logs in:
 
 **UI Recommendation**: Build a "My Courses" dashboard. A single fetch to `/api/course/semester-courses/` will give you their active schedule.
 
-### B. The Teacher Flow
-When a user with the `TEACHER` role logs in:
-* `GET /api/course/semester-courses/`: Returns **only** the courses where they are assigned as a teacher.
-* `GET /api/course/enrollments/`: Returns the list of students enrolled in their assigned courses (crucial for building the attendance roster grid).
-* `GET /api/course/sessions/`: Returns the sessions for their classes.
-* `POST /api/course/materials/`: Allows them to upload files for their assigned courses.
+### B. The Coordinator Flow
+When a user with the `COURSE_COORDINATOR` role logs in:
+* `GET /api/course/semester-courses/`: Returns **all** semester courses across all batches.
+* `GET /api/course/enrollments/`: Returns the list of students enrolled in courses (crucial for building the attendance roster grid).
+* `GET /api/course/sessions/`: Returns the sessions for all classes.
+* `POST /api/resources/materials/`: Allows them to upload course materials (use `material_type: "COURSE"`).
 
-**UI Recommendation**: Build a "Teacher Dashboard". Allow them to select one of their `SemesterCourses`, create `CourseSessions`, and upload `CourseMaterials`.
+**UI Recommendation**: Build a "Coordinator Dashboard". Allow them to select a `SemesterCourse`, create `CourseSessions`, and upload materials via `/api/resources/materials/`.
 
 ### C. Creating a Course Session
 **Endpoint:** `POST /api/course/sessions/`
