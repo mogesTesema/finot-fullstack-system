@@ -63,6 +63,14 @@ class CourseEnrollmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = CourseEnrollment.objects.select_related('student', 'semester_course', 'semester_course__course').prefetch_related('semester_course__coordinators', 'semester_course__coordinators__roles')
+        semester_course_id = self.request.query_params.get('semester_course')
+        if semester_course_id:
+            try:
+                import uuid
+                uuid.UUID(semester_course_id)
+                qs = qs.filter(semester_course_id=semester_course_id)
+            except ValueError:
+                raise serializers.ValidationError({"semester_course": "Invalid UUID format."})
         if self.request.user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
         return qs.filter(student=self.request.user).distinct()
@@ -99,6 +107,14 @@ class CourseSessionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = CourseSession.objects.select_related('semester_course', 'semester_course__course')
+        semester_course_id = self.request.query_params.get('semester_course')
+        if semester_course_id:
+            try:
+                import uuid
+                uuid.UUID(semester_course_id)
+                qs = qs.filter(semester_course_id=semester_course_id)
+            except ValueError:
+                raise serializers.ValidationError({"semester_course": "Invalid UUID format."})
         user = self.request.user
         if not user.is_authenticated:
             return qs.none()
@@ -107,9 +123,29 @@ class CourseSessionViewSet(viewsets.ModelViewSet):
         return qs.filter(semester_course__enrollments__student=user).distinct()
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ['create', 'update', 'partial_update', 'destroy', 'roster']:
             return [IsCourseCoordinator()]
         return [IsEnrolledStudentOrCoordinator()]
+
+    @action(detail=True, methods=['get'])
+    def roster(self, request, pk=None):
+        session = self.get_object()
+        enrollments = CourseEnrollment.objects.filter(semester_course=session.semester_course).select_related('student')
+        attendances = AttendanceRecord.objects.filter(session=session)
+        attendance_map = {att.student_id: att.status for att in attendances}
+        
+        roster_data = []
+        for enrollment in enrollments:
+            student = enrollment.student
+            roster_data.append({
+                "student_id": student.id,
+                "first_name": student.first_name,
+                "last_name": student.last_name,
+                "username": student.username,
+                "status": attendance_map.get(student.id, None)
+            })
+            
+        return Response({"roster": roster_data}, status=status.HTTP_200_OK)
 
 
 class AttendanceRecordViewSet(viewsets.ModelViewSet):
@@ -117,6 +153,22 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = AttendanceRecord.objects.select_related('student', 'session', 'session__semester_course', 'marked_by')
+        session_id = self.request.query_params.get('session')
+        student_id = self.request.query_params.get('student')
+        if session_id:
+            try:
+                import uuid
+                uuid.UUID(session_id)
+                qs = qs.filter(session_id=session_id)
+            except ValueError:
+                raise serializers.ValidationError({"session": "Invalid UUID format."})
+        if student_id:
+            try:
+                import uuid
+                uuid.UUID(student_id)
+                qs = qs.filter(student_id=student_id)
+            except ValueError:
+                raise serializers.ValidationError({"student": "Invalid UUID format."})
         user = self.request.user
         if user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
@@ -198,6 +250,14 @@ class CourseMaterialViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = CourseMaterial.objects.select_related('semester_course', 'semester_course__course')
+        semester_course_id = self.request.query_params.get('semester_course')
+        if semester_course_id:
+            try:
+                import uuid
+                uuid.UUID(semester_course_id)
+                qs = qs.filter(semester_course_id=semester_course_id)
+            except ValueError:
+                raise serializers.ValidationError({"semester_course": "Invalid UUID format."})
         user = self.request.user
         if not user.is_authenticated:
             return qs.none()
