@@ -78,18 +78,18 @@ Finot employs a decoupled, registry-based pattern to handle system-wide analytic
 ## 5. System Requirements
 
 ### 5.1 Functional Requirements
-- **Identity & Role Management (RBAC)**: Multi-tiered access allowing users to hold multiple roles simultaneously (Student, SuperAdmin, ServiceAdmin, QACounselor, Teacher).
+- **Identity & Role Management (RBAC)**: Multi-tiered access allowing users to hold multiple roles simultaneously (Student, SuperAdmin, ServiceAdmin, QACounselor, CourseCoordinator).
 - **Service & Ministry Management**: Organization of users into specific service groups (Agelglot) with hierarchical admin structures.
 - **Event Broadcasting**: Context-aware broadcasting where general events alert all users, but service-specific events are strictly scoped to active members of that group to prevent notification fatigue.
 - **Counselor Q&A**: A dual-layered system supporting public moderated forums and private, confidential 1-on-1 counselor threads that bypass standard moderation loops.
-- **Academic Course Tracking**: Management of static yearly curriculums mapped to dynamic semester courses, bulk student enrollment workflows, and granular session-based attendance tracking.
+- **Academic Course Tracking**: Management of static yearly curriculums mapped to dynamic semester courses. Course Coordinators (nominated students with global course management access) manage session scheduling, bulk student enrollment, granular session-based attendance tracking, and material uploads across all batches. Guest teacher names are recorded per-session to support rotating lecturers.
 
 ### 5.2 Non-Functional Requirements
 - **Scalability via Bulk Operations**: The system must support massive bulk operations (e.g., batch-enrolling 1,000 students into a semester course, or marking 500 attendance records) in a single database transaction using Django's `bulk_create` and custom admin actions.
 - **Anti-N+1 Query Guarantees**: Strict enforcement of query optimization using `select_related` and `prefetch_related` across all API views to prevent database bottlenecks.
 - **Security**: 
   - JWT authentication for all endpoints.
-  - Role-based API permission classes (e.g., `IsQACounselor`, `IsTeacherForOffering`, `IsAdminOrOwner` which dynamically grants elevated object permissions to system moderators).
+  - Role-based API permission classes (e.g., `IsQACounselor`, `IsCourseCoordinator`, `IsAdminOrOwner` which dynamically grants elevated object permissions to system moderators).
   - Moderation Security: Strict viewset validation ensures that modifying an approved public Q&A object automatically revokes its approval status, forcing it back to the moderation queue to prevent bypass exploits. Detail querysets are dynamically context-aware to ensure users can only access their own unapproved content while keeping it hidden from the public.
   - Strict Rate Limiting (e.g., 30 requests/minute) to prevent DDoS and brute-force attacks.
   - UUID primary keys on all sensitive models to prevent ID enumeration.
@@ -117,7 +117,7 @@ erDiagram
     SERVICE_GROUP ||--o{ EVENT : "hosts (optional)"
     
     COURSE ||--o{ SEMESTER_COURSE : "instantiated as"
-    SEMESTER_COURSE }|--|{ USER : "taught by (Teachers)"
+    SEMESTER_COURSE }|--|{ USER : "coordinated by (CourseCoordinators)"
     
     SEMESTER_COURSE ||--o{ COURSE_ENROLLMENT : "has"
     USER ||--o{ COURSE_ENROLLMENT : "enrolled in"
