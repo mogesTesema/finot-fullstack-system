@@ -346,9 +346,9 @@ UNFOLD = {
                     {
                         "title": _("Materials"),
                         "icon": "attach_file",
-                        "link": reverse_lazy("admin:course_coursematerial_changelist"),
+                        "link": reverse_lazy("admin:resources_material_changelist"),
                         "permission": lambda request: request.user.is_superuser or (
-                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
+                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator", "ServiceAdmin"]).exists()
                         ),
                     },
                 ],
@@ -518,7 +518,7 @@ UNFOLD = {
                 "course.courseenrollment",
                 "course.coursesession",
                 "course.attendancerecord",
-                "course.coursematerial",
+                "resources.material",
             ],
             "items": [
                 {
@@ -558,9 +558,9 @@ UNFOLD = {
                 },
                 {
                     "title": _("Materials"),
-                    "link": reverse_lazy("admin:course_coursematerial_changelist"),
+                    "link": reverse_lazy("admin:resources_material_changelist"),
                     "permission": lambda request: request.user.is_superuser or (
-                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
+                        request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator", "ServiceAdmin"]).exists()
                     ),
                 },
             ],

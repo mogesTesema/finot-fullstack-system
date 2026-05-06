@@ -15,7 +15,7 @@ Before fetching data, it's important to understand the hierarchy of the new mode
 3. **Enrollment (`CourseEnrollment`)**: Links a Student to a Semester Course.
 4. **Session (`CourseSession`)**: A specific date/day the Semester Course meets (e.g., "Sunday, Sept 5th").
 5. **Attendance (`AttendanceRecord`)**: Tracks if a student was PRESENT, ABSENT, or EXCUSED for a specific Session.
-6. **Material (`CourseMaterial`)**: PDFs or links uploaded by a Teacher for a Semester Course.
+6. **Material (`Material`)**: PDFs, links, or files. Materials are now managed in a **unified `resources` app** and can be scoped to a Course, a Service Group, or the entire university (General).
 
 ---
 
@@ -30,7 +30,7 @@ The base URL for all course endpoints is: `/api/course/`
 | **Enrollments** | `GET /api/course/enrollments/` | Returns the student's enrollments. |
 | **Sessions** | `GET /api/course/sessions/` | Returns scheduled class dates. |
 | **Attendance** | `GET /api/course/attendance/` | Returns roll call data. |
-| **Materials** | `GET /api/course/materials/` | Returns uploaded files and links. |
+| **Materials** | `GET /api/resources/materials/` | Returns uploaded files and links (Course, Service, General). |
 
 ---
 
@@ -41,7 +41,11 @@ The backend automatically filters what data is returned based on the user's role
 ### A. The Student Flow
 When a user with the `STUDENT` role logs in:
 * `GET /api/course/semester-courses/`: Returns **only** the courses they are officially enrolled in.
-* `GET /api/course/materials/`: Returns **only** the materials for their enrolled courses.
+* `GET /api/resources/materials/`: Returns a **combined list** of:
+  - Course materials for their enrolled courses
+  - Service group materials for their active service group
+  - General materials available to all students
+* `GET /api/resources/materials/?type=COURSE`: Returns only course-related materials.
 * `GET /api/course/attendance/`: Returns their personal attendance history.
 
 **UI Recommendation**: Build a "My Courses" dashboard. A single fetch to `/api/course/semester-courses/` will give you their active schedule.
@@ -54,6 +58,22 @@ When a user with the `TEACHER` role logs in:
 * `POST /api/course/materials/`: Allows them to upload files for their assigned courses.
 
 **UI Recommendation**: Build a "Teacher Dashboard". Allow them to select one of their `SemesterCourses`, create `CourseSessions`, and upload `CourseMaterials`.
+
+### C. Creating a Course Session
+**Endpoint:** `POST /api/course/sessions/`
+**Use Case:** A teacher schedules a new class session for their course.
+**Payload:**
+```json
+{
+  "semester_course": "123e4567-e89b-12d3-a456-426614174000",
+  "date": "2026-05-06",
+  "topic": "Optional topic string",
+  "teacher_name": "Optional teacher name"
+}
+```
+**Important:** 
+- The `date` field is strictly required and must be formatted as `YYYY-MM-DD`. Do not send `sessionDate`, `datetime`, or omit this field, as the backend will immediately return a `400 Bad Request`.
+- The `semester_course` must be a valid UUID. If you pass an invalid format (like `null`, `undefined` or a raw string), the backend will return `400 Bad Request`.
 
 ---
 
@@ -89,14 +109,74 @@ To prevent the frontend from sending hundreds of individual requests, the backen
 
 ---
 
-## 5. Security & Error Handling
+## 5. Unified Materials API (NEW)
 
-* **403 Forbidden**: If a Teacher tries to create a session or mark attendance for a course they are not assigned to, the backend will reject it. Handle these gracefully in the UI.
+> **⚠️ BREAKING CHANGE**: The old `GET /api/course/materials/` endpoint has been **removed**. All materials are now served from `/api/resources/materials/`.
+
+Materials are now a standalone system supporting three scopes:
+
+| Type | Scope | Who Creates | Who Sees |
+| :--- | :--- | :--- | :--- |
+| `COURSE` | Tied to a static Curriculum | SuperAdmin, CourseCoordinator | Students enrolled in that course |
+| `SERVICE` | Tied to a Service Group | SuperAdmin, ServiceAdmin of that group | Members of that service group |
+| `GENERAL` | University-wide | SuperAdmin only | All active students |
+
+### Filtering
+```
+GET /api/resources/materials/                          # All materials visible to you
+GET /api/resources/materials/?type=COURSE              # Only course materials
+GET /api/resources/materials/?type=SERVICE              # Only service group materials
+GET /api/resources/materials/?type=GENERAL              # Only general materials
+GET /api/resources/materials/?course=<uuid>             # Materials for a specific curriculum
+GET /api/resources/materials/?service_group=<id>        # Materials for a specific service group
+```
+
+### Creating a Material
+**Course Material:**
+```json
+{
+  "title": "Chapter 1 Notes",
+  "material_type": "COURSE",
+  "course": "<course-curriculum-uuid>",
+  "file": "<uploaded-file>",
+  "url": null
+}
+```
+
+**Service Group Material:**
+```json
+{
+  "title": "Choir Practice Schedule",
+  "material_type": "SERVICE",
+  "service_group": 3,
+  "url": "https://drive.google.com/..."
+}
+```
+
+**General Material:**
+```json
+{
+  "title": "University Prayer Guide 2026",
+  "material_type": "GENERAL",
+  "file": "<uploaded-file>"
+}
+```
+
+**Important:**
+- You must provide at least a `file` or a `url` (or both). Submitting neither returns `400`.
+- Setting `course` for a `SERVICE` material (or vice-versa) returns `400`.
+
+---
+
+## 6. Security & Error Handling
+
+* **403 Forbidden**: If a Coordinator tries to create a session or mark attendance for a course they are not assigned to, the backend will reject it. Handle these gracefully in the UI.
 * **400 Bad Request (Validation Errors)**: The backend enforces strict data integrity. You will receive a `400` response if:
   * Bulk payloads are malformed or missing required fields.
-  * A Teacher submits attendance for a student who is **not enrolled** in the course (returns `{"error": "Some students are not enrolled...", "invalid_student_ids": [...]}`).
+  * A Coordinator submits attendance for a student who is **not enrolled** in the course (returns `{"error": "Some students are not enrolled...", "invalid_student_ids": [...]}`).
   * A duplicate `CourseSession` is created on the same date.
   * A duplicate `AttendanceRecord` is submitted for the same student in the same session.
+  * Material cross-field validation fails (e.g., COURSE material without a `course` FK).
 
-## 6. Swagger / OpenAPI Testing
+## 7. Swagger / OpenAPI Testing
 All detailed payload schemas and exact field types are available in the Swagger UI. Visit `/api/docs/swagger/` on your local development server to test the endpoints interactively.

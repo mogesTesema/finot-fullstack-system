@@ -17,10 +17,14 @@ class IsCourseCoordinator(permissions.BasePermission):
     Course Coordinators have global access to manage any course/session.
     """
     def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return request.user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists()
 
     def has_object_permission(self, request, view, obj):
         # Admin and Coordinators can do anything
+        if not request.user or not request.user.is_authenticated:
+            return False
         if request.user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return True
         return False
