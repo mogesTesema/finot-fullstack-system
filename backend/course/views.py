@@ -46,7 +46,11 @@ class SemesterCourseViewSet(viewsets.ModelViewSet):
             
         batch_year = self.request.query_params.get('batch_year')
         if batch_year:
-            qs = qs.filter(course__batch_year=batch_year)
+            try:
+                batch_year = int(batch_year)
+                qs = qs.filter(course__batch_year=batch_year)
+            except ValueError:
+                raise serializers.ValidationError({"batch_year": "Must be a valid integer."})
             
         if user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
@@ -63,6 +67,10 @@ class CourseEnrollmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = CourseEnrollment.objects.select_related('student', 'semester_course', 'semester_course__course').prefetch_related('semester_course__coordinators', 'semester_course__coordinators__roles')
+        user = self.request.user
+        if not user.is_authenticated:
+            return qs.none()
+
         semester_course_id = self.request.query_params.get('semester_course')
         if semester_course_id:
             try:
@@ -71,9 +79,9 @@ class CourseEnrollmentViewSet(viewsets.ModelViewSet):
                 qs = qs.filter(semester_course_id=semester_course_id)
             except ValueError:
                 raise serializers.ValidationError({"semester_course": "Invalid UUID format."})
-        if self.request.user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
+        if user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
-        return qs.filter(student=self.request.user).distinct()
+        return qs.filter(student=user).distinct()
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy', 'bulk_enroll']:
@@ -83,8 +91,10 @@ class CourseEnrollmentViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='bulk-enroll/(?P<semester_course_id>[^/.]+)')
     def bulk_enroll(self, request, semester_course_id=None):
         try:
+            import uuid
+            uuid.UUID(semester_course_id)
             sc = SemesterCourse.objects.get(id=semester_course_id)
-        except SemesterCourse.DoesNotExist:
+        except (ValueError, TypeError, SemesterCourse.DoesNotExist):
             return Response({"error": "Semester course not found."}, status=status.HTTP_404_NOT_FOUND)
         serializer = BulkEnrollmentRequestSerializer(data=request.data)
         if not serializer.is_valid():
@@ -153,6 +163,10 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = AttendanceRecord.objects.select_related('student', 'session', 'session__semester_course', 'marked_by')
+        user = self.request.user
+        if not user.is_authenticated:
+            return qs.none()
+
         session_id = self.request.query_params.get('session')
         student_id = self.request.query_params.get('student')
         if session_id:
@@ -169,7 +183,6 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
                 qs = qs.filter(student_id=student_id)
             except ValueError:
                 raise serializers.ValidationError({"student": "Invalid UUID format."})
-        user = self.request.user
         if user.roles.filter(name__in=[Role.SUPER_ADMIN, Role.COURSE_COORDINATOR]).exists():
             return qs
         return qs.filter(student=user).distinct()
@@ -199,8 +212,10 @@ class AttendanceRecordViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='bulk-mark/(?P<session_id>[^/.]+)')
     def bulk_mark(self, request, session_id=None):
         try:
+            import uuid
+            uuid.UUID(session_id)
             session = CourseSession.objects.select_related('semester_course').get(id=session_id)
-        except CourseSession.DoesNotExist:
+        except (ValueError, TypeError, CourseSession.DoesNotExist):
             return Response({"error": "Session not found."}, status=status.HTTP_404_NOT_FOUND)
         is_super = request.user.roles.filter(name=Role.SUPER_ADMIN).exists()
         is_coordinator = request.user.roles.filter(name=Role.COURSE_COORDINATOR).exists()

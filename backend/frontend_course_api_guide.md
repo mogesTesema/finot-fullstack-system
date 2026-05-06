@@ -55,6 +55,22 @@ When a user with the `TEACHER` role logs in:
 
 **UI Recommendation**: Build a "Teacher Dashboard". Allow them to select one of their `SemesterCourses`, create `CourseSessions`, and upload `CourseMaterials`.
 
+### C. Creating a Course Session
+**Endpoint:** `POST /api/course/sessions/`
+**Use Case:** A teacher schedules a new class session for their course.
+**Payload:**
+```json
+{
+  "semester_course": "123e4567-e89b-12d3-a456-426614174000",
+  "date": "2026-05-06",
+  "topic": "Optional topic string",
+  "teacher_name": "Optional teacher name"
+}
+```
+**Important:** 
+- The `date` field is strictly required and must be formatted as `YYYY-MM-DD`. Do not send `sessionDate`, `datetime`, or omit this field, as the backend will immediately return a `400 Bad Request`.
+- The `semester_course` must be a valid UUID. If you pass an invalid format (like `null`, `undefined` or a raw string), the backend will return `400 Bad Request`.
+
 ---
 
 ## 4. Bulk Operations (Important for UI)
