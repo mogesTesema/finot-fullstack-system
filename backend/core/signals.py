@@ -5,7 +5,7 @@ from typing import Any
 from .models import UserRole, Role
 
 # Role names that grant basic admin panel access (is_staff)
-STAFF_ROLES = [Role.SERVICE_ADMIN, Role.FAMILY_ADMIN, Role.COURSE_COORDINATOR, Role.SUPER_ADMIN]
+STAFF_ROLES = [Role.SERVICE_ADMIN, Role.FAMILY_ADMIN, Role.SUPER_ADMIN]
 
 
 @receiver(post_save, sender=UserRole)
