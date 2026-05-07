@@ -48,8 +48,8 @@ This is the most frequent action. The frontend UI should combine these steps int
     ```json
     {
       "roster": [
-        {"student_id": "uuid", "first_name": "John", "last_name": "Doe", "status": null},
-        {"student_id": "uuid", "first_name": "Jane", "last_name": "Doe", "status": "PRESENT"}
+        {"student_id": 25, "first_name": "John", "last_name": "Doe", "status": null},
+        {"student_id": 93, "first_name": "Jane", "last_name": "Doe", "status": "PRESENT"}
       ]
     }
     ```
@@ -60,8 +60,8 @@ This is the most frequent action. The frontend UI should combine these steps int
     ```json
     {
       "records": [
-        {"student_id": "uuid1", "status": "PRESENT"},
-        {"student_id": "uuid2", "status": "ABSENT"}
+        {"student_id": 25, "status": "PRESENT"},
+        {"student_id": 93, "status": "ABSENT"}
       ]
     }
     ```
