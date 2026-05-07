@@ -1,8 +1,11 @@
 import uuid
 
 from rest_framework import viewsets, status, serializers as drf_serializers
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from django.db.models import Q
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 from core.models import Role
 from .models import Material
@@ -10,6 +13,75 @@ from .serializers import MaterialSerializer
 from .permissions import MaterialPermission
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="List materials",
+        description=(
+            "Returns materials visible to the current user based on their roles, "
+            "enrollments, and service group memberships."
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="type",
+                type=str,
+                enum=["COURSE", "SERVICE", "GENERAL"],
+                description="Filter by material type.",
+                required=False,
+            ),
+            OpenApiParameter(
+                name="course",
+                type=OpenApiTypes.UUID,
+                description="Filter by course (curriculum) UUID.",
+                required=False,
+            ),
+            OpenApiParameter(
+                name="service_group",
+                type=OpenApiTypes.INT,
+                description="Filter by service group ID.",
+                required=False,
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Retrieve a material",
+        description="Returns a single material by its UUID.",
+    ),
+    create=extend_schema(
+        summary="Create a material",
+        description=(
+            "Upload a new material with an optional file attachment. "
+            "Use **multipart/form-data** content type to upload files. "
+            "Requires SuperAdmin, ServiceAdmin, or CourseCoordinator role."
+        ),
+        request={
+            "multipart/form-data": MaterialSerializer,
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Partially update a material",
+        description=(
+            "Update specific fields of an existing material. "
+            "Use **multipart/form-data** to replace the file attachment."
+        ),
+        request={
+            "multipart/form-data": MaterialSerializer,
+        },
+    ),
+    update=extend_schema(
+        summary="Update a material",
+        description=(
+            "Replace all fields of an existing material. "
+            "Use **multipart/form-data** to include a file attachment."
+        ),
+        request={
+            "multipart/form-data": MaterialSerializer,
+        },
+    ),
+    destroy=extend_schema(
+        summary="Delete a material",
+        description="Permanently removes a material. Requires appropriate role.",
+    ),
+)
 class MaterialViewSet(viewsets.ModelViewSet):
     """
     Unified Material API.
@@ -25,6 +97,7 @@ class MaterialViewSet(viewsets.ModelViewSet):
     """
     serializer_class = MaterialSerializer
     permission_classes = [MaterialPermission]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         qs = Material.objects.select_related(
@@ -62,9 +135,14 @@ class MaterialViewSet(viewsets.ModelViewSet):
                 raise drf_serializers.ValidationError({"service_group": "Invalid ID format."})
 
         # --- Role-based visibility ---
-        is_admin = user.roles.filter(name=Role.SUPER_ADMIN).exists()
-        is_coordinator = user.roles.filter(name=Role.COURSE_COORDINATOR).exists()
-        is_service_admin = user.roles.filter(name=Role.SERVICE_ADMIN).exists()
+        user_roles = getattr(self.request, '_user_roles', None)
+        if user_roles is None:
+            user_roles = set(user.roles.values_list('name', flat=True))
+            self.request._user_roles = user_roles
+
+        is_admin = Role.SUPER_ADMIN in user_roles
+        is_coordinator = Role.COURSE_COORDINATOR in user_roles
+        is_service_admin = Role.SERVICE_ADMIN in user_roles
 
         # SuperAdmins and CourseCoordinators see everything
         if is_admin:
@@ -108,7 +186,13 @@ class MaterialViewSet(viewsets.ModelViewSet):
         """
         user = self.request.user
         material_type = serializer.validated_data.get('material_type')
-        is_super = user.roles.filter(name=Role.SUPER_ADMIN).exists()
+        
+        user_roles = getattr(self.request, '_user_roles', None)
+        if user_roles is None:
+            user_roles = set(user.roles.values_list('name', flat=True))
+            self.request._user_roles = user_roles
+            
+        is_super = Role.SUPER_ADMIN in user_roles
 
         if material_type == Material.MaterialType.GENERAL:
             if not is_super:
@@ -119,7 +203,7 @@ class MaterialViewSet(viewsets.ModelViewSet):
         elif material_type == Material.MaterialType.SERVICE:
             service_group = serializer.validated_data.get('service_group')
             if not is_super:
-                is_service_admin = user.roles.filter(name=Role.SERVICE_ADMIN).exists()
+                is_service_admin = Role.SERVICE_ADMIN in user_roles
                 if not is_service_admin or service_group.admin != user:
                     raise drf_serializers.ValidationError(
                         {"service_group": "You can only create materials for service groups you manage."}
@@ -127,10 +211,50 @@ class MaterialViewSet(viewsets.ModelViewSet):
 
         elif material_type == Material.MaterialType.COURSE:
             if not is_super:
-                is_coordinator = user.roles.filter(name=Role.COURSE_COORDINATOR).exists()
+                is_coordinator = Role.COURSE_COORDINATOR in user_roles
                 if not is_coordinator:
                     raise drf_serializers.ValidationError(
                         {"material_type": "Only SuperAdmin or CourseCoordinator can create COURSE materials."}
                     )
 
         serializer.save(uploaded_by=user)
+
+    def perform_update(self, serializer):
+        """
+        Enforce scope-level write permissions at update time.
+        Ensures a user doesn't escalate the material scope beyond their permissions.
+        """
+        user = self.request.user
+        material_type = serializer.validated_data.get('material_type', self.get_object().material_type)
+        
+        user_roles = getattr(self.request, '_user_roles', None)
+        if user_roles is None:
+            user_roles = set(user.roles.values_list('name', flat=True))
+            self.request._user_roles = user_roles
+            
+        is_super = Role.SUPER_ADMIN in user_roles
+
+        if material_type == Material.MaterialType.GENERAL:
+            if not is_super:
+                raise drf_serializers.ValidationError(
+                    {"material_type": "Only SuperAdmin can manage GENERAL materials."}
+                )
+
+        elif material_type == Material.MaterialType.SERVICE:
+            service_group = serializer.validated_data.get('service_group', self.get_object().service_group)
+            if not is_super:
+                is_service_admin = Role.SERVICE_ADMIN in user_roles
+                if not is_service_admin or (service_group and service_group.admin != user):
+                    raise drf_serializers.ValidationError(
+                        {"service_group": "You can only manage materials for service groups you manage."}
+                    )
+
+        elif material_type == Material.MaterialType.COURSE:
+            if not is_super:
+                is_coordinator = Role.COURSE_COORDINATOR in user_roles
+                if not is_coordinator:
+                    raise drf_serializers.ValidationError(
+                        {"material_type": "Only SuperAdmin or CourseCoordinator can manage COURSE materials."}
+                    )
+
+        serializer.save()

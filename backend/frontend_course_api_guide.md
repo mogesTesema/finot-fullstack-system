@@ -130,6 +130,7 @@ GET /api/resources/materials/?type=GENERAL              # Only general materials
 GET /api/resources/materials/?course=<uuid>             # Materials for a specific curriculum
 GET /api/resources/materials/?service_group=<id>        # Materials for a specific service group
 ```
+*(Note: To fetch materials for a specific course, use the **Curriculum UUID**. This can be found in the `course` or `course_details.id` field of the `SemesterCourse` object you fetched earlier).*
 
 ### Creating a Material
 **Course Material:**

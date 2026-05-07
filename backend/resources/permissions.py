@@ -22,12 +22,16 @@ class MaterialPermission(permissions.BasePermission):
         # Safe methods (GET, HEAD, OPTIONS) are open to all authenticated users.
         if request.method in permissions.SAFE_METHODS:
             return True
+            
+        if request.user.is_superuser:
+            return True
+
+        # Cache roles on the request object to avoid N+1 queries in views and object permissions
+        if getattr(request, '_user_roles', None) is None:
+            request._user_roles = set(request.user.roles.values_list('name', flat=True))
 
         # For write operations, check role eligibility at the view level.
-        # Detailed scope checks happen in has_object_permission and perform_create.
-        return request.user.roles.filter(
-            name__in=[Role.SUPER_ADMIN, Role.SERVICE_ADMIN, Role.COURSE_COORDINATOR]
-        ).exists()
+        return bool(request._user_roles.intersection([Role.SUPER_ADMIN, Role.SERVICE_ADMIN, Role.COURSE_COORDINATOR]))
 
     def has_object_permission(self, request, view, obj):
         if not request.user or not request.user.is_authenticated:
@@ -36,8 +40,16 @@ class MaterialPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
+        if request.user.is_superuser:
+            return True
+
+        if getattr(request, '_user_roles', None) is None:
+            request._user_roles = set(request.user.roles.values_list('name', flat=True))
+            
+        user_roles = request._user_roles
+
         # SuperAdmin can do anything
-        if request.user.roles.filter(name=Role.SUPER_ADMIN).exists():
+        if Role.SUPER_ADMIN in user_roles:
             return True
 
         from .models import Material
@@ -48,12 +60,12 @@ class MaterialPermission(permissions.BasePermission):
 
         if obj.material_type == Material.MaterialType.SERVICE:
             # ServiceAdmin can only modify materials for groups they manage
-            if request.user.roles.filter(name=Role.SERVICE_ADMIN).exists():
+            if Role.SERVICE_ADMIN in user_roles:
                 return obj.service_group and obj.service_group.admin == request.user
             return False
 
         if obj.material_type == Material.MaterialType.COURSE:
             # CourseCoordinator has global course material access
-            return request.user.roles.filter(name=Role.COURSE_COORDINATOR).exists()
+            return Role.COURSE_COORDINATOR in user_roles
 
         return False
