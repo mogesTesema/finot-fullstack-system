@@ -18,7 +18,7 @@ The base URL for all endpoints is `/api/course/`.
 | **Enrollments** | `/enrollments/` | Read: Enrolled/Coord <br> Write: SuperAdmin | Filter via `?semester_course=<uuid>`. <br> Includes `/bulk-enroll/<id>/` action. |
 | **Sessions** | `/sessions/` | Read: Enrolled/Coord <br> Write: Coord | Filter via `?semester_course=<uuid>`. <br> Includes `/roster/` action. |
 | **Attendance** | `/attendance/` | Read: Enrolled/Coord <br> Write: Coord | Filter via `?session=<uuid>` or `?student=<uuid>`. <br> Includes `/bulk-mark/<session_id>/`. |
-| **Materials** | `/materials/` | Read: Enrolled/Coord <br> Write: Coord | Upload PDFs/links. Filter via `?semester_course=<uuid>`. |
+| **Materials** | `/api/resources/materials/` | Read: Enrolled/Scope <br> Write: Scope Admin | Upload PDFs/links. Filter via `?type=COURSE&course=<curriculum_uuid>`. |
 
 ---
 
@@ -48,8 +48,8 @@ This is the most frequent action. The frontend UI should combine these steps int
     ```json
     {
       "roster": [
-        {"student_id": "uuid", "first_name": "John", "last_name": "Doe", "status": null},
-        {"student_id": "uuid", "first_name": "Jane", "last_name": "Doe", "status": "PRESENT"}
+        {"student_id": 25, "first_name": "John", "last_name": "Doe", "status": null},
+        {"student_id": 93, "first_name": "Jane", "last_name": "Doe", "status": "PRESENT"}
       ]
     }
     ```
@@ -60,8 +60,8 @@ This is the most frequent action. The frontend UI should combine these steps int
     ```json
     {
       "records": [
-        {"student_id": "uuid1", "status": "PRESENT"},
-        {"student_id": "uuid2", "status": "ABSENT"}
+        {"student_id": 25, "status": "PRESENT"},
+        {"student_id": 93, "status": "ABSENT"}
       ]
     }
     ```
@@ -73,7 +73,8 @@ To build a student's personal portal or dashboard:
     *   `GET /api/course/semester-courses/`
     *   *(The backend automatically restricts the response to courses the logged-in student is enrolled in).*
 2.  **Fetch Course Materials:**
-    *   `GET /api/course/materials/?semester_course=<uuid>`
+    *   `GET /api/resources/materials/?type=COURSE&course=<curriculum_uuid>`
+    *   *(Note: The `<curriculum_uuid>` is found in the `course` field of the `SemesterCourse` object fetched in Step 1).*
 3.  **Fetch Personal Attendance History:**
     *   `GET /api/course/attendance/?student=<student_uuid>&session__semester_course=<course_uuid>`
 

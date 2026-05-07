@@ -50,3 +50,4 @@ finot_database_schemma*.sql
 database_optimization.md
 *_plan.md
 /zp_docs/
+schema.yml

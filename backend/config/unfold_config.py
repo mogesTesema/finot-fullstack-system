@@ -343,6 +343,14 @@ UNFOLD = {
                             request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                         ),
                     },
+                ],
+            },
+            # — Resources —
+            {
+                "title": _("Resources"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
                     {
                         "title": _("Materials"),
                         "icon": "attach_file",
@@ -518,7 +526,6 @@ UNFOLD = {
                 "course.courseenrollment",
                 "course.coursesession",
                 "course.attendancerecord",
-                "resources.material",
             ],
             "items": [
                 {
@@ -556,6 +563,13 @@ UNFOLD = {
                         request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin", "CourseCoordinator"]).exists()
                     ),
                 },
+            ],
+        },
+        {
+            "models": [
+                "resources.material",
+            ],
+            "items": [
                 {
                     "title": _("Materials"),
                     "link": reverse_lazy("admin:resources_material_changelist"),

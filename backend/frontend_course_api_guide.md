@@ -99,13 +99,15 @@ To prevent the frontend from sending hundreds of individual requests, the backen
 ```json
 {
   "records": [
-    { "student_id": "uuid-of-student-1", "status": "PRESENT" },
-    { "student_id": "uuid-of-student-2", "status": "ABSENT" },
-    { "student_id": "uuid-of-student-3", "status": "EXCUSED" }
+    { "student_id": 25, "status": "PRESENT" },
+    { "student_id": 93, "status": "ABSENT" },
+    { "student_id": 42, "status": "EXCUSED" }
   ]
 }
 ```
 **UI Recommendation**: For a specific `CourseSession`, fetch all enrolled students, display them in a list with a dropdown/toggle for status, and send the array to this endpoint on save.
+
+> **Crucial Type Note**: The `student_id` is an **Integer** (the `User` primary key), not a UUID. When fetching the roster, you will receive integer IDs. Pass them back to this endpoint exactly as integers.
 
 ---
 
@@ -130,6 +132,7 @@ GET /api/resources/materials/?type=GENERAL              # Only general materials
 GET /api/resources/materials/?course=<uuid>             # Materials for a specific curriculum
 GET /api/resources/materials/?service_group=<id>        # Materials for a specific service group
 ```
+*(Note: To fetch materials for a specific course, use the **Curriculum UUID**. This can be found in the `course` or `course_details.id` field of the `SemesterCourse` object you fetched earlier).*
 
 ### Creating a Material
 **Course Material:**

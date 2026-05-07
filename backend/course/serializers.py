@@ -115,7 +115,7 @@ class BulkAttendanceItemSerializer(serializers.Serializer):
     """
     Validates a single item within a bulk attendance request list.
     """
-    student_id = serializers.UUIDField()
+    student_id = serializers.IntegerField()
     status = serializers.ChoiceField(choices=AttendanceRecord.STATUS_CHOICES)
 
 
