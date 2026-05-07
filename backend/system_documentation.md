@@ -140,4 +140,20 @@ erDiagram
 - **Cascading Deletes**: Controlled cascading ensures that if a `SemesterCourse` is deleted, its orphaned `CourseSession` and `AttendanceRecord` entries are automatically purged without leaving dangling references.
 
 ---
+
+## 7. Codebase Standards & Best Practices
+
+To maintain a clean, professional, and scalable monolithic codebase, Finot Backend enforces strict internal decoupling rules:
+
+### 7.1 Signal Decoupling
+Business logic and automated side-effects (like Cloudinary file cleanup or notification dispatching) must never be tacked onto `models.py` or `views.py`. 
+- **Standard**: All Django signals (`@receiver`) must be placed in a dedicated `<app_name>/signals.py` file.
+- **Registration**: Signals are automatically registered by importing the `signals.py` file inside the `ready()` method of the app's `AppConfig` (`<app_name>/apps.py`).
+
+### 7.2 Abstracting API Schemas
+Massive `drf-spectacular` swagger documentation decorators (`@extend_schema_view`) create "visual noise" that obscures actual business logic in `views.py`.
+- **Standard**: Large schema definitions must be abstracted into a dedicated `<app_name>/docs.py` (or `schemas.py`) file.
+- **Implementation**: The schema dictionary is defined in `docs.py` and cleanly imported as a single decorator to be applied on top of the `ViewSet` in `views.py`.
+
+---
 *Note: This document is the Single Source of Truth for the Finot Backend architecture. It must be updated iteratively as new domains or infrastructural paradigms are introduced.*
