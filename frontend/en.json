@@ -1,8 +1,0 @@
-{
-  "public": "Public",
-  "private": "Private",
-  "question_type": "Question Type",
-  "missing_category": "Please select a category for your public question",
-  "private_question_posted": "Private Question Sent",
-  "private_question_posted_text": "Your private question has been sent. You will see the answer here when a teacher responds."
-}
