@@ -8,7 +8,30 @@ import toast from "react-hot-toast";
 import Spinner from "../ui/Spinner";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
-import { StudentAttendanceRecord } from "../../types/course";
+
+// Updated interface matching new API response
+interface AttendanceRecord {
+  id: string;
+  session: {
+    id: string;
+    date: string;
+    topic: string | null;
+    teacher_name: string | null;
+    semester_course: {
+      id: string;
+      course_details: {
+        id: string;
+        title: string;
+        code: string;
+      };
+      academic_year: string;
+      semester: number;
+    };
+  };
+  status: "PRESENT" | "ABSENT" | "EXCUSED";
+  remarks: string | null;
+  marked_at: string;
+}
 
 interface CourseAttendanceTabProps {
   userId?: number;
@@ -17,9 +40,9 @@ interface CourseAttendanceTabProps {
 const CourseAttendanceTab = ({ userId }: CourseAttendanceTabProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [attendanceRecords, setAttendanceRecords] = useState<StudentAttendanceRecord[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [summary, setSummary] = useState<Record<string, { total: number; present: number; percentage: number }>>({});
+  const [summary, setSummary] = useState<Record<string, { total: number; present: number; excused: number; percentage: number }>>({});
 
   const studentId = userId || user?.id;
 
@@ -29,18 +52,27 @@ const CourseAttendanceTab = ({ userId }: CourseAttendanceTabProps) => {
       
       setLoading(true);
       try {
-        const records = await api.getMyAttendanceWithDetails(studentId);
+        // Use the new endpoint: GET /api/course/attendance/?student=<uuid>
+        // Backend auto-filters to only return current student's records
+        const records = await api.getMyCourseAttendance();
         setAttendanceRecords(records);
         
         // Calculate summary per course
-        const courseSummary: Record<string, { total: number; present: number; percentage: number }> = {};
-        records.forEach((record) => {
-          if (!courseSummary[record.courseName]) {
-            courseSummary[record.courseName] = { total: 0, present: 0, percentage: 0 };
+        const courseSummary: Record<string, { total: number; present: number; excused: number; percentage: number }> = {};
+        
+        records.forEach((record: AttendanceRecord) => {
+          const courseName = record.session.semester_course.course_details?.title || "Unknown Course";
+          
+          if (!courseSummary[courseName]) {
+            courseSummary[courseName] = { total: 0, present: 0, excused: 0, percentage: 0 };
           }
-          courseSummary[record.courseName].total++;
+          
+          courseSummary[courseName].total++;
           if (record.status === "PRESENT") {
-            courseSummary[record.courseName].present++;
+            courseSummary[courseName].present++;
+          }
+          if (record.status === "EXCUSED") {
+            courseSummary[courseName].excused++;
           }
         });
         
@@ -68,7 +100,7 @@ const CourseAttendanceTab = ({ userId }: CourseAttendanceTabProps) => {
         return <CheckCircleIcon className="h-4 w-4 text-green-600" />;
       case "ABSENT":
         return <XCircleIcon className="h-4 w-4 text-red-600" />;
-      case "LATE":
+      case "EXCUSED":
         return <ClockIcon className="h-4 w-4 text-yellow-600" />;
       default:
         return null;
@@ -81,11 +113,15 @@ const CourseAttendanceTab = ({ userId }: CourseAttendanceTabProps) => {
         return t("present");
       case "ABSENT":
         return t("absent");
-      case "LATE":
-        return t("late");
+      case "EXCUSED":
+        return t("excused");
       default:
         return status;
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
   };
 
   if (loading) {
@@ -101,6 +137,7 @@ const CourseAttendanceTab = ({ userId }: CourseAttendanceTabProps) => {
       <div className="text-center py-12 text-muted-foreground">
         <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
         <p>{t("no_course_attendance_records")}</p>
+        <p className="text-sm mt-2">{t("attendance_appears_after_session")}</p>
       </div>
     );
   }
@@ -112,7 +149,7 @@ const CourseAttendanceTab = ({ userId }: CourseAttendanceTabProps) => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Object.entries(summary).map(([courseName, data]) => (
             <div key={courseName} className="card p-4">
-              <h3 className="font-semibold text-foreground mb-2">{courseName}</h3>
+              <h3 className="font-semibold text-foreground mb-2 line-clamp-1">{courseName}</h3>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-muted-foreground">{t("attendance_rate")}</span>
                 <span className={`text-lg font-bold ${
@@ -129,9 +166,11 @@ const CourseAttendanceTab = ({ userId }: CourseAttendanceTabProps) => {
                   style={{ width: `${data.percentage}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {data.present} / {data.total} {t("sessions_attended")}
-              </p>
+              <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                <span>{t("present")}: {data.present}</span>
+                <span>{t("excused")}: {data.excused}</span>
+                <span>{t("total")}: {data.total}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -146,16 +185,26 @@ const CourseAttendanceTab = ({ userId }: CourseAttendanceTabProps) => {
               <tr>
                 <th className="text-left py-3 px-4">{t("course")}</th>
                 <th className="text-left py-3 px-4">{t("date")}</th>
+                <th className="text-left py-3 px-4">{t("topic")}</th>
+                <th className="text-left py-3 px-4">{t("teacher")}</th>
                 <th className="text-left py-3 px-4">{t("status")}</th>
                 <th className="text-left py-3 px-4">{t("remark")}</th>
               </tr>
             </thead>
             <tbody>
               {attendanceRecords.map((record, index) => (
-                <tr key={index} className="border-t border-border">
-                  <td className="py-3 px-4 font-medium">{record.courseName}</td>
+                <tr key={record.id || index} className="border-t border-border">
+                  <td className="py-3 px-4 font-medium">
+                    {record.session.semester_course.course_details?.title || "Course"}
+                  </td>
                   <td className="py-3 px-4 text-muted-foreground">
-                    {new Date(record.sessionDate).toLocaleDateString()}
+                    {formatDate(record.session.date)}
+                  </td>
+                  <td className="py-3 px-4 text-muted-foreground">
+                    {record.session.topic || "-"}
+                  </td>
+                  <td className="py-3 px-4 text-muted-foreground">
+                    {record.session.teacher_name || "-"}
                   </td>
                   <td className="py-3 px-4">
                     <span className="flex items-center gap-1">
@@ -163,7 +212,9 @@ const CourseAttendanceTab = ({ userId }: CourseAttendanceTabProps) => {
                       {getStatusText(record.status)}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-muted-foreground">{record.remark || "-"}</td>
+                  <td className="py-3 px-4 text-muted-foreground">
+                    {record.remarks || "-"}
+                  </td>
                 </tr>
               ))}
             </tbody>

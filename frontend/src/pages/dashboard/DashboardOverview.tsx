@@ -18,6 +18,7 @@ import {
   FiFileText,
   FiClock,
   FiAlertTriangle,
+  FiTrendingUp,
 } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
 
@@ -145,22 +146,22 @@ const DashboardOverview = () => {
         <StatsCard
           title={t("attendance_rate", "Attendance Rate")}
           value={`${attendanceRate}%`}
-          icon={<FiFileText className="h-5 w-5 text-blue-600" />}
+          icon={<FiTrendingUp className="h-5 w-5 text-blue-600" />}
         />
         <StatsCard
           title={t("upcoming_events", "Upcoming Events")}
           value={events.length}
-          icon={<FiClock className="h-5 w-5 text-amber-500" />}
+          icon={<FiCalendar className="h-5 w-5 text-amber-500" />}
         />
         <StatsCard
           title={t("tab_family", "My Family")}
           value={family?.siblings?.length || 0}
-          icon={<FiCheckCircle className="h-5 w-5 text-emerald-500" />}
+          icon={<FiUsers className="h-5 w-5 text-emerald-500" />}
         />
         <StatsCard
           title={t("service_group", "Service Group")}
           value={assignedGroup}
-          icon={<FiAlertTriangle className="h-5 w-5 text-red-500" />}
+          icon={<FiHeart className="h-5 w-5 text-red-500" />}
         />
       </div>
 
