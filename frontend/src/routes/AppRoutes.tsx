@@ -23,7 +23,6 @@ import AnonymousIntro from "../pages/qa/AnonymousIntro";
 import QuestionList from "../pages/qa/QuestionList";
 import AskQuestion from "../pages/qa/AskQuestion";
 import ResourcesList from "../pages/resources/ResourcesList";
-import UploadResource from "../pages/resources/UploadResource";
 
 import {
   DonationOutside,
@@ -40,10 +39,9 @@ import CourseManagement from "@/pages/course/CoordinatorCourses";
 import TakeAttendance from "@/pages/course/TakeAttendance";
 import EventManagement from "@/pages/admin/EventManagement";
 import CounselorQueue from "../pages/admin/CounselorQueue";
-import TeacherCourses from "@/pages/course/CoordinatorCourses";
-import CourseMaterials from "@/pages/course/CourseMaterials";
 import ModeratorQueue from "@/pages/admin/ModeratorQueue";
 import CoordinatorCourses from "@/pages/course/CoordinatorCourses";
+import CourseMaterialsPage from "@/pages/course/CourseMaterialsPage";
 
 export default function AppRoutes() {
   return (
@@ -98,7 +96,7 @@ export default function AppRoutes() {
               {/* Admin‑only routes inside dashboard layout */}
               <Route
                 element={
-                  <ProtectedRoute allowedRoles={["service_admin", "QA_counselor", "resource_admin", "Course_coordinator", "QA_moderator", "Event_manager"]} />
+                  <ProtectedRoute allowedRoles={["service_admin", "QA_counselor", "Course_coordinator", "QA_moderator", "Event_manager"]} />
 
                 }
               >
@@ -107,12 +105,10 @@ export default function AppRoutes() {
               <Route path="event-management" element={<EventManagement/>}/>
               <Route path="take-attendance" element={<TakeAttendance/>}/>
               <Route path="counselor/approve" element={<ModeratorQueue/>}/>
-              <Route path="resources/upload" element={<UploadResource/>}/>
               <Route path="counselor/queue" element={<CounselorQueue />}/>
               <Route path="courses/coordinator" element={<CoordinatorCourses/>}/>
               <Route path="courses/:id/attendance" element={<TakeAttendance/>}/>
-              <Route path="courses/:id/materials" element={<CourseMaterials/>}/>
-
+              <Route path="courses/:id/materials" element={<CourseMaterialsPage/>}/>
               </Route>
             </Route>
           </Route>
