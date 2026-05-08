@@ -30,7 +30,7 @@ interface SemesterCourse {
 
 interface CourseSession {
   id: string;
-  session_date: string;
+  date: string;  // ← CORRECT - backend uses "date"
   topic: string | null;
   teacher_name: string | null;
 }
@@ -155,34 +155,32 @@ const TakeAttendance = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!selectedSessionId) {
       toast.error(t("select_session_first"));
       return;
     }
     
-    if (!semesterCourseId) return;
-    
     setSubmitting(true);
-    
     try {
-      // Prepare records for bulk API
       const records = students.map((student) => ({
-        student_id: student.id,
+        student_id: student.id,  // ✅ CORRECT - backend expects "student_id"
         status: attendanceData[student.id]?.status || "PRESENT",
-        remarks: attendanceData[student.id]?.remarks || null,
       }));
-
-      await api.bulkMarkAttendance(selectedSessionId, records);
       
+      console.log("Submitting attendance:", { sessionId: selectedSessionId, records }); // Debug log
+      
+      await api.bulkMarkAttendance(selectedSessionId, records);
       toast.success(t("attendance_saved_success"));
       navigate("/dashboard/courses");
     } catch (error: any) {
       console.error("Failed to save attendance", error);
+      console.error("Error response:", error.response?.data);  // Debug log
       
       // Handle specific error for non-enrolled students
       if (error.response?.data?.invalid_student_ids) {
         toast.error(t("some_students_not_enrolled"));
+      } else if (error.response?.data?.detail) {
+        toast.error(error.response.data.detail);
       } else {
         toast.error(t("failed_to_save_attendance"));
       }
@@ -270,7 +268,7 @@ const TakeAttendance = () => {
               <option value="">{t("select_session_option")}</option>
               {sessions.map((session) => (
                 <option key={session.id} value={session.id}>
-                  {new Date(session.session_date).toLocaleDateString()} - {session.topic || t("no_topic")}
+                  {new Date(session.date).toLocaleDateString()} - {session.topic || t("no_topic")}
                 </option>
               ))}
             </select>
@@ -280,7 +278,7 @@ const TakeAttendance = () => {
           {selectedSessionDetails && (
             <div className="mt-3 p-3 bg-muted/30 rounded-lg">
               <p className="text-sm">
-                <span className="font-medium">{t("date")}:</span> {new Date(selectedSessionDetails.session_date).toLocaleDateString()}
+                <span className="font-medium">{t("date")}:</span> {new Date(selectedSessionDetails.date).toLocaleDateString()}
               </p>
               {selectedSessionDetails.topic && (
                 <p className="text-sm mt-1">

@@ -134,7 +134,7 @@ const CoordinatorCourses = () => {
     try {
       await api.createCourseSession({
         semester_course: selectedCourse.id,
-        session_date: sessionDate,
+        date: sessionDate,  // ← CHANGED: from session_date to date
         topic: sessionTopic || undefined,
         teacher_name: teacherName || undefined,
       });
