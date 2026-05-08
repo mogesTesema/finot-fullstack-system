@@ -528,8 +528,8 @@ getResourceCategories: async (): Promise<{ id: string; name: string; icon: strin
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   },
 
-  // Get pre-assembled roster for a session (students + their attendance status)
-  getSessionRoster: async (sessionId: string): Promise<{ roster: Array<{ student_id: string; first_name: string; last_name: string; status: string | null }> }> => {
+  // Should be: GET /api/course/sessions/<session_uuid>/roster/
+  getSessionRoster: async (sessionId: string): Promise<any> => {
     const response = await axiosInstance.get(`/api/course/sessions/${sessionId}/roster/`);
     return response.data;
   },
@@ -546,14 +546,19 @@ getResourceCategories: async (): Promise<{ id: string; name: string; icon: strin
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   },
 
-  // Create a new session with optional teacher_name (guest lecturer)
+  // Create a new session with optional teacher_name
   createCourseSession: async (data: {
     semester_course: string;
-    session_date: string;
+    date: string;  // ← CHANGED: must be "date" not "session_date"
     topic?: string;
-    teacher_name?: string;  // NEW FIELD
+    teacher_name?: string;
   }): Promise<any> => {
-    const response = await axiosInstance.post('/api/course/sessions/', data);
+    const response = await axiosInstance.post('/api/course/sessions/', {
+      semester_course: data.semester_course,
+      date: data.date,  // ← CHANGED: must be "date"
+      topic: data.topic,
+      teacher_name: data.teacher_name,
+    });
     return response.data;
   },
 
@@ -563,24 +568,46 @@ getResourceCategories: async (): Promise<{ id: string; name: string; icon: strin
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   },
 
-  // Bulk mark attendance (coordinator only)
-  bulkMarkAttendance: async (sessionId: string, records: { student_id: string; status: string; remarks?: string }[]): Promise<any> => {
+  // Should be: POST /api/course/attendance/bulk-mark/<session_uuid>/
+  bulkMarkAttendance: async (sessionId: string, records: any[]): Promise<any> => {
     const response = await axiosInstance.post(`/api/course/attendance/bulk-mark/${sessionId}/`, { records });
     return response.data;
   },
 
-  // Get course materials
-  getCourseMaterials: async (semesterCourseId: string): Promise<any[]> => {
-    const response = await axiosInstance.get(`/api/course/materials/?semester_course=${semesterCourseId}`);
+  // ========== UNIFIED MATERIALS API (NEW) ==========
+
+  // Get all materials (auto-filtered by role)
+  getMaterials: async (params?: { type?: "COURSE" | "SERVICE" | "GENERAL"; course?: string; service_group?: number }): Promise<any[]> => {
+    let url = '/api/resources/materials/';
+    const queryParams = new URLSearchParams();
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.course) queryParams.append('course', params.course);
+    if (params?.service_group) queryParams.append('service_group', params.service_group.toString());
+    if (queryParams.toString()) url += `?${queryParams.toString()}`;
+    const response = await axiosInstance.get(url);
     return Array.isArray(response.data) ? response.data : (response.data?.results || []);
   },
 
-  // Upload course material
-  uploadCourseMaterial: async (data: FormData): Promise<any> => {
-    const response = await axiosInstance.post('/api/course/materials/', data, {
+  // Upload a new material (course, service, or general)
+  uploadMaterial: async (data: FormData): Promise<any> => {
+    const response = await axiosInstance.post('/api/resources/materials/', data, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
   },
+
+  // Delete a material
+  deleteMaterial: async (materialId: number): Promise<void> => {
+    await axiosInstance.delete(`/api/resources/materials/${materialId}/`);
+  },
+
+  // Update a material
+  updateMaterial: async (materialId: number, data: FormData): Promise<any> => {
+    const response = await axiosInstance.patch(`/api/resources/materials/${materialId}/`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
   
 };
