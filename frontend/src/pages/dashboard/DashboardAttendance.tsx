@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { api } from "../../lib/api";
 import { Card, SectionHeader, StatsCard } from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
@@ -7,12 +7,14 @@ import EmptyState from "../../components/ui/EmptyState";
 import { useTranslation } from "react-i18next";
 import { AttendanceRecord } from "../../types";
 import { FiCheckCircle, FiCalendar, FiTrendingUp, FiAward } from "react-icons/fi";
+import CourseAttendanceTab from "@/components/attendance/CourseAttendanceTab";
 
 const DashboardAttendance = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [attendanceTab, setAttendanceTab] = useState<"event" | "course">("event");
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -66,6 +68,31 @@ const DashboardAttendance = () => {
         icon={<FiCheckCircle className="h-6 w-6" />}
       />
 
+      {/* Tab Switcher */}
+      <div className="flex gap-2 mb-6 border-b border-border">
+        <button
+          onClick={() => setAttendanceTab("event")}
+          className={`px-4 py-2 font-medium text-sm transition-all border-b-2 ${
+            attendanceTab === "event"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {t("event_attendance")}
+        </button>
+        <button
+          onClick={() => setAttendanceTab("course")}
+          className={`px-4 py-2 font-medium text-sm transition-all border-b-2 ${
+            attendanceTab === "course"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {t("course_attendance")}
+        </button>
+      </div>
+
+      {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard title={t("attendance_rate")} value={`${attendanceRate}%`} icon={<FiTrendingUp className="h-6 w-6" />} trend={{ value: 5, positive: true }} />
         <StatsCard title={t("present")} value={presentCount} icon={<FiCheckCircle className="h-6 w-6" />} />
@@ -73,29 +100,34 @@ const DashboardAttendance = () => {
         <StatsCard title={t("total_events")} value={attendance.length} icon={<FiAward className="h-6 w-6" />} />
       </div>
 
-      <Card>
-        <h3 className="mb-4 text-base font-medium text-foreground">{t("attendance_history")}</h3>
-        {attendance.length === 0 ? (
-          <EmptyState icon={<FiCheckCircle className="h-8 w-8" />} title={t("no_attendance_records")} description={t("attendance_history_will_appear")} />
-        ) : (
-          <div className="space-y-2">
-            {attendance.map((record) => (
-              <div key={record.id} className="flex items-center justify-between rounded-xl bg-muted/50 p-4 transition hover:bg-muted">
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground">{record.event_title || "Event"}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {record.event_date ? new Date(record.event_date).toLocaleDateString() : "—"}
-                    {record.remark && ` • ${record.remark}`}
-                  </p>
-                  <Badge variant={statusStyles[record.status] as any} size="sm">
-                    {t(`status_${record.status.toLowerCase()}`)}
-                  </Badge>
+      {/* Conditional Content based on Tab */}
+      {attendanceTab === "event" ? (
+        <Card>
+          <h3 className="mb-4 text-base font-medium text-foreground">{t("attendance_history")}</h3>
+          {attendance.length === 0 ? (
+            <EmptyState icon={<FiCheckCircle className="h-8 w-8" />} title={t("no_attendance_records")} description={t("attendance_history_will_appear")} />
+          ) : (
+            <div className="space-y-2">
+              {attendance.map((record) => (
+                <div key={record.id} className="flex items-center justify-between rounded-xl bg-muted/50 p-4 transition hover:bg-muted">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground">{record.event_title || "Event"}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {record.event_date ? new Date(record.event_date).toLocaleDateString() : "—"}
+                      {record.remark && ` • ${record.remark}`}
+                    </p>
+                    <Badge variant={statusStyles[record.status] as any} size="sm">
+                      {t(`status_${record.status.toLowerCase()}`)}
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
+              ))}
+            </div>
+          )}
+        </Card>
+      ) : (
+        <CourseAttendanceTab userId={user?.id} />
+      )}
     </div>
   );
 };

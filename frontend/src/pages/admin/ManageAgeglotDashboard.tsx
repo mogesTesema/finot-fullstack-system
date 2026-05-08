@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { UserGroupIcon, CalendarIcon, UsersIcon } from "@heroicons/react/24/outline";
+import { UserGroupIcon, CalendarIcon, UsersIcon, FolderIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import GroupEventsManager from "./components/GroupEventsManager";
 import GroupAttendanceManager from "./components/GroupAttendanceManager";
+import MaterialsManager from "./components/MaterialsManager";
 
 export default function ManageAgeglotDashboard() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"events" | "attendance">("events");
+  const [activeTab, setActiveTab] = useState<"events" | "attendance" | "materials">("events");
   const [group, setGroup] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchGroupData = async () => {
       try {
-        // Find which group this admin manages
         const adminGroup = await api.getMyManagedGroup();
         setGroup(adminGroup);
       } catch (error) {
@@ -43,9 +43,7 @@ export default function ManageAgeglotDashboard() {
       <div className="flex min-h-[50vh] flex-col items-center justify-center p-6 text-center">
         <UserGroupIcon className="mb-4 h-16 w-16 text-muted-foreground" />
         <h2 className="text-2xl font-bold text-foreground">{t("no_group_assigned")}</h2>
-        <p className="mt-2 max-w-md text-muted-foreground">
-          {t("no_group_assigned_msg")}
-        </p>
+        <p className="mt-2 max-w-md text-muted-foreground">{t("no_group_assigned_msg")}</p>
       </div>
     );
   }
@@ -82,6 +80,17 @@ export default function ManageAgeglotDashboard() {
             <UsersIcon className="h-4 w-4" />
             <span>{t("attendance")}</span>
           </button>
+          <button
+            onClick={() => setActiveTab("materials")}
+            className={`flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              activeTab === "materials"
+                ? "bg-primary text-primary-foreground shadow"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <FolderIcon className="h-4 w-4" />
+            <span>{t("materials")}</span>
+          </button>
         </div>
       </div>
 
@@ -92,10 +101,15 @@ export default function ManageAgeglotDashboard() {
         transition={{ duration: 0.2 }}
         className="min-h-[500px]"
       >
-        {activeTab === "events" ? (
-          <GroupEventsManager groupId={group.id} />
-        ) : (
-          <GroupAttendanceManager groupId={group.id} />
+        {activeTab === "events" && <GroupEventsManager groupId={group.id} eventType="group" />}
+        {activeTab === "attendance" && <GroupAttendanceManager groupId={group.id} />}
+        {activeTab === "materials" && (
+          <MaterialsManager
+            materialType="SERVICE"
+            serviceGroupId={group.id}
+            title={t("group_materials")}
+            subtitle={t("group_materials_description")}
+          />
         )}
       </motion.div>
     </div>

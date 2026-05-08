@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Bars3Icon, XMarkIcon, HeartIcon, ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import LanguageSelector from "../ui/LanguageSelector";
-
+import { Bars3Icon, XMarkIcon, HeartIcon, ChatBubbleLeftRightIcon, DocumentIcon } from "@heroicons/react/24/outline";
 const Navbar = () => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);

@@ -1,7 +1,9 @@
 // src/services/api.real.js
 import axiosInstance from './axios';
-import { AuthUser, AttendanceRecord, Donation, Event, Question, PaginatedResponse, ServiceGroup, ServiceSelection } from '../types';
-
+import { AuthUser, AttendanceRecord, Donation, Event, Question, PaginatedResponse, ServiceGroup, ServiceSelection, Answer } from '../types';
+//import { privateQaMockApi, MockPrivateQuestion, MockPrivateAnswer } from './privateQaMockApi';
+import { Resource } from '@/types/resource';
+//import {Course, CourseSession, CourseAttendance, CourseWithDetails} from '@types/course'
 export const BACKEND_PAGE_SIZE = 20;
 
 /**
@@ -34,7 +36,18 @@ const combineUserWithProfile = (userData: Record<string, any>, profileData: Reco
     role = 'service_admin';
   } else if (backendRoles.includes('FamilyAdmin')) {
     role = 'family_admin';
-  }
+  } else if (backendRoles.includes('QACounselor')){
+    role = 'QA_counselor';
+  } else if (backendRoles.includes('Teacher')){
+    role = 'teacher'
+  } else if (backendRoles.includes('QAModerator')){
+    role = 'QA_moderator'
+  } else if (backendRoles.includes('EventManager')){
+    role = 'Event_manager'
+  } else if (backendRoles.includes('CourseCoordinator')){
+    role = 'Course_coordinator'
+  } 
+
 
   return {
     id: userData.id,
@@ -103,6 +116,7 @@ export const api = {
     let response;
     try {
       response = await axiosInstance.post('/auth/jwt/create/', { username: email, password });
+      console.log("LOGIN RAW RESPONSE:", response);
     } catch (error: any) {
       if (error.response && error.response.status === 401) {
         throw new Error("Incorrect Email or Password. If you don't have an account, please register.");
@@ -144,7 +158,6 @@ export const api = {
 
     try {
       const response = await axiosInstance.post('/auth/users/', payload);
-      console.log('✅ Registration response:', response.data);
       return await api.login(userData.email, userData.password);
     } catch (error: any) {
       console.error(' Registration error response:', error.response?.data);
@@ -348,6 +361,42 @@ export const api = {
     return { success: true };
   },
 
+  // ========== MODERATOR Q&A API ==========
+
+  // Get moderation queue (unapproved PUBLIC questions only)
+  getModerationQueue: async (): Promise<any[]> => {
+    const response = await axiosInstance.get('/api/qa/questions/moderation-queue/');
+    // Returns array of unapproved PUBLIC questions
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
+  
+  // Approve a public question
+  approveQuestion: async (questionId: string): Promise<void> => {
+    await axiosInstance.post(`/api/qa/questions/${questionId}/approve/`);
+  },
+  
+  // Approve a public answer
+  approveAnswer: async (answerId: number): Promise<void> => {
+    await axiosInstance.post(`/api/qa/answers/${answerId}/approve/`);
+  },
+  
+  // Reject/Delete a question (moderator can delete inappropriate ones)
+  rejectQuestion: async (questionId: string): Promise<void> => {
+    await axiosInstance.delete(`/api/qa/questions/${questionId}/`);
+  },
+  
+  // Reject/Delete an answer
+  rejectAnswer: async (answerId: number): Promise<void> => {
+    await axiosInstance.delete(`/api/qa/answers/${answerId}/`);
+  },
+  
+  // Get pending answers for a specific question (if needed)
+  getPendingAnswers: async (questionId: string): Promise<any[]> => {
+    const response = await axiosInstance.get(`/api/qa/answers/?question=${questionId}&is_approved=false`);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
+
+
   // ========== ADMIN SPECIFIC ==========
   getGroupByAdminId: async (adminId: string | number) => {
     const response = await axiosInstance.get(`/api/service/groups/?admin=${adminId}`);
@@ -384,4 +433,181 @@ export const api = {
     await axiosInstance.delete(`/auth/users/${userId}/`);
     return { success: true };
   },
+
+  // ========== UPDATED Q&A API METHODS ==========
+
+// Get user's private questions (for student inbox)
+getPrivateInbox: async (): Promise<Question[]> => {
+  const response = await axiosInstance.get('/api/qa/questions/private-inbox/');
+  return response.data;
+},
+
+// Get user's contributions (questions + answers)
+getMyContributions: async (): Promise<{ questions: Question[]; answers: Answer[] }> => {
+  const response = await axiosInstance.get('/api/qa/questions/my-contributions/');
+  return response.data;
+},
+
+// Counselor: Get queue of private questions
+getCounselorQueue: async (): Promise<Question[]> => {
+  const response = await axiosInstance.get('/api/qa/questions/counselor-queue/');
+  return response.data;
+},
+
+
+// ========== RESOURCES API ==========
+
+// Get all resources with filters
+getResources: async (params?: {
+  category?: string;
+  batch?: number;
+  group?: number;
+  search?: string;
+}): Promise<Resource[]> => {
+  const queryParams = new URLSearchParams();
+  if (params?.category) queryParams.append('category', params.category);
+  if (params?.batch) queryParams.append('batch', params.batch.toString());
+  if (params?.group) queryParams.append('group', params.group.toString());
+  if (params?.search) queryParams.append('search', params.search);
+  
+  const url = `/api/resources/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const response = await axiosInstance.get(url);
+  return unwrapResults(response.data);
+},
+
+// Get single resource
+getResourceById: async (id: number): Promise<Resource> => {
+  const response = await axiosInstance.get(`/api/resources/${id}/`);
+  return response.data;
+},
+
+// Upload new resource (admin only)
+uploadResource: async (formData: FormData): Promise<Resource> => {
+  const response = await axiosInstance.post('/api/resources/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+},
+
+// Update resource (admin only)
+updateResource: async (id: number, formData: FormData): Promise<Resource> => {
+  const response = await axiosInstance.patch(`/api/resources/${id}/`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return response.data;
+},
+
+// Delete resource (admin only)
+deleteResource: async (id: number): Promise<void> => {
+  await axiosInstance.delete(`/api/resources/${id}/`);
+},
+
+// Get resource categories
+getResourceCategories: async (): Promise<{ id: string; name: string; icon: string }[]> => {
+  // For now, return static categories
+  return Promise.resolve([
+    { id: "BIBLE_STUDY", name: "Bible Study", icon: "BookOpenIcon" },
+    { id: "SERMON", name: "Sermon", icon: "MusicalNoteIcon" },
+    { id: "DOCUMENT", name: "Document", icon: "DocumentIcon" },
+    { id: "VIDEO", name: "Video", icon: "VideoCameraIcon" },
+    { id: "AUDIO", name: "Audio", icon: "SpeakerWaveIcon" },
+    { id: "LINK", name: "Link", icon: "LinkIcon" },
+    { id: "OTHER", name: "Other", icon: "FolderIcon" },
+  ]);
+},
+
+  // ========== COURSE ATTENDANCE API ==========
+
+  // Get semester courses (auto-filtered by role)
+  getSemesterCourses: async (batchYear?: number): Promise<any[]> => {
+    let url = '/api/course/semester-courses/';
+    if (batchYear) {
+      url += `?batch_year=${batchYear}`;
+    }
+    const response = await axiosInstance.get(url);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
+
+  // Should be: GET /api/course/sessions/<session_uuid>/roster/
+  getSessionRoster: async (sessionId: string): Promise<any> => {
+    const response = await axiosInstance.get(`/api/course/sessions/${sessionId}/roster/`);
+    return response.data;
+  },
+
+  // Get enrollments for a specific semester course (coordinator only)
+  getCourseEnrollments: async (semesterCourseId: string): Promise<any[]> => {
+    const response = await axiosInstance.get(`/api/course/enrollments/?semester_course=${semesterCourseId}`);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
+
+  // Get sessions for a semester course
+  getCourseSessions: async (semesterCourseId: string): Promise<any[]> => {
+    const response = await axiosInstance.get(`/api/course/sessions/?semester_course=${semesterCourseId}`);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
+
+  // Create a new session with optional teacher_name
+  createCourseSession: async (data: {
+    semester_course: string;
+    date: string;  // ← CHANGED: must be "date" not "session_date"
+    topic?: string;
+    teacher_name?: string;
+  }): Promise<any> => {
+    const response = await axiosInstance.post('/api/course/sessions/', {
+      semester_course: data.semester_course,
+      date: data.date,  // ← CHANGED: must be "date"
+      topic: data.topic,
+      teacher_name: data.teacher_name,
+    });
+    return response.data;
+  },
+
+  // Get my attendance records (student only)
+  getMyCourseAttendance: async (): Promise<any[]> => {
+    const response = await axiosInstance.get('/api/course/attendance/');
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
+
+  // Should be: POST /api/course/attendance/bulk-mark/<session_uuid>/
+  bulkMarkAttendance: async (sessionId: string, records: any[]): Promise<any> => {
+    const response = await axiosInstance.post(`/api/course/attendance/bulk-mark/${sessionId}/`, { records });
+    return response.data;
+  },
+
+  // ========== UNIFIED MATERIALS API (NEW) ==========
+
+  // Get all materials (auto-filtered by role)
+  getMaterials: async (params?: { type?: "COURSE" | "SERVICE" | "GENERAL"; course?: string; service_group?: number }): Promise<any[]> => {
+    let url = '/api/resources/materials/';
+    const queryParams = new URLSearchParams();
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.course) queryParams.append('course', params.course);
+    if (params?.service_group) queryParams.append('service_group', params.service_group.toString());
+    if (queryParams.toString()) url += `?${queryParams.toString()}`;
+    const response = await axiosInstance.get(url);
+    return Array.isArray(response.data) ? response.data : (response.data?.results || []);
+  },
+
+  // Upload a new material (course, service, or general)
+  uploadMaterial: async (data: FormData): Promise<any> => {
+    const response = await axiosInstance.post('/api/resources/materials/', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  // Delete a material
+  deleteMaterial: async (materialId: number): Promise<void> => {
+    await axiosInstance.delete(`/api/resources/materials/${materialId}/`);
+  },
+
+  // Update a material
+  updateMaterial: async (materialId: number, data: FormData): Promise<any> => {
+    const response = await axiosInstance.patch(`/api/resources/materials/${materialId}/`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  
 };
