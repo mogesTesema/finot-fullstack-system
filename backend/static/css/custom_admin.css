@@ -1,0 +1,242 @@
+/* 
+ * FINOT ADMIN CUSTOM THEME
+ * A clean, light SaaS interface matching the main Finot UI
+ * 60% Blue, 30% Neutral White/Gray, 10% Yellow Accent
+ */
+
+:root {
+  /* Finot Sidebar Colors */
+  --finot-sidebar-bg: #EBF5FF;
+  --finot-sidebar-sub: #D7EBFF;
+  --finot-sidebar-active: #AFD7FF;
+  
+  /* Finot Core Colors */
+  --finot-blue: #1E6BD6;
+  --finot-blue-soft: #E8F1FF;
+  --finot-blue-dark: #1550A6;
+  --finot-yellow: #FFC107;
+  --finot-yellow-hover: #E6AC00;
+  --finot-bg: #F3F4F6;
+  --finot-card: #F8FAFC; 
+  --finot-border: #E5E7EB;
+  --finot-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* 1. OVERALL BACKGROUND & LAYOUT */
+body.bg-gray-50, body.dark {
+  background-color: var(--finot-bg) !important;
+  color: #1F2937 !important;
+}
+
+/* 2. SIDEBAR NAVIGATION (Light Blue SaaS Style) */
+#nav-sidebar, nav#nav-sidebar-inner {
+  background-color: var(--finot-sidebar-bg) !important;
+  border-right: 1px solid var(--finot-border) !important;
+  /* Add subtle inner shadow for depth against the main content */
+  box-shadow: inset -1px 0 0 rgba(0,0,0,0.05) !important;
+}
+
+/* Ensure the sidebar text works on top of the soft blue */
+#nav-sidebar a, #nav-sidebar button, #nav-sidebar h2, #nav-sidebar span {
+  color: #374151 !important; /* Dark slate */
+  font-weight: 500;
+}
+
+/* Sidebar hover effects - slightly darker blue shade */
+#nav-sidebar a:hover, #nav-sidebar button:hover {
+  background-color: var(--finot-sidebar-sub) !important; /* More light blue */
+  color: var(--finot-blue-dark) !important;
+}
+
+/* Expanded container background → more light blue */
+#nav-sidebar [x-show="open"],
+#nav-sidebar ul[class*="mt-"] {
+  background-color: var(--finot-sidebar-sub) !important;
+}
+
+/* Active sidebar item - more light blue action color */
+#nav-sidebar a.active, 
+#nav-sidebar .bg-base-100 {
+  background-color: var(--finot-sidebar-active) !important;
+  color: var(--finot-blue-dark) !important;
+  border-left: 4px solid var(--finot-blue);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Pop out effect */
+  border-radius: 0 6px 6px 0; /* Slightly round the right side */
+  margin-right: 0.5rem; /* Space from the edge */
+}
+
+#nav-sidebar a.active:hover, #nav-sidebar .bg-base-100:hover {
+  background-color: var(--finot-sidebar-sub) !important;
+}
+
+#nav-sidebar a.active span, #nav-sidebar .bg-base-100 span,
+#nav-sidebar h2 {
+  color: var(--finot-blue-dark) !important;
+}
+
+/* 3. TOP HEADER (Primary Blue) */
+header.bg-white {
+  background-color: var(--finot-blue) !important;
+  border-bottom: none !important;
+  box-shadow: var(--finot-shadow);
+}
+
+header.bg-white * {
+  color: #FFFFFF !important;
+}
+
+header.bg-white input {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #FFFFFF !important;
+}
+
+header.bg-white input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Logo specific fix to ensure it shows clearly on blue */
+#site-name {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+/* Specific main content cards (e.g., the dashboard panels, form outlines) */
+main .rounded-lg, main .border, .module {
+  background-color: var(--finot-card);
+  border: 1px solid var(--finot-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Clearer drop shadow to separate from bg */
+  border-radius: 8px;
+}
+
+/* The global background wrapper */
+main {
+  background-color: var(--finot-bg) !important; /* Soft grey/blue background */
+}
+
+/* Add a light header to data tables/modules to create a boundary */
+.module h2, .module caption {
+    background-color: #F8FAFC !important; /* Very light slate */
+    border-bottom: 1px solid var(--finot-border);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: #1F2937;
+    border-radius: 8px 8px 0 0;
+}
+
+/* 5. BUTTONS (Action Light Blue & Secondary Blue) */
+
+/* Primary Action Buttons (Save, Delete, Add new) */
+button.bg-primary-600, a.bg-primary-600, input[type="submit"].bg-primary-600 {
+  background-color: var(--finot-sidebar-active) !important;
+  color: var(--finot-blue-dark) !important; /* Dark text on light blue */
+  font-weight: 600 !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(175, 215, 255, 0.4) !important;
+  transition: all 0.2s ease !important;
+}
+
+button.bg-primary-600:hover, a.bg-primary-600:hover, input[type="submit"].bg-primary-600:hover {
+  background-color: var(--finot-sidebar-sub) !important;
+  transform: translateY(-1px);
+}
+
+/* Secondary Buttons */
+button.bg-white, a.bg-white {
+  background-color: var(--finot-blue-soft) !important;
+  color: var(--finot-blue-dark) !important;
+  border: 1px solid var(--finot-blue) !important;
+}
+
+button.bg-white:hover, a.bg-white:hover {
+  background-color: var(--finot-blue) !important;
+  color: #FFFFFF !important;
+  border-color: var(--finot-blue) !important;
+}
+
+.border-gray-200 {
+  border-color: var(--finot-border) !important;
+}
+
+/* Danger Buttons */
+button.bg-red-600, a.bg-red-600 {
+  background-color: #FEE2E2 !important;
+  color: #DC2626 !important;
+  border: 1px solid #FECACA !important;
+}
+button.bg-red-600:hover, a.bg-red-600:hover {
+  background-color: #FECACA !important;
+}
+
+/* 6. TABLES (Zebra Stripes, Hover, Soft Borders) */
+table {
+  width: 100%;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: 1px solid var(--finot-border); /* Clear boundary around table */
+  border-radius: 8px;
+  overflow: hidden; /* Keep rounded corners clean */
+  background-color: var(--finot-card);
+}
+
+thead {
+  background-color: #F8FAFC !important; /* Distinct column header background */
+}
+
+thead th {
+  color: #4B5563 !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--finot-border) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #F9FAFB !important; /* Better zebra striping */
+}
+
+tbody tr:hover {
+  background-color: var(--finot-blue-soft) !important; /* Hover highlight */
+}
+
+td {
+  border-bottom: 1px solid #F3F4F6 !important; /* Softer inner border */
+  padding: 0.75rem 1rem !important;
+}
+
+/* 7. FORMS (Modern spacing, Focus states) */
+input[type="text"], input[type="password"], input[type="email"], select, textarea {
+  background-color: var(--finot-card) !important;
+  border: 1px solid var(--finot-border) !important;
+  border-radius: 6px !important;
+  padding: 0.5rem 0.75rem !important;
+  transition: all 0.2s ease !important;
+  color: #1F2937 !important;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus, textarea:focus {
+  border-color: var(--finot-blue) !important;
+  box-shadow: 0 0 0 3px rgba(30, 107, 214, 0.15) !important;
+  outline: none !important;
+}
+
+/* Checkboxes & Radios */
+input[type="checkbox"], input[type="radio"] {
+  accent-color: var(--finot-blue) !important;
+}
+
+/* Fix text colors */
+.text-gray-900, .text-gray-800, .text-gray-700 {
+    color: #1F2937 !important;
+}
+
+.text-gray-500, .text-gray-400 {
+    color: #6B7280 !important;
+}
