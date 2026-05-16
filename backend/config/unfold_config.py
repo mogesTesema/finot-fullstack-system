@@ -14,7 +14,6 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
 
-
 UNFOLD = {
     # -------------------------------------------------------------------------
     # Branding & Layout
@@ -397,27 +396,9 @@ UNFOLD = {
                     },
                 ],
             },
-            # — Reports & Exports —
-            {
-                "title": _("Reports & Exports"),
-                "separator": True,
-                "collapsible": True,
-                "items": [
-                    {
-                        "title": _("Data Exporter"),
-                        "icon": "download",
-                        "link": reverse_lazy("reports_and_exports"),
-                        "permission": lambda request: request.user.is_superuser or (
-                            request.user.is_authenticated and request.user.roles.filter(name__in=["SuperAdmin"]).exists()
-                        ),
-                    },
-                ],
-            },
         ],
     },
-    # -------------------------------------------------------------------------
-    # Tabs — group related models for in-page tab navigation
-    # -------------------------------------------------------------------------
+    # Tabs — group related models
     "TABS": [
         {
             "models": [
