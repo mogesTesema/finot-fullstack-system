@@ -1,6 +1,6 @@
-from .settings import *
+from .settings.base import *
 
-# Enforce SQLite for testing so it doesn't touch the production/development database
+# Enforce SQLite for testing so it doesn't touch the production/development data
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
