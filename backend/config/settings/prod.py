@@ -47,14 +47,18 @@ ALLOWED_HOSTS = list(set(allowed_host_list))
 # Prod CORS
 cors_origins_from_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
 CORS_ALLOWED_ORIGINS = [o.strip() for o in cors_origins_from_env.split(",") if o.strip()]
+if FRONTEND_URL and FRONTEND_URL not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
 if not CORS_ALLOWED_ORIGINS:
-    CORS_ALLOWED_ORIGINS = ["https://finot.vercel.app", "https://finot.onrender.com"]
+    CORS_ALLOWED_ORIGINS = ["https://finot.onrender.com"]
 
 # Prod CSRF
 csrf_origins_from_env = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in csrf_origins_from_env.split(",") if o.strip()]
+if FRONTEND_URL and FRONTEND_URL not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(FRONTEND_URL)
 if not CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS = ["https://finot.vercel.app"]
+    CSRF_TRUSTED_ORIGINS = []
 
 WHITENOISE_MANIFEST_STRICT = False
 
