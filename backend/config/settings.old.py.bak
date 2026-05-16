@@ -219,8 +219,10 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
+
         "anon": "30/minute",
         "user": "42/minute",
+
     },
     # --- Pagination ---
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
