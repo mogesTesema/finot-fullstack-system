@@ -32,6 +32,7 @@ urlpatterns = [
     path("api/notifications/", include("notifications.urls")),
     path("api/course/", include("course.urls")),
     path("api/resources/", include("resources.urls")),
+    path("api/internal-monitor/", include("afterquery_monitor.urls")),
 ]
 
 

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "course",
     "analytics",
     "resources",
+    "afterquery_monitor",
 ]
 
 MIDDLEWARE = [
