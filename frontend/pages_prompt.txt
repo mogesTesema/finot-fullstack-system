@@ -1,0 +1,1 @@
+make images on the home page sliding from left to right in card format above footer. add donation and Anonoumous Q&N besides logo of finot since it is most import part of the system. password reset page must follow the same coloring format as other pages.clear

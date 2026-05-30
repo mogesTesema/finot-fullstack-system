@@ -1,0 +1,18 @@
+Available react-icons/fi icons (Feather):
+- FiUser
+- FiCalendar
+- FiCheckCircle
+- FiUsers
+- FiBriefcase
+- FiHeart
+- FiMessageCircle
+- FiBell
+- FiLogOut
+- FiChevronLeft
+- FiChevronRight
+- FiSettings
+- FiGrid
+- FiHome
+- FiBarChart
+
+FiLayoutDashboard is NOT available. Use FiGrid or FiHome as a replacement for dashboard overview.

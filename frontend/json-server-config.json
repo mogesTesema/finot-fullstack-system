@@ -1,0 +1,10 @@
+{
+  "routes": {
+    "/api/private/questions/": "/private_questions",
+    "/api/private/questions/:id": "/private_questions/:id",
+    "/api/private/answers/": "/private_answers",
+    "/api/private/answers/:id": "/private_answers/:id",
+    "/api/teacher/specializations/": "/teacher_specializations",
+    "/api/private/assignments/": "/private_question_assignments"
+  }
+}
